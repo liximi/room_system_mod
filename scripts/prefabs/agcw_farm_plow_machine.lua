@@ -174,6 +174,15 @@ local function StartUp(inst)
 	inst.startup_task = nil
 end
 
+local function CanShowScreen(inst, doer)
+	return true
+end
+
+local function GetScreenData(inst, doer)
+	return
+end
+
+
 local function OnSave(inst, data)
 	data.deploy_item = inst.deploy_item_save_record
 end
@@ -228,6 +237,12 @@ local function fn()
     inst.components.terraformer.turf = WORLD_TILES.FARMING_SOIL
 	inst.components.terraformer.onterraformfn = OnTerraform
 	inst.components.terraformer.plow = true
+
+	inst:AddComponent("agcw_popupscreen")
+	inst.components.agcw_popupscreen:SetPopUpID("AGCW_PLOW_TILE_SELECT")
+	inst.components.agcw_popupscreen.can_show_fn = CanShowScreen
+	inst.components.agcw_popupscreen.get_data_fn = GetScreenData
+	inst.agcw_popupscreen_action_strid = "PLOW_TILE_SELECT"
 
 	inst.deploy_item_save_record = nil
 

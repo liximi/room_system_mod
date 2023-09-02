@@ -109,27 +109,22 @@ local function fn()
         return inst
     end
 
-    ---------------------
     inst:AddComponent("locomotor") -- locomotor must be constructed before the stategraph
     inst.components.locomotor:EnableGroundSpeedMultiplier(true)
     inst.components.locomotor:SetTriggersCreep(false)
 
-    ------------------
     inst:AddComponent("health")
     inst.components.health:SetMaxHealth(TUNING.WILSON_HEALTH)
     inst.components.health.nofadeout = true
 
-    ------------------
     inst:AddComponent("hunger")
     inst.components.hunger:SetMax(60)
     inst.components.hunger:SetRate(TUNING.WILSON_HUNGER_RATE * 3)
     inst.components.hunger:SetKillRate(TUNING.WILSON_HEALTH / TUNING.STARVE_KILL_TIME)
 
-    ------------------
     -- inst:AddComponent("sanity")
     -- inst.components.sanity:SetMax(TUNING.WILSON_SANITY)
 
-    ------------------
     inst:AddComponent("combat")
     inst.components.combat:SetDefaultDamage(20)
     inst.components.combat.hiteffectsymbol = "torso"
@@ -139,18 +134,14 @@ local function fn()
 	inst.components.combat:SetKeepTargetFunction(KeepTargetFn)
 	inst.components.combat:SetRetargetFunction(3, RetargetFn)
 
-
-    ------------------
     MakeMediumBurnableCharacter(inst, "torso")
     inst.components.burnable:SetBurnTime(TUNING.PLAYER_BURN_TIME)
     inst.components.burnable.nocharring = true
 
-    ------------------
     MakeLargeFreezableCharacter(inst, "torso")
     inst.components.freezable:SetResistance(4)
     inst.components.freezable:SetDefaultWearOffTime(TUNING.PLAYER_FREEZE_WEAR_OFF_TIME)
 
-    ------------------
     inst:AddComponent("inventory")
 	inst.components.inventory:DisableDropOnDeath()
 	inst:DoTaskInTime(0.5, function()
@@ -160,20 +151,15 @@ local function fn()
 	end)
 
 
-	------------------
 	inst:AddComponent("eater")
 
-    ------------------
     -- inst:AddComponent("inspectable")
 
-    ------------------
     -- inst:AddComponent("temperature")
     -- inst.components.temperature.usespawnlight = true
 
-    ------------------
     -- inst:AddComponent("moisture")
 
-    ------------------
     -- inst:AddComponent("rider")
 
 	inst:SetStateGraph("agcw_SGsoldier")

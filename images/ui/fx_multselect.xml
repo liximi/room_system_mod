@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<Atlas>
+    <Texture filename="fx_multselect.tex"/>
+    <Elements>
+        <Element name="fx_multselect_01.tex" u1="0" u2="0.0009765625" v1="0.9990234375" v2="1.0"/>
+        <Element name="fx_multselect_02.tex" u1="0.0009765625" u2="0.9990234375" v1="0.9990234375" v2="1.0"/>
+        <Element name="fx_multselect_03.tex" u1="0.9990234375" u2="1.0" v1="0.9990234375" v2="1.0"/>
+        <Element name="fx_multselect_04.tex" u1="0" u2="0.0009765625" v1="0.0009765625" v2="0.9990234375"/>
+        <Element name="fx_multselect_05.tex" u1="0.0009765625" u2="0.9990234375" v1="0.0009765625" v2="0.9990234375"/>
+        <Element name="fx_multselect_06.tex" u1="0.9990234375" u2="1.0" v1="0.0009765625" v2="0.9990234375"/>
+        <Element name="fx_multselect_07.tex" u1="0" u2="0.0009765625" v1="0" v2="0.0009765625"/>
+        <Element name="fx_multselect_08.tex" u1="0.0009765625" u2="0.9990234375" v1="0" v2="0.0009765625"/>
+        <Element name="fx_multselect_09.tex" u1="0.9990234375" u2="1.0" v1="0" v2="0.0009765625"/>
+    </Elements>
+</Atlas>

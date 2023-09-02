@@ -49,9 +49,9 @@ function EnemySpawner:Stop()
 	self.inst.replica.agcw_enemy_spawner:Stop()
 end
 
-----------------------------------------------------------
+--------------------------------------------------
 -- Update
-----------------------------------------------------------
+--------------------------------------------------
 
 function EnemySpawner:OnUpdate(dt)
 	self.time = self.time + dt
