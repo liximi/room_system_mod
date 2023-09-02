@@ -1,0 +1,3 @@
+_G.AGCW = {
+	RPC_NAMESPACE = "AGCW_MOD"
+}
