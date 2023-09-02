@@ -2,7 +2,7 @@ GLOBAL.setmetatable(env,{__index=function(t,k) return GLOBAL.rawget(GLOBAL,k) en
 
 PrefabFiles = {
     "agcw_common_soldier",
-	-- "agcw_farm_plow_machine",	--自动犁地机
+	"agcw_farm_plow_machine",	--自动犁地机
 }
 
 Assets = {
@@ -30,6 +30,8 @@ else
         prefix = "english"
     end
 end
+--[开发中强制中文]
+prefix = "chinese"
 for _, f_name in ipairs(mod_loc_files) do
     modimport("scripts/localization/"..prefix.."_"..f_name)	--加载所有本地化文件
 end

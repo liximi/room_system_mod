@@ -1,7 +1,13 @@
 require "prefabutil"
 
 local assets = {
-    Asset("ANIM", "anim/agcw_farm_plow_machine.zip"),
+    -- Asset("ANIM", "anim/agcw_farm_plow_machine.zip"),
+}
+
+local assets_item = {
+	-- Asset("ANIM", "anim/agcw_farm_plow_machine.zip"),
+	Asset("ATLAS", "images/inventoryimages/agcw_farm_plow_machine_item.xml"),
+	Asset("IMAGE", "images/inventoryimages/agcw_farm_plow_machine_item.tex")
 }
 
 local prefabs = {
@@ -15,6 +21,11 @@ local prefabs_item = {
 	"farm_plow_item_placer",
 	"tile_outline",
 }
+
+
+--------------------------------------------------
+-- agcw_farm_plow_machine
+--------------------------------------------------
 
 local function onhammered(inst)
 	local x, y, z = inst.Transform:GetWorldPosition()
@@ -181,6 +192,7 @@ local function OnLoadPostPass(inst, newents, data)
 	end
 end
 
+
 local function fn()
     local inst = CreateEntity()
 
@@ -194,11 +206,11 @@ local function fn()
     inst.AnimState:SetBank("farm_plow")
     inst.AnimState:SetBuild("farm_plow")
     inst.AnimState:OverrideSymbol("soil01", "farm_soil", "soil01")
+	inst.AnimState:PlayAnimation("drill_pre")
 
-    inst:AddTag("scarytoprey")
+    inst:AddTag("scarytoprey")	--会惊吓到小动物
 
     inst.entity:SetPristine()
-
     if not TheWorld.ismastersim then
         return inst
     end
@@ -212,9 +224,6 @@ local function fn()
 
     inst:AddComponent("timer")
 
-    MakeMediumBurnable(inst, nil, nil, true)
-    MakeLargePropagator(inst)
-
     inst:AddComponent("terraformer")
     inst.components.terraformer.turf = WORLD_TILES.FARMING_SOIL
 	inst.components.terraformer.onterraformfn = OnTerraform
@@ -222,10 +231,9 @@ local function fn()
 
 	inst.deploy_item_save_record = nil
 
-	inst.startup_task = inst:DoTaskInTime(0, StartUp)
+	-- inst.startup_task = inst:DoTaskInTime(0, StartUp)
 
 	inst:ListenForEvent("timerdone", timerdone)
-
 
 	inst.OnSave = OnSave
 	inst.OnLoadPostPass = OnLoadPostPass
@@ -233,10 +241,14 @@ local function fn()
     return inst
 end
 
+--------------------------------------------------
+-- agcw_farm_plow_machine_item
+--------------------------------------------------
+
 local function item_ondeploy(inst, pt, deployer)
     local cx, cy, cz = TheWorld.Map:GetTileCenterPoint(pt:Get())
 
-    local obj = SpawnPrefab("farm_plow")
+    local obj = SpawnPrefab("agcw_farm_plow_machine")
 	obj.Transform:SetPosition(cx, cy, cz)
 
 	inst.components.finiteuses:Use(1)
@@ -261,6 +273,7 @@ local function can_plow_tile(inst, pt, mouseover, deployer)
 
 	return true
 end
+
 
 local function item_fn()
     local inst = CreateEntity()
@@ -292,6 +305,7 @@ local function item_fn()
     inst:AddComponent("inspectable")
 
     inst:AddComponent("inventoryitem")
+	inst.components.inventoryitem.atlasname = "images/inventoryimages/agcw_farm_plow_machine_item.xml"
 
     inst:AddComponent("deployable")
 	inst.components.deployable:SetDeployMode(DEPLOYMODE.CUSTOM)
@@ -308,6 +322,10 @@ local function item_fn()
 
     return inst
 end
+
+--------------------------------------------------
+-- agcw_farm_plow_machine_item_placer
+--------------------------------------------------
 
 local function placer_fn()
     local inst = CreateEntity()
@@ -338,6 +356,8 @@ local function placer_fn()
     return inst
 end
 
-return  Prefab("agcw_farm_plow_machine", fn, assets, prefabs),
-		Prefab("agcw_farm_plow_machine_item", item_fn, assets, prefabs_item),
-		Prefab("agcw_farm_plow_machine_item_placer", placer_fn)
+
+return
+Prefab("agcw_farm_plow_machine", fn, assets, prefabs),
+Prefab("agcw_farm_plow_machine_item", item_fn, assets_item, prefabs_item),
+Prefab("agcw_farm_plow_machine_item_placer", placer_fn)
