@@ -1,30 +1,53 @@
-local json = require "json"
 local Widget = require "widgets/widget"
-local Templates = require "widgets/redux/templates"
+global("TheAgcwInteractive")
 
-local PlowTileSelection = require "widgets/agcw_plow_tile_selection"
-
-
+--------------------------------------------------
+-- 用于驱动与鼠标交互的Widget
+--------------------------------------------------
 
 local Interactive = Class(Widget, function(self, owner)
     Widget._ctor(self, "Interactive")
 	self.owner = owner
+	if not TheAgcwInteractive then
+		TheAgcwInteractive = self
+	end
 
+	self.functions = {}
 
     self.CheckSelect = function(button, down)
-        if self.plow_tile_selection and self.plow_tile_selection:OnMouseButton(button, down) then
-            return true
-        end
+		local invaild_widget_idxs = {}
+		for i, widget in ipairs(self.functions) do
+			if not widget.inst:IsValid() then
+				table.insert(invaild_widget_idxs, i)
+			else
+				if widget.OnMouseButton and widget:OnMouseButton(button, down) then
+					return true
+				end
+			end
+		end
+		for i, idx in ipairs(invaild_widget_idxs) do
+			table.remove(self.functions, idx)
+		end
     end
 
     self.OnMoveMouse = function (x, y)
-		if self.plow_tile_selection then
-			self.plow_tile_selection:OnMoveMouse(x, y)
+		local invaild_widget_idxs = {}
+		for i, widget in ipairs(self.functions) do
+			if not widget.inst:IsValid() then
+				table.insert(invaild_widget_idxs, i)
+			else
+				if widget.inst:IsValid() and widget.OnMoveMouse then
+					widget:OnMoveMouse(x, y)
+				end
+			end
+		end
+		for i, idx in ipairs(invaild_widget_idxs) do
+			table.remove(self.functions, idx)
 		end
     end
 
     --初始化任务
-    self.init_task = self.inst:DoPeriodicTask(0.1, function ()
+    self.init_task = self.inst:DoPeriodicTask(FRAMES, function ()
         if TheInput.onmousebutton and TheInput.position then
             TheInput:AddMouseButtonHandler(self.CheckSelect)
             TheInput:AddMoveHandler(self.OnMoveMouse)
@@ -35,21 +58,16 @@ local Interactive = Class(Widget, function(self, owner)
 end)
 
 
-function Interactive:GetSelectedTiles()
-	return self.plow_tile_selection:GetSelectedTiles()
+
+function Interactive:StartFunction(function_widget)
+	table.insert(self.functions, function_widget)
 end
 
-function Interactive:EnablePlowTileSelection(tile_selected_fn, tile_unselected_fn, tile_preselected_fn, tile_unpreselected_fn)
-	if not self.plow_tile_selection then
-		self.plow_tile_selection = self:AddChild(PlowTileSelection(tile_selected_fn, tile_unselected_fn, tile_preselected_fn, tile_unpreselected_fn))
-	end
-end
-
-function Interactive:DisablePlowTileSelection()
-	if self.plow_tile_selection then
-		self.plow_tile_selection:OnDisable()
-		self.plow_tile_selection:Kill()
-		self.plow_tile_selection = nil
+function Interactive:StopFunction(function_widget)
+	for i, widget in ipairs(self.functions) do
+		if widget == function_widget then
+			table.remove(self.functions, i)
+		end
 	end
 end
 

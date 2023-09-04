@@ -3,94 +3,65 @@ local Screen = require "widgets.screen"
 local Image = require "widgets.image"
 local ImageButton = require "widgets.imagebutton"
 local Text = require "widgets.text"
+local Templates = require "widgets.redux.templates"
+local PlowTileSelect = require "widgets.agcw_tile_selection"
 
 
-local PlowTileSelect = Class(Screen, function(self, owner, data)
-	Screen._ctor(self, "PlowTileSelect")
+local PlowTileSelectScreen = Class(Screen, function(self, owner, data)
+	Screen._ctor(self, "PlowTileSelectScreen")
 	self.owner = owner
     self:SetScaleMode(SCALEMODE_PROPORTIONAL)
-    self:SetHAnchor(ANCHOR_MIDDLE)
-    self:SetVAnchor(ANCHOR_MIDDLE)
+    -- self:SetHAnchor(ANCHOR_MIDDLE)
+    -- self:SetVAnchor(ANCHOR_MIDDLE)
+	--ROOTS
     self.root = self:AddChild(Widget("ROOT"))
+	self.top_root = self:AddChild(Widget("ROOT"))
+	self.top_root:SetVAnchor(ANCHOR_TOP)
+	self.top_root:SetHAnchor(ANCHOR_MIDDLE)
 
+	self.title = self.top_root:AddChild(Text(TITLEFONT, 64, "规划开垦地块", RGB(255, 255, 255)))
+	self.title:SetPosition(0, -50)
+
+	self.ok_bt = self.top_root:AddChild(Templates.StandardButton(function()
+		TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_move")
+        TheFrontEnd:PopScreen()
+	end, "确定", {100, 50}))
+	self.ok_bt:SetPosition(-80, -100)
+	self.cancel_bt = self.top_root:AddChild(Templates.StandardButton(function()
+		TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_move")
+        TheFrontEnd:PopScreen()
+	end, "取消", {100, 50}))
+	self.cancel_bt:SetPosition(80, -100)
 end)
 
 
 --------------------------------------------------
 
-function PlowTileSelect:OnDestroy()
+function PlowTileSelectScreen:OnDestroy()
     SetAutopaused(false)
     POPUPS.AGCW_PLOW_TILE_SELECT:Close(self.owner)
-	PlowTileSelect._base.OnDestroy(self)
+	PlowTileSelectScreen._base.OnDestroy(self)
+end
 
-	if type(self.tile_outlines) == "table" then
-		for x, zs in pairs(self.tile_outlines) do
-			for z, outline in pairs(zs) do
-				outline:Remove()
-			end
-		end
-	end
-	if type(self.preselect_tile_outlines) == "table" then
-		for x, zs in pairs(self.preselect_tile_outlines) do
-			for z, outline in pairs(zs) do
-				outline:Remove()
-			end
-		end
+function PlowTileSelectScreen:OnBecomeInactive()
+    PlowTileSelectScreen._base.OnBecomeInactive(self)
+	TheAgcwInteractive:StopFunction(self.selection_function)
+	if self.selection_function then
+		self.selection_function:Kill()
 	end
 end
 
-function PlowTileSelect:OnBecomeInactive()
-    PlowTileSelect._base.OnBecomeInactive(self)
-	ThePlayer.HUD.controls.indust_hud.interactive_functions:DisablePlowTileSelection()
+function PlowTileSelectScreen:OnBecomeActive()
+    PlowTileSelectScreen._base.OnBecomeActive(self)
+	if self.selection_function then
+		self.selection_function:Kill()
+	end
+	self.selection_function = self:AddChild(PlowTileSelect())
+	TheAgcwInteractive:StartFunction(self.selection_function)
 end
 
-function PlowTileSelect:OnBecomeActive()
-    PlowTileSelect._base.OnBecomeActive(self)
-	self.tile_outlines = {}
-	self.preselect_tile_outlines = {}
-	local tile_selected_fn = function(x, z)
-		if not self.tile_outlines[x] then
-			self.tile_outlines[x] = {}
-		end
-		if self.tile_outlines[x][z] then
-			return
-		end
-		local outline = SpawnPrefab("tile_outline")
-		outline.Transform:SetPosition(x, 0, z)
-		outline.AnimState:SetAddColour(0.5, 1, 0.5, 1)
-		self.tile_outlines[x][z] = outline
-	end
-	local tile_unselected_fn = function(x, z)
-		if not self.tile_outlines[x] or not self.tile_outlines[x][z] then
-			return
-		end
-		self.tile_outlines[x][z]:Remove()
-		self.tile_outlines[x][z] = nil
-	end
-	local tile_preselected_fn = function(x, z)
-		if not self.preselect_tile_outlines[x] then
-			self.preselect_tile_outlines[x] = {}
-		end
-		if self.preselect_tile_outlines[x][z] or (self.tile_outlines[x] and self.tile_outlines[x][z]) then
-			return
-		end
-		local outline = SpawnPrefab("tile_outline")
-		outline.Transform:SetPosition(x, 0, z)
-		outline.AnimState:SetAddColour(1, 1, 1, 1)
-		self.preselect_tile_outlines[x][z] = outline
-	end
-	local tile_unpreselected_fn = function(x, z)
-		if not self.preselect_tile_outlines[x] or not self.preselect_tile_outlines[x][z] then
-			return
-		end
-		self.preselect_tile_outlines[x][z]:Remove()
-		self.preselect_tile_outlines[x][z] = nil
-	end
-	ThePlayer.HUD.controls.indust_hud.interactive_functions:EnablePlowTileSelection(tile_selected_fn, tile_unselected_fn, tile_preselected_fn, tile_unpreselected_fn)
-end
-
-function PlowTileSelect:OnControl(control, down)
-    if PlowTileSelect._base.OnControl(self, control, down) then return true end
+function PlowTileSelectScreen:OnControl(control, down)
+    if PlowTileSelectScreen._base.OnControl(self, control, down) then return true end
 
     if not down and (control == CONTROL_MAP or control == CONTROL_CANCEL) then
 		TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_move")
@@ -102,9 +73,9 @@ function PlowTileSelect:OnControl(control, down)
 end
 
 
--- function PlowTileSelect:OnUpdate(dt)
+-- function PlowTileSelectScreen:OnUpdate(dt)
 -- end
 
 
 
-return PlowTileSelect
+return PlowTileSelectScreen
