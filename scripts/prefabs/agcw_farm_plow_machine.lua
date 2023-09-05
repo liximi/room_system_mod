@@ -52,6 +52,7 @@ local function Finished(inst, force_fx)
 	if inst.deploy_item_save_record ~= nil then
         local item = SpawnSaveRecord(inst.deploy_item_save_record)
 		item.Transform:SetPosition(x, y, z)
+		item.components.finiteuses:SetUses(inst.finiteuses_uses)
 		item.components.inventoryitem.canbepickedup = false
 
 		item.AnimState:PlayAnimation("collapse", false)
@@ -100,7 +101,7 @@ local function OnTerraform(inst, pt, old_tile_type, old_tile_turf_prefab)
 	SpawnPrefab("dirt_puff").Transform:SetPosition(cx + math.random() + 1, cy, cz - math.random() - 1)
 	SpawnPrefab("dirt_puff").Transform:SetPosition(cx - math.random() - 1, cy, cz - math.random() - 1)
 
-	Finished(inst)
+	-- Finished(inst)
 end
 
 local function dirt_anim(inst, quad, timer)
@@ -130,7 +131,7 @@ local function dirt_anim(inst, quad, timer)
 		end
 	end
 
-	local t = math.min(1, timer/(TUNING.FARM_PLOW_DRILLING_DURATION))
+	local t = math.min(1, timer/(AGCW.FARM_PLOW_DRILLING_DURATION))
 	local duration_delay = Lerp(TUNING.FARM_PLOW_DRILLING_DIRT_DELAY_BASE_START, TUNING.FARM_PLOW_DRILLING_DIRT_DELAY_BASE_END, t)
 	local delay = duration_delay + math.random() * TUNING.FARM_PLOW_DRILLING_DIRT_DELAY_VAR
 
@@ -144,9 +145,9 @@ local function DoDrilling(inst)
     inst.SoundEmitter:PlaySound("farming/common/farm/plow/LP", "loop")
 	local fx_time = 0
 	if not inst.components.timer:TimerExists("drilling") then
-		inst.components.timer:StartTimer("drilling", TUNING.FARM_PLOW_DRILLING_DURATION)
+		inst.components.timer:StartTimer("drilling", AGCW.FARM_PLOW_DRILLING_DURATION)
 	else
-		fx_time = TUNING.FARM_PLOW_DRILLING_DURATION - inst.components.timer:GetTimeLeft("drilling")
+		fx_time = AGCW.FARM_PLOW_DRILLING_DURATION - inst.components.timer:GetTimeLeft("drilling")
 	end
 	inst:DoTaskInTime(math.random() * 0.2, dirt_anim, 1, fx_time)
 	inst:DoTaskInTime(0.2 + math.random() * 0.3, dirt_anim, 2, fx_time)
@@ -155,52 +156,96 @@ local function DoDrilling(inst)
 end
 
 local function timerdone(inst, data)
-	if data ~= nil and data.name == "drilling" then
-		if inst.components.terraformer ~= nil then
+	if data and data.name == "drilling" then
+		if inst.components.terraformer then
 			if not inst.components.terraformer:Terraform(inst:GetPosition()) then
 				Finished(inst)
 			end
 		else
 			Finished(inst)
 		end
+		if not inst.components.agcw_move_queue:Move() then
+			Finished(inst)
+		end
 	end
 end
 
-local function StartUp(inst)
+local function reorder(inst, tiles)	--对地块列表重新排序, 尽可能不绕路
+	local res = {}
+	local cur_pt = inst:GetPosition()
+	cur_pt = {cur_pt.x, cur_pt.z}
+	while #tiles > 0 do
+		table.sort(tiles, function(a, b)
+			return (a[1] - cur_pt[1])^2 + (a[2] - cur_pt[2])^2 > (b[1] - cur_pt[1])^2 + (b[2] - cur_pt[2])^2
+		end)
+		cur_pt = table.remove(tiles)
+		table.insert(res, cur_pt)
+	end
+	return res
+end
+
+local function StartUp(inst, tiles)		--{{x, z}, {x, z}, ...}
+	inst.doer._current_operate_plow_tile_machine = nil
+	inst.doer = nil
+
+	tiles = reorder(inst, tiles)
+	inst.components.agcw_move_queue:SetQueue(tiles)
+	inst.components.agcw_move_queue:Move()
+end
+
+--------------------------------------------------
+-- agcw_move_queue
+--------------------------------------------------
+
+local function OnReach(inst, pt)
+	if inst.finiteuses_uses <= 0 then
+		Finished(inst)
+		return
+	end
+	inst.finiteuses_uses = inst.finiteuses_uses - AGCW.USES_PER_DRILLING
     inst.AnimState:PlayAnimation("drill_pre")
 	inst:ListenForEvent("animover", DoDrilling)
 	inst.SoundEmitter:PlaySound("farming/common/farm/plow/drill_pre")
-
-	inst.startup_task = nil
 end
 
+--------------------------------------------------
+-- agcw_popupscreen
+--------------------------------------------------
+
 local function CanShowScreen(inst, doer)
-	return true
+	return not inst.components.timer:TimerExists("drilling")
 end
 
 local function GetScreenData(inst, doer)
 	return
 end
 
+local function OnShowScreen(inst, doer)
+	doer._current_operate_plow_tile_machine = inst
+	inst.doer = doer
+end
+
+--------------------------------------------------
+-- Save & Load
+--------------------------------------------------
 
 local function OnSave(inst, data)
 	data.deploy_item = inst.deploy_item_save_record
+	data.finiteuses_uses = inst.finiteuses_uses
 end
 
 local function OnLoadPostPass(inst, newents, data)
 	if data ~= nil then
 		inst.deploy_item_save_record = data.deploy_item
+		inst.finiteuses_uses = data.finiteuses_uses or 0
 	end
 
 	if inst.components.timer:TimerExists("drilling") then
-		if inst.startup_task ~= nil then
-			inst.startup_task:Cancel()
-			inst.startup_task = nil
-		end
 		DoDrilling(inst)
 	end
 end
 
+--------------------------------------------------
 
 local function fn()
     local inst = CreateEntity()
@@ -238,18 +283,22 @@ local function fn()
 	inst.components.terraformer.onterraformfn = OnTerraform
 	inst.components.terraformer.plow = true
 
+	inst:AddComponent("agcw_move_queue")
+	inst.components.agcw_move_queue:SetOnReach(OnReach)
+
 	inst:AddComponent("agcw_popupscreen")
 	inst.components.agcw_popupscreen:SetPopUpID("AGCW_PLOW_TILE_SELECT")
 	inst.components.agcw_popupscreen.can_show_fn = CanShowScreen
 	inst.components.agcw_popupscreen.get_data_fn = GetScreenData
+	inst.components.agcw_popupscreen.on_show_fn = OnShowScreen
 	inst.agcw_popupscreen_action_strid = "PLOW_TILE_SELECT"
 
 	inst.deploy_item_save_record = nil
-
-	-- inst.startup_task = inst:DoTaskInTime(0, StartUp)
+	inst.finiteuses_uses = 0
 
 	inst:ListenForEvent("timerdone", timerdone)
 
+	inst.StartUp = StartUp
 	inst.OnSave = OnSave
 	inst.OnLoadPostPass = OnLoadPostPass
 
@@ -266,9 +315,9 @@ local function item_ondeploy(inst, pt, deployer)
     local obj = SpawnPrefab("agcw_farm_plow_machine")
 	obj.Transform:SetPosition(cx, cy, cz)
 
-	inst.components.finiteuses:Use(1)
 	if inst:IsValid() then
 		obj.deploy_item_save_record = inst:GetSaveRecord()
+		obj.finiteuses_uses = inst.components.finiteuses:GetUses()
 		inst:Remove()
 	end
 end
@@ -289,6 +338,13 @@ local function can_plow_tile(inst, pt, mouseover, deployer)
 	return true
 end
 
+local function accept_test(inst, item, giver)
+	return item:HasTag("BURNABLE_fuel")
+end
+
+local function onaccept(inst, giver, item)
+	inst.components.finiteuses:Repair(AGCW.PLOW_TILE_MACHINE_REPAIR_USES)
+end
 
 local function item_fn()
     local inst = CreateEntity()
@@ -327,9 +383,13 @@ local function item_fn()
     inst.components.deployable.ondeploy = item_ondeploy
 
 	inst:AddComponent("finiteuses")
-    inst.components.finiteuses:SetOnFinished(inst.Remove)
-    inst.components.finiteuses:SetMaxUses(TUNING.FARM_PLOW_USES)
-    inst.components.finiteuses:SetUses(TUNING.FARM_PLOW_USES)
+    -- inst.components.finiteuses:SetOnFinished(inst.Remove)
+    inst.components.finiteuses:SetMaxUses(AGCW.PLOW_TILE_MACHINE_MAX_USES)
+    inst.components.finiteuses:SetUses(AGCW.PLOW_TILE_MACHINE_MAX_USES)
+
+	inst:AddComponent("trader")
+	inst.components.trader:SetAbleToAcceptTest(accept_test)
+	inst.components.trader.onaccept = onaccept
 
     MakeSmallBurnable(inst)
     MakeSmallPropagator(inst)

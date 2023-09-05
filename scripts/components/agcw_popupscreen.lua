@@ -29,6 +29,9 @@ end
 
 function PopUpScreen:Show(doer)
 	if doer and doer.userid and self:CanShow(doer) then
+		if self.on_show_fn then
+			self.on_show_fn(self.inst, doer)
+		end
 		doer:ShowPopUp(POPUPS[self:GetPopUpID()], true, self:GetData(doer))
 		return true
 	end

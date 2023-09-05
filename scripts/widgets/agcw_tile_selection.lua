@@ -90,6 +90,9 @@ local TileSelection = Class(Widget, function(self)
 	self.tile_hovered_fn = _tile_hovered_fn			--function(x, z) end 当鼠标悬浮在地块上时，对该地块执行操作
 	self.tile_unhovered_fn = _tile_unhovered_fn		--function(x, z) end 当悬浮中的鼠标离开地块时，对该地块执行操作
 
+	self.enable_ocean = false
+	self.disable_tile_types = {}
+
     self.selected_tiles = {}        -- 2维矩阵 {[x] = {[z] = true}}
     self.pre_selected_tiles = {}    -- 2维矩阵 {[x] = {[z] = true}}
 	self.pre_diselected_tiles = {}	-- 2维矩阵 {[x] = {[z] = true}}
@@ -134,11 +137,13 @@ function TileSelection:OnMouseButton(button, down)
 					end
                 else					--单选
 					local pt_world = TheInput:GetWorldPosition()
-					local tile_center_x, tile_center_y, tile_center_z = TheWorld.Map:GetTileCenterPoint(pt_world.x, 0, pt_world.z)
-					if self.mouse_isdown == select_tile_button then
-						self:Select({[tile_center_x] = {[tile_center_z] = true}})
-					else
-						self:Diselect({[tile_center_x] = {[tile_center_z] = true}})
+					if self:IsEnableTile(pt_world.x, pt_world.z) then
+						local tile_center_x, tile_center_y, tile_center_z = TheWorld.Map:GetTileCenterPoint(pt_world.x, 0, pt_world.z)
+						if self.mouse_isdown == select_tile_button then
+							self:Select({[tile_center_x] = {[tile_center_z] = true}})
+						else
+							self:Diselect({[tile_center_x] = {[tile_center_z] = true}})
+						end
 					end
                 end
             end
@@ -189,7 +194,7 @@ function TileSelection:OnMoveMouse(x, y)
 		end
 
 		for i, tile in ipairs(_tiles) do
-			if IsPointInsideConvexQuad({x = tile.x, y = tile.z}, quad) then
+			if IsPointInsideConvexQuad({x = tile.x, y = tile.z}, quad) and self:IsEnableTile(tile.x, tile.z) then
 				if not tiles[tile.x] then
 					tiles[tile.x] = {}
 				end
@@ -398,6 +403,28 @@ end
 
 function TileSelection:IsTileSelected(x, z)
 	return type(x) == "number" and type(z) == "number" and self.selected_tiles[x] and self.selected_tiles[x][z]
+end
+
+--------------------------------------------------
+
+function TileSelection:SetDisableTileType(tile_types)	--{填WORLD_TILES的Key, ...}
+	for i, tile in ipairs(tile_types) do
+		if WORLD_TILES[tile] then
+			table.insert(self.disable_tile_types, WORLD_TILES[tile])
+		end
+	end
+end
+
+function TileSelection:IsEnableTile(x, z)
+	if not self.enable_ocean and TheWorld.Map:IsOceanTileAtPoint(x, 0, z) then
+		return false
+	end
+	for i, tile_id in ipairs(self.disable_tile_types) do
+		if TheWorld.Map:GetTileAtPoint(x, 0, z) == tile_id then
+			return false
+		end
+	end
+	return true
 end
 
 --------------------------------------------------

@@ -1,3 +1,4 @@
+local json = require "json"
 local Widget = require "widgets.widget"
 local Screen = require "widgets.screen"
 local Image = require "widgets.image"
@@ -23,12 +24,20 @@ local PlowTileSelectScreen = Class(Screen, function(self, owner, data)
 	self.title:SetPosition(0, -50)
 
 	self.ok_bt = self.top_root:AddChild(Templates.StandardButton(function()
-		TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_move")
+		local tiles = self.selection_function and self.selection_function:GetSelectedTiles()
+		if tiles then
+			local _tiles = {}
+			for x, zs in pairs(tiles) do
+				for z, _ in pairs(zs) do
+					table.insert(_tiles, {x, z})	--由于json.encode会改变表结构，因此需要重新处理表结构
+				end
+			end
+			SendModRPCToServer(MOD_RPC[AGCW.RPC_NAMESPACE].spawn_plowsolid, json.encode(_tiles))
+		end
         TheFrontEnd:PopScreen()
 	end, "确定", {100, 50}))
 	self.ok_bt:SetPosition(-80, -100)
 	self.cancel_bt = self.top_root:AddChild(Templates.StandardButton(function()
-		TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_move")
         TheFrontEnd:PopScreen()
 	end, "取消", {100, 50}))
 	self.cancel_bt:SetPosition(80, -100)
@@ -57,6 +66,7 @@ function PlowTileSelectScreen:OnBecomeActive()
 		self.selection_function:Kill()
 	end
 	self.selection_function = self:AddChild(PlowTileSelect())
+	self.selection_function:SetDisableTileType({"FARMING_SOIL"})
 	TheAgcwInteractive:StartFunction(self.selection_function)
 end
 
