@@ -202,10 +202,13 @@ local function OnReach(inst, pt)
 		Finished(inst)
 		return
 	end
-	inst.finiteuses_uses = inst.finiteuses_uses - AGCW.USES_PER_DRILLING
-    inst.AnimState:PlayAnimation("drill_pre")
-	inst:ListenForEvent("animover", DoDrilling)
-	inst.SoundEmitter:PlaySound("farming/common/farm/plow/drill_pre")
+
+	if not TheWorld.Map:IsFarmableSoilAtPoint(pt.x, 0, pt.z) then
+		inst.finiteuses_uses = inst.finiteuses_uses - AGCW.USES_PER_DRILLING
+		inst.AnimState:PlayAnimation("drill_pre")
+		inst:ListenForEvent("animover", DoDrilling)
+		inst.SoundEmitter:PlaySound("farming/common/farm/plow/drill_pre")
+	end
 end
 
 --------------------------------------------------
@@ -255,7 +258,7 @@ local function fn()
     inst.entity:AddNetwork()
     inst.entity:AddSoundEmitter()
 
-    MakeObstaclePhysics(inst, 0.5)
+	MakeCharacterPhysics(inst, 75, 0.5)		--必须有质量
 
     inst.AnimState:SetBank("farm_plow")
     inst.AnimState:SetBuild("farm_plow")
@@ -275,6 +278,10 @@ local function fn()
     inst.components.workable:SetWorkAction(ACTIONS.HAMMER)
     inst.components.workable:SetWorkLeft(1)
     inst.components.workable:SetOnFinishCallback(onhammered)
+
+	inst:AddComponent("locomotor")
+	inst.components.locomotor.runspeed = AGCW.PLOW_TILE_MACHINE_MOVE_SPEED
+    inst.components.locomotor.walkspeed = AGCW.PLOW_TILE_MACHINE_MOVE_SPEED
 
     inst:AddComponent("timer")
 
