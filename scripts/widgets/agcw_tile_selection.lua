@@ -1,5 +1,6 @@
 local Widget = require "widgets/widget"
 local NineSlice = require "widgets/nineslice"
+local Text = require "widgets/text"
 
 local TheInput = TheInput
 local ANCHOR_BOTTOM = ANCHOR_BOTTOM
@@ -16,6 +17,7 @@ local function SpawnOutline(x, y, z, colour)
 	local outline = SpawnPrefab("tile_outline")
 	outline.Transform:SetPosition(x, y, z)
 	colour = colour or hover_color
+	outline.AnimState:SetScale(0.95, 0.95)
 	outline.AnimState:SetAddColour(unpack(colour))
 	return outline
 end
@@ -99,6 +101,12 @@ local TileSelection = Class(Widget, function(self)
 	self.current_hover_tile = {}	-- {x, z}
     self.mouse_isdown = nil
 
+	local hover_str = TheInput:GetLocalizedControl(TheInput:GetControllerID(), CONTROL_PRIMARY)..": "..STRINGS.TILE_SELECTION_HOVERER_TEXT_SELECT
+		.."\n"..TheInput:GetLocalizedControl(TheInput:GetControllerID(), CONTROL_SECONDARY)..": "..STRINGS.TILE_SELECTION_HOVERER_TEXT_DISELECT
+	self.hover_text = self:AddChild(Text(UIFONT, 18, hover_str, hover_color))
+	self.hover_text_w, self.hover_text_h = self.hover_text:GetRegionSize()
+	self:RefreshHoverPos()
+
     self.select_quad_screen = {}    --{{x=number, y=number}, ...}
     --[[ { P_start, P1, P_end, P2 }
         P2 ---------- P_end
@@ -155,6 +163,8 @@ function TileSelection:OnMouseButton(button, down)
 end
 
 function TileSelection:OnMoveMouse(x, y)
+	--移动 hoverer 文本
+	self:RefreshHoverPos(x, y)
     --更新框选范围的UI显示,并对范围内的地块进行预选择
     if self.mouse_isdown then
 		--移除悬浮状态
@@ -240,6 +250,16 @@ function TileSelection:RemoveMultSelectRangeImage()
         self.fx_multselect:Kill()
         self.fx_multselect = nil
     end
+end
+
+
+function TileSelection:RefreshHoverPos(mouse_x, mouse_y)
+	local scale = self:GetScale()
+	local pt = (mouse_x and mouse_y) and Vector3(mouse_x, mouse_y) or TheInput:GetScreenPosition()
+	pt.x = pt.x / scale.x
+	pt.y = pt.y / scale.y
+	pt = pt + Vector3(self.hover_text_w/2 + 8, -self.hover_text_h/2 + 4, 0)
+	self.hover_text:SetPosition(pt:Get())
 end
 
 function TileSelection:Select(tiles)    --2维矩阵 {[x] = {[z] = true}}

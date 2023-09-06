@@ -1,7 +1,7 @@
-local Widget = require "widgets.widget"
-local Text = require "widgets.text"
-local Interactive = require "widgets.agcw_interactive_functions"
-local Templates = require "widgets.redux.templates"
+local Widget = require "widgets/widget"
+local Text = require "widgets/text"
+local Interactive = require "widgets/agcw_interactive_functions"
+local Templates = require "widgets/redux/templates"
 
 local HUD = Class(Widget, function(self, owner)
     Widget._ctor(self, "IndustHUD")

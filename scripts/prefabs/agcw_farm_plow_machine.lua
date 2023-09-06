@@ -100,7 +100,6 @@ local function OnTerraform(inst, pt, old_tile_type, old_tile_turf_prefab)
 	SpawnPrefab("dirt_puff").Transform:SetPosition(cx - math.random() - 1, cy, cz + math.random() + 1)
 	SpawnPrefab("dirt_puff").Transform:SetPosition(cx + math.random() + 1, cy, cz - math.random() - 1)
 	SpawnPrefab("dirt_puff").Transform:SetPosition(cx - math.random() - 1, cy, cz - math.random() - 1)
-
 	-- Finished(inst)
 end
 

@@ -1,11 +1,11 @@
 local json = require "json"
-local Widget = require "widgets.widget"
-local Screen = require "widgets.screen"
-local Image = require "widgets.image"
-local ImageButton = require "widgets.imagebutton"
-local Text = require "widgets.text"
-local Templates = require "widgets.redux.templates"
-local PlowTileSelect = require "widgets.agcw_tile_selection"
+local Widget = require "widgets/widget"
+local Screen = require "widgets/screen"
+local Image = require "widgets/image"
+local ImageButton = require "widgets/imagebutton"
+local Text = require "widgets/text"
+local Templates = require "widgets/redux/templates"
+local PlowTileSelect = require "widgets/agcw_tile_selection"
 
 
 local PlowTileSelectScreen = Class(Screen, function(self, owner, data)
