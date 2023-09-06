@@ -258,7 +258,7 @@ local function fn()
     inst.entity:AddNetwork()
     inst.entity:AddSoundEmitter()
 
-	MakeCharacterPhysics(inst, 75, 0.5)		--必须有质量
+	MakeObstaclePhysics(inst, 0.5)
 
     inst.AnimState:SetBank("farm_plow")
     inst.AnimState:SetBuild("farm_plow")
