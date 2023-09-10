@@ -36,6 +36,7 @@ local function onhammered(inst)
 	if inst.deploy_item_save_record ~= nil then
         local item = SpawnSaveRecord(inst.deploy_item_save_record)
 		item.Transform:SetPosition(x, y, z)
+		item.components.finiteuses:SetUses(inst.finiteuses_uses)
 	end
 
     inst:Remove()

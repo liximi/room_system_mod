@@ -51,3 +51,22 @@ function _G.GetTiles(x, z, radius)
 
 	return tiles
 end
+
+local hex_letters = {"A", "B", "C", "D", "E", "F"}
+local function HexToString(hex)
+	hex = math.floor(hex)
+	if hex < 10 then
+		return hex
+	else
+		return hex_letters[hex - 9]
+	end
+end
+function _G.UUID()
+    local template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+    local random = math.random
+    local uuid = template:gsub("[xy]", function(c)
+        local v = (c == "x") and random(0, 0xf) or random(8, 0xb)
+        return HexToString(v)
+    end)
+    return uuid
+end
