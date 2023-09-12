@@ -7,7 +7,7 @@ PrefabFiles = {
 
 Assets = {
 	Asset("ATLAS", "images/ui/fx_multselect.xml"),
-	Asset("IMAGE", "images/ui/fx_multselect.tex")
+	Asset("IMAGE", "images/ui/fx_multselect.tex"),
 }
 
 
@@ -49,6 +49,9 @@ modimport "agcw_main_scripts/containers"
 --[RPCs]
 modimport "agcw_main_scripts/rpcs"
 
+--[Controller]
+modimport "agcw_main_scripts/controller"
+
 --[UI]
 modimport "agcw_main_scripts/ui"
 
@@ -62,7 +65,6 @@ modimport "agcw_main_scripts/recipes"
 AddReplicableComponent("agcw_enemy_spawner")
 
 
-
 --注册地图图标
 -- AddMinimapAtlas("images/minimap/well_mini.xml")
 
@@ -73,7 +75,8 @@ AddReplicableComponent("agcw_enemy_spawner")
 
 AddPrefabPostInit("forest_network", function(inst)
 	if TheWorld.ismastersim then
-		inst:AddComponent("agcw_enemy_spawner")
+        inst.AgcwPowerMgr = inst:AddComponent("agcw_power_manager")
+		inst.AgcwEnemyMgr = inst:AddComponent("agcw_enemy_spawner")
 	end
 end)
 

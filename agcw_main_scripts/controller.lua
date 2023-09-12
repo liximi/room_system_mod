@@ -1,17 +1,10 @@
-local Widget = require "widgets/widget"
 global("TheAgcwInteractive")
 
 --------------------------------------------------
--- 用于驱动与鼠标交互的Widget
+-- 用于驱动与鼠标交互
 --------------------------------------------------
 
-local Interactive = Class(Widget, function(self, owner)
-    Widget._ctor(self, "Interactive")
-	self.owner = owner
-	if not TheAgcwInteractive then
-		TheAgcwInteractive = self
-	end
-
+local Interactive = Class(function(self)
 	self.functions = {}
 
     self.CheckSelect = function(button, down)
@@ -47,16 +40,15 @@ local Interactive = Class(Widget, function(self, owner)
     end
 
     --初始化任务
-    self.init_task = self.inst:DoPeriodicTask(FRAMES, function ()
+    self.init_task = scheduler:ExecutePeriodic(FRAMES, function ()
         if TheInput.onmousebutton and TheInput.position then
             TheInput:AddMouseButtonHandler(self.CheckSelect)
             TheInput:AddMoveHandler(self.OnMoveMouse)
             self.init_task:Cancel()
             self.init_task = nil
         end
-    end)
+    end, nil, nil, "TheAgcwInteractive")
 end)
-
 
 
 function Interactive:StartFunction(function_widget)
@@ -71,4 +63,4 @@ function Interactive:StopFunction(function_widget)
 	end
 end
 
-return Interactive
+_G.TheAgcwInteractive = Interactive()

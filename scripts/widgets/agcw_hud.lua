@@ -1,6 +1,5 @@
 local Widget = require "widgets/widget"
 local Text = require "widgets/text"
-local Interactive = require "widgets/agcw_interactive_functions"
 local Templates = require "widgets/redux/templates"
 
 local HUD = Class(Widget, function(self, owner)
@@ -12,9 +11,6 @@ local HUD = Class(Widget, function(self, owner)
 	self.top_root = self:AddChild(Widget("ROOT"))
 	self.top_root:SetVAnchor(ANCHOR_TOP)
 	self.top_root:SetHAnchor(ANCHOR_MIDDLE)
-
-	--鼠标交互管理
-	self.interactive_functions = self:AddChild(Interactive(owner))
 
 	--敌人刷新按钮
 	-- self.current_turn_text = self.top_root:AddChild(Text(UIFONT, 28, tostring(TheWorld.net.replica.agcw_enemy_spawner:GetCurrentTurn())))
