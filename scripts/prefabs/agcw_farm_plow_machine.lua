@@ -27,7 +27,7 @@ local prefabs_item = {
 -- agcw_farm_plow_machine
 --------------------------------------------------
 
-local function onhammered(inst)
+local function OnHammered(inst)
 	local x, y, z = inst.Transform:GetWorldPosition()
 
 	local fx = SpawnPrefab("collapse_small")
@@ -277,7 +277,7 @@ local function fn()
     inst:AddComponent("workable")
     inst.components.workable:SetWorkAction(ACTIONS.HAMMER)
     inst.components.workable:SetWorkLeft(1)
-    inst.components.workable:SetOnFinishCallback(onhammered)
+    inst.components.workable:SetOnFinishCallback(OnHammered)
 
 	inst:AddComponent("locomotor")
 	inst.components.locomotor.runspeed = AGCW.PLOW_TILE_MACHINE_MOVE_SPEED
@@ -360,7 +360,6 @@ local function item_fn()
     inst.entity:AddAnimState()
     inst.entity:AddNetwork()
     inst.entity:AddSoundEmitter()
-
     MakeInventoryPhysics(inst)
 
     inst.AnimState:SetBank("farm_plow")
@@ -390,7 +389,6 @@ local function item_fn()
     inst.components.deployable.ondeploy = item_ondeploy
 
 	inst:AddComponent("finiteuses")
-    -- inst.components.finiteuses:SetOnFinished(inst.Remove)
     inst.components.finiteuses:SetMaxUses(AGCW.PLOW_TILE_MACHINE_MAX_USES)
     inst.components.finiteuses:SetUses(AGCW.PLOW_TILE_MACHINE_MAX_USES)
 
@@ -438,6 +436,7 @@ local function placer_fn()
     return inst
 end
 
+RegisterInventoryItemAtlas("images/inventoryimages/agcw_farm_plow_machine_item.xml", "agcw_farm_plow_machine_item.tex")
 
 return
 Prefab("agcw_farm_plow_machine", fn, assets, prefabs),

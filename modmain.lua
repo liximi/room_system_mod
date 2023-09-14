@@ -3,6 +3,8 @@ GLOBAL.setmetatable(env,{__index=function(t,k) return GLOBAL.rawget(GLOBAL,k) en
 PrefabFiles = {
     "agcw_common_soldier",
 	"agcw_farm_plow_machine",	--自动犁地机
+    "agcw_power_source",
+    "agcw_power_app",
 }
 
 Assets = {

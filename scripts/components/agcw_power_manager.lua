@@ -382,8 +382,6 @@ function PowerManager:AddEfficiencyDeltaBuffer_Private(net_id, output_delta, dem
 end
 
 function PowerManager:RefreshEfficiency_Private(net_id, buffer)
-	self.efficiencies = {}		--{net_id = efficieny number, ...}
-
 	local output = self.power_outputs[net_id]
 	if output then
 		output = math.max(0, output + buffer.output_delta)
@@ -394,8 +392,16 @@ function PowerManager:RefreshEfficiency_Private(net_id, buffer)
 		demand = math.max(0, demand + buffer.demand_delta)
 		self.power_demands[net_id] = demand
 	end
-	if output and demand and self.efficiencies[net_id] then
-		self.efficiencies[net_id] = demand == 0 and 1 or math.clamp(output/demand, 0, 1)
+	local old_efficiency = self.efficiencies[net_id]
+	if output and demand and old_efficiency then
+		local new_efficiency = output == 0 and 0 or (demand == 0 and 1 or math.clamp(output/demand, 0, 1))
+		if old_efficiency == new_efficiency then
+			return
+		end
+		self.efficiencies[net_id] = new_efficiency
+		for i, power_app in ipairs(self:GetNetPowerAppliances(net_id)) do
+			power_app:PushEvent("agcw_power_manager.efficiencies", {old = old_efficiency, new = self.efficiencies[net_id]})
+		end
 	end
 end
 
@@ -461,7 +467,15 @@ function PowerManager:OnTileChanged_Private(net_id)
 
 	self.power_outputs[net_id] = output
 	self.power_demands[net_id] = demand
-	self.efficiencies[net_id] = demand == 0 and 1 or math.clamp(output/demand, 0, 1)
+	local old_efficiency = self.efficiencies[net_id]
+	local new_efficiency = output == 0 and 0 or (demand == 0 and 1 or math.clamp(output/demand, 0, 1))
+	if old_efficiency == new_efficiency then
+		return
+	end
+	self.efficiencies[net_id] = new_efficiency
+	for i, power_app in ipairs(self:GetNetPowerAppliances(net_id)) do
+		power_app:PushEvent("agcw_power_manager.efficiencies", {old = old_efficiency, new = new_efficiency})
+	end
 end
 
 function PowerManager:GetNetTiles(net_id)	--return {[1]={x=x, z=z}, [2]=...}
@@ -491,7 +505,7 @@ function PowerManager:GetNetPowerSources(net_id)
 	return result
 end
 
-function PowerManager:GetNetElectricalAppliances(net_id)
+function PowerManager:GetNetPowerAppliances(net_id)
 	if not net_id or not self.nets[net_id] then
 		return {}
 	end
