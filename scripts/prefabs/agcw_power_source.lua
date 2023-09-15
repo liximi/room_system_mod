@@ -11,6 +11,13 @@ local prefabs = {}
 -- agcw_power_source
 --------------------------------------------------
 
+local function OnBuilt(inst)
+    --inst.SoundEmitter:PlaySound("dontstarve_DLC001/common/firesupressor_craft")
+    -- inst.AnimState:PlayAnimation("drill_pre")
+    -- inst.AnimState:PushAnimation("drill_loop", true)
+    inst.components.agcw_power_source:Register()
+end
+
 local function OnHammered(inst, worker)
     if inst.components.burnable ~= nil and inst.components.burnable:IsBurning() then
         inst.components.burnable:Extinguish()
@@ -23,25 +30,56 @@ local function OnHammered(inst, worker)
     inst:Remove()
 end
 
+local function OnTakeFuel(inst)
+    inst.SoundEmitter:PlaySound("dontstarve/common/fireAddFuel")
+    if inst.components.agcw_power_source:IsTurnOn() and not inst.components.fueled.consuming then
+        inst.components.fueled:StartConsuming()
+        inst.components.agcw_power_source:RefreshOutput()
+    end
+end
+
+local function OnFuelDepleted(inst)
+    inst.components.agcw_power_source:RefreshOutput()
+end
+
+local function OnOutputChanged(inst, new_val, old_val)
+    if new_val == 0 and old_val ~= 0 then
+        inst.AnimState:PlayAnimation("drill_pre")
+    elseif new_val ~= 0 and old_val == 0 then
+        inst.AnimState:PushAnimation("drill_loop", true)
+    end
+end
+
+local function OnTurnOn(inst, is_turnon)
+    if is_turnon then
+        if not inst.components.fueled:IsEmpty() then
+            inst.components.fueled:StartConsuming()
+        end
+    else
+        inst.components.fueled:StopConsuming()
+    end
+end
+
+local function CalcCurrentOutput(inst)
+    return inst.components.fueled:IsEmpty() and 0 or inst.components.agcw_power_source:GetStandardOutput()
+end
+
+
+--------------------------------------------------
+-- Save & Load
+--------------------------------------------------
+
 local function OnSave(inst, data)
 
 end
 
 local function OnLoad(inst, data)
     inst.components.agcw_power_source:Register()
-    if data ~= nil then
-
-    end
 end
 
-local function OnBuilt(inst)
-    --inst.SoundEmitter:PlaySound("dontstarve_DLC001/common/firesupressor_craft")
-    inst.AnimState:PlayAnimation("drill_pre")
-    inst.AnimState:PushAnimation("drill_loop", true)
-    inst.components.agcw_power_source:Register()
-end
 
 --------------------------------------------------
+
 
 local function fn()
     local inst = CreateEntity()
@@ -75,9 +113,19 @@ local function fn()
     inst.components.workable:SetWorkLeft(4)
     inst.components.workable:SetOnFinishCallback(OnHammered)
 
+    inst:AddComponent("fueled")
+    inst.components.fueled.maxfuel = 30         --最大燃料数量(默认燃烧速度1/s)
+    inst.components.fueled.accepting = true     --是否可以添加燃料
+    inst.components.fueled.bonusmult = 2        --每次添加燃料的时候奖励的倍数
+    inst.components.fueled:SetTakeFuelFn(OnTakeFuel)        --补充燃料时调用
+    inst.components.fueled:SetDepletedFn(OnFuelDepleted)    --燃料耗尽时调用
+
     inst:AddComponent("agcw_power_source")
-    inst.components.agcw_power_source:SetStandardOuput(10)
-    inst.components.agcw_power_source:SetOuput(10)
+    inst.components.agcw_power_source:SetStandardOutput(10)
+    inst.components.agcw_power_source.on_turnon_fn = OnTurnOn
+    inst.components.agcw_power_source.output_changed_fn = OnOutputChanged
+    inst.components.agcw_power_source.calc_current_output_fn = CalcCurrentOutput
+    inst.components.agcw_power_source:TurnOn()
 
     MakeSnowCovered(inst)
 
