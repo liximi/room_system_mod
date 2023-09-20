@@ -61,12 +61,26 @@ local function HexToString(hex)
 		return hex_letters[hex - 9]
 	end
 end
+local spawned_uuids = {}
 function _G.UUID()
     local template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
     local random = math.random
-    local uuid = template:gsub("[xy]", function(c)
-        local v = (c == "x") and random(0, 0xf) or random(8, 0xb)
-        return HexToString(v)
-    end)
+	local uuid
+	while true do
+		uuid = template:gsub("[xy]", function(c)
+			local v = (c == "x") and random(0, 0xf) or random(8, 0xb)
+			return HexToString(v)
+		end)
+		if not spawned_uuids[uuid] then
+			spawned_uuids[uuid] = true
+			break
+		end
+	end
     return uuid
+end
+
+function _G.Delete_UUID(id)
+	if type(id) == "string" then
+		spawned_uuids[id] = nil
+	end
 end

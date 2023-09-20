@@ -445,6 +445,7 @@ function PowerManager:DeleteNet_Private(net_id)	--return success or faild
 	self.efficiencies[net_id] = nil
 	self.power_outputs[net_id] = nil
 	self.power_demands[net_id] = nil
+	Delete_UUID(net_id)
 end
 
 function PowerManager:OnTileChanged_Private(net_id)
