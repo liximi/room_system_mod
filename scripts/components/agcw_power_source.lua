@@ -51,9 +51,9 @@ function PowerSource:SetOuput(val)
 	local delta = val - old_val
 	if delta ~= 0 then
 		TheWorld.net.AgcwPowerMgr:OnPowerSourceOutputChanged(self.inst, delta)
-	end
-	if self.output_changed_fn then
-		self.output_changed_fn(self.inst, self.current_output_power, old_val)
+		if self.output_changed_fn then
+			self.output_changed_fn(self.inst, self.current_output_power, old_val)
+		end
 	end
 end
 
@@ -101,6 +101,8 @@ function PowerSource:OnLoad(data)
 	if data then
 		if data.is_turnon and not self:IsTurnOn() then
 			self:TurnOn()
+		elseif not data.is_turnon and self:IsTurnOn() then
+			self:TurnOff()
 		end
 	end
 end

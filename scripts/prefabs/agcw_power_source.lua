@@ -125,7 +125,7 @@ local function fn()
     inst.components.agcw_power_source.on_turnon_fn = OnTurnOn
     inst.components.agcw_power_source.output_changed_fn = OnOutputChanged
     inst.components.agcw_power_source.calc_current_output_fn = CalcCurrentOutput
-    inst.components.agcw_power_source:TurnOn()
+    inst.components.agcw_power_source:TurnOn()  --The 'TurnOn' should always be called after everything is ready
 
     MakeSnowCovered(inst)
 

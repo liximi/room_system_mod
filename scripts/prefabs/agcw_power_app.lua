@@ -23,6 +23,14 @@ local function OnHammered(inst, worker)
     inst:Remove()
 end
 
+local function OnTurnOn(inst, is_turnon)
+    if is_turnon then
+        print("Turn ON: "..tostring(inst))
+    else
+        print("Turn OFF: "..tostring(inst))
+    end
+end
+
 local function OnSave(inst, data)
 
 end
@@ -77,10 +85,16 @@ local function fn()
 
 	inst:AddComponent("agcw_power_appliance")
 	inst.components.agcw_power_appliance:SetStandardDemand(2)
-	inst.components.agcw_power_appliance:SetDemand(2)
 	inst.components.agcw_power_appliance:SetOnEfficiencyChangedFn(function(new_val, old_val)
 		print("test -", new_val, old_val)
+        if new_val > 0 and old_val == 0 then
+            inst.AnimState:PushAnimation("drill_loop", true)
+        elseif new_val <= 0 and old_val > 0 then
+            inst.AnimState:PlayAnimation("drill_pre")
+        end
 	end)
+    inst.components.agcw_power_appliance.on_turnon_fn = OnTurnOn
+    inst.components.agcw_power_appliance:TurnOn()   --The 'TurnOn' should always be called after everything is ready
 
     MakeSnowCovered(inst)
 
