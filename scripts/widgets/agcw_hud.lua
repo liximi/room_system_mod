@@ -31,11 +31,20 @@ local HUD = Class(Widget, function(self, owner)
 	-- 		self.start_next_turn_bt:Enable()
 	-- 	end
 	-- end, TheWorld.net)
+
+	--区域编辑按钮
+	self.start_next_turn_bt = self.top_root:AddChild(Templates.StandardButton(function () self:PopupAreaEditScreen() end,
+		"区域编辑", {200, 50}))
+	self.start_next_turn_bt:SetPosition(0, -120)
 end)
 
 
 function HUD:StartNextTurn()
 	SendModRPCToServer(MOD_RPC[AGCW.RPC_NAMESPACE].start_next_turn)
+end
+
+function HUD:PopupAreaEditScreen()
+	ThePlayer:ShowPopUp(POPUPS.AGCW_AREA_EDIT, true)
 end
 
 return HUD

@@ -54,12 +54,48 @@ end)
 
 local popup_plow_tile_select = AddPopup("AGCW_PLOW_TILE_SELECT")
 popup_plow_tile_select.fn = function(inst, show, data)
-	data = json.decode(data)
+	if type(data) == "string" then
+		data = json.decode(data)
+	end
     if inst.HUD then
         if not show then
             inst.HUD:Close_AGCW_TileSelectScreen()
         elseif not inst.HUD:Open_AGCW_TileSelectScreen(data) then
-            POPUPS.GENESIS_STORIES_BOOK:Close(inst)
+            POPUPS.AGCW_PLOW_TILE_SELECT:Close(inst)
+        end
+    end
+end
+
+--<编辑区域Screen>
+local AreaEditScreen = require "screens/agcw_area_edit_screen"
+AddClassPostConstruct("screens/playerhud", function(self)
+	function self:Open_AGCW_AreaEditScreen(data)
+		self:Close_AGCW_AreaEditScreen()
+		self.agcw_area_edit_screen = AreaEditScreen(self.owner, data)
+		self:OpenScreenUnderPause(self.agcw_area_edit_screen)
+		return true
+	end
+
+	function self:Close_AGCW_AreaEditScreen()
+		if self.agcw_area_edit_screen ~= nil then
+			if self.agcw_area_edit_screen.inst:IsValid() then
+				TheFrontEnd:PopScreen(self.agcw_area_edit_screen)
+			end
+			self.agcw_area_edit_screen = nil
+		end
+	end
+end)
+
+local popup_area_edit = AddPopup("AGCW_AREA_EDIT")
+popup_area_edit.fn = function(inst, show, data)
+	if type(data) == "string" then
+		data = json.decode(data)
+	end
+    if inst.HUD then
+        if not show then
+            inst.HUD:Close_AGCW_AreaEditScreen()
+        elseif not inst.HUD:Open_AGCW_AreaEditScreen(data) then
+            POPUPS.AGCW_AREA_EDIT:Close(inst)
         end
     end
 end

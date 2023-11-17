@@ -77,8 +77,11 @@ AddReplicableComponent("agcw_enemy_spawner")
 
 AddPrefabPostInit("forest_network", function(inst)
 	if TheWorld.ismastersim then
+        inst.AgcwAreaMgr = inst:AddComponent("agcw_area_manager")
         inst.AgcwPowerMgr = inst:AddComponent("agcw_power_manager")
 		inst.AgcwEnemyMgr = inst:AddComponent("agcw_enemy_spawner")
+    else
+        inst.AgcwAreaMgr_client = inst:AddComponent("agcw_area_manager_client")
 	end
 end)
 

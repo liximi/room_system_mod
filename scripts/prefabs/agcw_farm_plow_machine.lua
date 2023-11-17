@@ -267,6 +267,8 @@ local function fn()
 
     inst:AddTag("scarytoprey")	--会惊吓到小动物
 
+	inst.agcw_popupscreen_action_strid = "PLOW_TILE_SELECT"
+
     inst.entity:SetPristine()
     if not TheWorld.ismastersim then
         return inst
@@ -298,7 +300,6 @@ local function fn()
 	inst.components.agcw_popupscreen.can_show_fn = CanShowScreen
 	inst.components.agcw_popupscreen.get_data_fn = GetScreenData
 	inst.components.agcw_popupscreen.on_show_fn = OnShowScreen
-	inst.agcw_popupscreen_action_strid = "PLOW_TILE_SELECT"
 
 	inst.deploy_item_save_record = nil
 	inst.finiteuses_uses = 0

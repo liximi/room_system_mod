@@ -8,4 +8,9 @@ _G.AGCW = {
 	PLOW_TILE_MACHINE_REPAIR_USES = 25,			--开垦机每次补充的耐久
 	USES_PER_DRILLING = 1,						--每次垦地消耗的耐久
 	PLOW_TILE_MACHINE_MOVE_SPEED = 5,			--开垦机的移速
+	AREA_TYPE = {								--区域类型
+		NONE = 0,
+		CHOP = 1,
+		MINE = 2,
+	}
 }
