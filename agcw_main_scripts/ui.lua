@@ -31,41 +31,6 @@ AddClassPostConstruct("widgets/controls", function(self)
     end)
 end)
 
-
---<选择开垦地块Screen>
-local PlowTileSelectScreen = require "screens/agcw_farm_plow_tile_select_screen"
-AddClassPostConstruct("screens/playerhud", function(self)
-	function self:Open_AGCW_TileSelectScreen(data)
-		self:Close_AGCW_TileSelectScreen()
-		self.agcw_plow_tile_select_screen = PlowTileSelectScreen(self.owner, data)
-		self:OpenScreenUnderPause(self.agcw_plow_tile_select_screen)
-		return true
-	end
-
-	function self:Close_AGCW_TileSelectScreen()
-		if self.agcw_plow_tile_select_screen ~= nil then
-			if self.agcw_plow_tile_select_screen.inst:IsValid() then
-				TheFrontEnd:PopScreen(self.agcw_plow_tile_select_screen)
-			end
-			self.agcw_plow_tile_select_screen = nil
-		end
-	end
-end)
-
-local popup_plow_tile_select = AddPopup("AGCW_PLOW_TILE_SELECT")
-popup_plow_tile_select.fn = function(inst, show, data)
-	if type(data) == "string" then
-		data = json.decode(data)
-	end
-    if inst.HUD then
-        if not show then
-            inst.HUD:Close_AGCW_TileSelectScreen()
-        elseif not inst.HUD:Open_AGCW_TileSelectScreen(data) then
-            POPUPS.AGCW_PLOW_TILE_SELECT:Close(inst)
-        end
-    end
-end
-
 --<编辑区域Screen>
 local AreaEditScreen = require "screens/agcw_area_edit_screen"
 AddClassPostConstruct("screens/playerhud", function(self)

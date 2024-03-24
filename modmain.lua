@@ -1,10 +1,9 @@
 GLOBAL.setmetatable(env,{__index=function(t,k) return GLOBAL.rawget(GLOBAL,k) end})
 
 PrefabFiles = {
-    "agcw_common_soldier",
-	"agcw_farm_plow_machine",	--自动犁地机
     "agcw_power_source",
     "agcw_power_app",
+    "test_box",
 }
 
 Assets = {
@@ -64,7 +63,6 @@ modimport "agcw_main_scripts/actions"
 modimport "agcw_main_scripts/recipes"
 
 --[replica组件注册]
-AddReplicableComponent("agcw_enemy_spawner")
 
 
 --注册地图图标
@@ -79,7 +77,6 @@ AddPrefabPostInit("forest_network", function(inst)
 	if TheWorld.ismastersim then
         inst.AgcwAreaMgr = inst:AddComponent("agcw_area_manager")
         inst.AgcwPowerMgr = inst:AddComponent("agcw_power_manager")
-		inst.AgcwEnemyMgr = inst:AddComponent("agcw_enemy_spawner")
     else
         inst.AgcwAreaMgr_client = inst:AddComponent("agcw_area_manager_client")
 	end

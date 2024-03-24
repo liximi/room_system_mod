@@ -3,11 +3,7 @@ _G.AGCW = {
 	RPC_NAMESPACE = "AGCW_MOD",
 	SELECT_UNIT_BUTTON = MOUSEBUTTON_LEFT,		--选择地块的鼠标按键
 	DISELECT_TILE_BUTTON = MOUSEBUTTON_RIGHT,	--取消选择地块的鼠标按键
-	FARM_PLOW_DRILLING_DURATION = 5,			--垦地时长
-	PLOW_TILE_MACHINE_MAX_USES = 100,			--开垦机的耐久
-	PLOW_TILE_MACHINE_REPAIR_USES = 25,			--开垦机每次补充的耐久
-	USES_PER_DRILLING = 1,						--每次垦地消耗的耐久
-	PLOW_TILE_MACHINE_MOVE_SPEED = 5,			--开垦机的移速
+
 	AREA_TYPE = {								--区域类型
 		NONE = 0,
 		CHOP = 1,
