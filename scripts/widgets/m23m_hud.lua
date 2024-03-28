@@ -20,7 +20,7 @@ end)
 
 
 function HUD:PopupAreaEditScreen()
-	ThePlayer:ShowPopUp(POPUPS.AGCW_AREA_EDIT, true)
+	ThePlayer:ShowPopUp(POPUPS.M23M_AREA_EDIT, true)
 end
 
 return HUD

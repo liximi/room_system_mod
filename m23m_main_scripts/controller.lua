@@ -1,4 +1,4 @@
-global("TheAgcwInteractive")
+global("M23M_Interactive")
 
 --------------------------------------------------
 -- 用于驱动与鼠标交互
@@ -47,7 +47,7 @@ local Interactive = Class(function(self)
             self.init_task:Cancel()
             self.init_task = nil
         end
-    end, nil, nil, "TheAgcwInteractive")
+    end, nil, nil, "M23M_Interactive")
 end)
 
 
@@ -63,4 +63,4 @@ function Interactive:StopFunction(function_widget)
 	end
 end
 
-_G.TheAgcwInteractive = Interactive()
+_G.M23M_Interactive = Interactive()

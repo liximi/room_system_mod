@@ -1,8 +1,8 @@
-local agcw_area = require "agcw_area"
-local IsValidType = agcw_area.IsValidType
-local GetTypeStringKey = agcw_area.GetTypeStringKey
-local Area = agcw_area.Area
-local AREA_TYPE = AGCW.AREA_TYPE
+local m23m_area = require "m23m_area"
+local IsValidType = m23m_area.IsValidType
+local GetTypeStringKey = m23m_area.GetTypeStringKey
+local Area = m23m_area.Area
+local AREA_TYPE = M23M.AREA_TYPE
 local json = require "json"
 
 
@@ -72,7 +72,7 @@ function AreaManager:RefreshClientData(area, remove)	--Area Instance
 	print("RefreshClientData", area, remove)
 	for _, player in ipairs(AllPlayers) do
 		if remove then
-			SendModRPCToClient(CLIENT_MOD_RPC[AGCW.RPC_NAMESPACE].remove_area, player.user_id, area:GetID())
+			SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].remove_area, player.user_id, area:GetID())
 		else
 			local tiles = area:GetTiles()
 			local _tiles = {}
@@ -81,7 +81,7 @@ function AreaManager:RefreshClientData(area, remove)	--Area Instance
 					table.insert(_tiles, {x, z})	--由于json.encode会改变表结构，因此需要重新处理表结构
 				end
 			end
-			SendModRPCToClient(CLIENT_MOD_RPC[AGCW.RPC_NAMESPACE].refresh_area_data, player.user_id, area:GetID(), json.encode(_tiles), area:GetType())
+			SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].refresh_area_data, player.user_id, area:GetID(), json.encode(_tiles), area:GetType())
 		end
 	end
 end

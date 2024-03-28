@@ -5,7 +5,7 @@ local Image = require "widgets/image"
 local ImageButton = require "widgets/imagebutton"
 local Text = require "widgets/text"
 local Templates = require "widgets/redux/templates"
-local PlowTileSelect = require "widgets/agcw_tile_selection"
+local PlowTileSelect = require "widgets/m23m_tile_selection"
 
 
 local AreaEditScreen = Class(Screen, function(self, owner, data)
@@ -30,7 +30,7 @@ local AreaEditScreen = Class(Screen, function(self, owner, data)
 					table.insert(_tiles, {x, z})	--由于json.encode会改变表结构，因此需要重新处理表结构
 				end
 			end
-			SendModRPCToServer(MOD_RPC[AGCW.RPC_NAMESPACE].add_area, json.encode(_tiles))
+			SendModRPCToServer(MOD_RPC[M23M.RPC_NAMESPACE].add_area, json.encode(_tiles))
 		end
         TheFrontEnd:PopScreen()
 	end, "确定", {100, 50}))
@@ -46,13 +46,13 @@ end)
 
 function AreaEditScreen:OnDestroy()
     SetAutopaused(false)
-    POPUPS.AGCW_AREA_EDIT:Close(self.owner)
+    POPUPS.M23M_AREA_EDIT:Close(self.owner)
 	AreaEditScreen._base.OnDestroy(self)
 end
 
 function AreaEditScreen:OnBecomeInactive()
     AreaEditScreen._base.OnBecomeInactive(self)
-	TheAgcwInteractive:StopFunction(self.selection_function)
+	M23M_Interactive:StopFunction(self.selection_function)
 	if self.selection_function then
 		self.selection_function:Kill()
 	end
@@ -65,7 +65,7 @@ function AreaEditScreen:OnBecomeActive()
 	end
 	self.selection_function = self:AddChild(PlowTileSelect())
 	-- self.selection_function:SetDisableTileType({"FARMING_SOIL"})
-	TheAgcwInteractive:StartFunction(self.selection_function)
+	M23M_Interactive:StartFunction(self.selection_function)
 end
 
 function AreaEditScreen:OnControl(control, down)

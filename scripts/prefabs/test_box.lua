@@ -1,6 +1,6 @@
 local assets = {
-    Asset("IMAGE", "images/inventoryimages/agcw_power_app.tex"),
-    Asset("ATLAS", "images/inventoryimages/agcw_power_app.xml"),
+    Asset("IMAGE", "images/inventoryimages/m23m_power_app.tex"),
+    Asset("ATLAS", "images/inventoryimages/m23m_power_app.xml"),
 	Asset("ANIM", "anim/test_box.zip"),
 }
 
@@ -55,7 +55,7 @@ local function fn()
     return inst
 end
 
--- RegisterInventoryItemAtlas("images/inventoryimages/agcw_power_app.xml", "agcw_power_app.tex")
+
 STRINGS.NAMES.TEST_BOX = "测试立方体"
 STRINGS.RECIPE_DESC.TEST_BOX = "测试立方体"
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.TEST_BOX = "测试立方体"

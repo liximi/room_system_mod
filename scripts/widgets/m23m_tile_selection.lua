@@ -7,8 +7,8 @@ local ANCHOR_BOTTOM = ANCHOR_BOTTOM
 local ANCHOR_LEFT = ANCHOR_LEFT
 local TheSim = TheSim
 
-local select_tile_button = AGCW.SELECT_UNIT_BUTTON    	--选择地块的鼠标按键
-local diselect_tile_button = AGCW.DISELECT_TILE_BUTTON	--取消选择地块的鼠标按键
+local select_tile_button = M23M.SELECT_UNIT_BUTTON    	--选择地块的鼠标按键
+local diselect_tile_button = M23M.DISELECT_TILE_BUTTON	--取消选择地块的鼠标按键
 local selected_color = RGB(50, 220, 50)
 local diselect_color = RGB(255, 50, 50)
 local hover_color = RGB(255, 255, 255)
@@ -121,7 +121,7 @@ function TileSelection:OnMouseButton(button, down)
     if button == select_tile_button or button == diselect_tile_button then
         if not TheInput:GetHUDEntityUnderMouse() and down and not self.mouse_isdown then	--如果按下鼠标时，鼠标下没有UI并且之前不处于按下状态中，则进入选择状态
             self.mouse_isdown = button
-            TheCamera:LockHeadingTarget("agcw_plow_tile_selection")	--锁定摄像机视角
+            TheCamera:LockHeadingTarget("m23m_plow_tile_selection")	--锁定摄像机视角
             local pos = TheInput:GetScreenPosition()
             self.select_quad_screen[1] = {x = pos.x, y = pos.y}
             self.select_quad_screen[2] = {x = pos.x, y = pos.y}
@@ -133,7 +133,7 @@ function TileSelection:OnMouseButton(button, down)
                 self:ClearSelection()
             end
         elseif self.mouse_isdown and not down then	--如果正在选择,且不是按下状态
-            TheCamera:UnLockHeadingTarget("agcw_plow_tile_selection")	--解锁摄像机视角
+            TheCamera:UnLockHeadingTarget("m23m_plow_tile_selection")	--解锁摄像机视角
             self:RemoveMultSelectRangeImage()
 			if #self.select_quad_screen == 4 then
                 local distance = Vector3(self.select_quad_screen[1].x , self.select_quad_screen[1].y):Dist(Vector3(self.select_quad_screen[3].x , self.select_quad_screen[3].y))
@@ -455,7 +455,7 @@ end
 
 function TileSelection:OnDisable()
 	self.mouse_isdown = false
-	TheCamera:UnLockHeadingTarget("agcw_plow_tile_selection")	--解锁摄像机视角
+	TheCamera:UnLockHeadingTarget("m23m_plow_tile_selection")	--解锁摄像机视角
 	self:RemoveMultSelectRangeImage()
 	self.select_quad_screen = {}
 	self:ClearPreDiselection()

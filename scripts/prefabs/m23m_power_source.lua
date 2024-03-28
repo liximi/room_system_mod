@@ -1,21 +1,21 @@
 require "prefabutil"
 
 local assets = {
-    Asset("IMAGE", "images/inventoryimages/agcw_power_source.tex"),
-    Asset("ATLAS", "images/inventoryimages/agcw_power_source.xml"),
+    Asset("IMAGE", "images/inventoryimages/m23m_power_source.tex"),
+    Asset("ATLAS", "images/inventoryimages/m23m_power_source.xml"),
 }
 
 local prefabs = {}
 
 --------------------------------------------------
--- agcw_power_source
+-- m23m_power_source
 --------------------------------------------------
 
 local function OnBuilt(inst)
     --inst.SoundEmitter:PlaySound("dontstarve_DLC001/common/firesupressor_craft")
     -- inst.AnimState:PlayAnimation("drill_pre")
     -- inst.AnimState:PushAnimation("drill_loop", true)
-    inst.components.agcw_power_source:Register()
+    inst.components.m23m_power_source:Register()
 end
 
 local function OnHammered(inst, worker)
@@ -32,14 +32,14 @@ end
 
 local function OnTakeFuel(inst)
     inst.SoundEmitter:PlaySound("dontstarve/common/fireAddFuel")
-    if inst.components.agcw_power_source:IsTurnOn() and not inst.components.fueled.consuming then
+    if inst.components.m23m_power_source:IsTurnOn() and not inst.components.fueled.consuming then
         inst.components.fueled:StartConsuming()
-        inst.components.agcw_power_source:RefreshOutput()
+        inst.components.m23m_power_source:RefreshOutput()
     end
 end
 
 local function OnFuelDepleted(inst)
-    inst.components.agcw_power_source:RefreshOutput()
+    inst.components.m23m_power_source:RefreshOutput()
 end
 
 local function OnOutputChanged(inst, new_val, old_val)
@@ -61,7 +61,7 @@ local function OnTurnOn(inst, is_turnon)
 end
 
 local function CalcCurrentOutput(inst)
-    return inst.components.fueled:IsEmpty() and 0 or inst.components.agcw_power_source:GetStandardOutput()
+    return inst.components.fueled:IsEmpty() and 0 or inst.components.m23m_power_source:GetStandardOutput()
 end
 
 
@@ -74,7 +74,7 @@ local function OnSave(inst, data)
 end
 
 local function OnLoad(inst, data)
-    inst.components.agcw_power_source:Register()
+    inst.components.m23m_power_source:Register()
 end
 
 
@@ -120,12 +120,12 @@ local function fn()
     inst.components.fueled:SetTakeFuelFn(OnTakeFuel)        --补充燃料时调用
     inst.components.fueled:SetDepletedFn(OnFuelDepleted)    --燃料耗尽时调用
 
-    inst:AddComponent("agcw_power_source")
-    inst.components.agcw_power_source:SetStandardOutput(10)
-    inst.components.agcw_power_source.on_turnon_fn = OnTurnOn
-    inst.components.agcw_power_source.output_changed_fn = OnOutputChanged
-    inst.components.agcw_power_source.calc_current_output_fn = CalcCurrentOutput
-    inst.components.agcw_power_source:TurnOn()  --The 'TurnOn' should always be called after everything is ready
+    inst:AddComponent("m23m_power_source")
+    inst.components.m23m_power_source:SetStandardOutput(10)
+    inst.components.m23m_power_source.on_turnon_fn = OnTurnOn
+    inst.components.m23m_power_source.output_changed_fn = OnOutputChanged
+    inst.components.m23m_power_source.calc_current_output_fn = CalcCurrentOutput
+    inst.components.m23m_power_source:TurnOn()  --The 'TurnOn' should always be called after everything is ready
 
     MakeSnowCovered(inst)
 
@@ -137,8 +137,8 @@ local function fn()
     return inst
 end
 
-RegisterInventoryItemAtlas("images/inventoryimages/agcw_power_source.xml", "agcw_power_source.tex")
+RegisterInventoryItemAtlas("images/inventoryimages/m23m_power_source.xml", "m23m_power_source.tex")
 
 return
-Prefab("agcw_power_source", fn, assets, prefabs),
-MakePlacer("agcw_power_source_placer", "farm_plow", "farm_plow", "idle_place", nil, true)
+Prefab("m23m_power_source", fn, assets, prefabs),
+MakePlacer("m23m_power_source_placer", "farm_plow", "farm_plow", "idle_place", nil, true)

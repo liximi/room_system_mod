@@ -1,8 +1,8 @@
 GLOBAL.setmetatable(env,{__index=function(t,k) return GLOBAL.rawget(GLOBAL,k) end})
 
 PrefabFiles = {
-    "agcw_power_source",
-    "agcw_power_app",
+    "m23m_power_source",
+    "m23m_power_app",
     "test_box",
 }
 
@@ -39,28 +39,28 @@ for _, f_name in ipairs(mod_loc_files) do
 end
 
 --[Constants]
-modimport "agcw_main_scripts/constants"
+modimport "m23m_main_scripts/constants"
 
 --[Tools]
-modimport "agcw_main_scripts/tools"
+modimport "m23m_main_scripts/tools"
 
 --[Containers]
-modimport "agcw_main_scripts/containers"
+modimport "m23m_main_scripts/containers"
 
 --[RPCs]
-modimport "agcw_main_scripts/rpcs"
+modimport "m23m_main_scripts/rpcs"
 
 --[Controller]
-modimport "agcw_main_scripts/controller"
+modimport "m23m_main_scripts/controller"
 
 --[UI]
-modimport "agcw_main_scripts/ui"
+modimport "m23m_main_scripts/ui"
 
 --[Actions]
-modimport "agcw_main_scripts/actions"
+modimport "m23m_main_scripts/actions"
 
 --[Recipes]
-modimport "agcw_main_scripts/recipes"
+modimport "m23m_main_scripts/recipes"
 
 --[replica组件注册]
 
@@ -75,10 +75,10 @@ modimport "agcw_main_scripts/recipes"
 
 AddPrefabPostInit("forest_network", function(inst)
 	if TheWorld.ismastersim then
-        inst.AgcwAreaMgr = inst:AddComponent("agcw_area_manager")
-        inst.AgcwPowerMgr = inst:AddComponent("agcw_power_manager")
+        inst.M23M_AreaMgr = inst:AddComponent("m23m_area_manager")
+        inst.M23M_PowerMgr = inst:AddComponent("m23m_power_manager")
     else
-        inst.AgcwAreaMgr_client = inst:AddComponent("agcw_area_manager_client")
+        inst.M23M_AreaMgr_client = inst:AddComponent("m23m_area_manager_client")
 	end
 end)
 

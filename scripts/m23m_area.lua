@@ -1,4 +1,4 @@
-local AREA_TYPE = AGCW.AREA_TYPE
+local AREA_TYPE = M23M.AREA_TYPE
 local AREA_TYPE_IDX = {}
 for k, v in pairs(AREA_TYPE) do
 	AREA_TYPE_IDX[v] = k

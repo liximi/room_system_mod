@@ -1,14 +1,14 @@
 require "prefabutil"
 
 local assets = {
-    Asset("IMAGE", "images/inventoryimages/agcw_power_app.tex"),
-    Asset("ATLAS", "images/inventoryimages/agcw_power_app.xml"),
+    Asset("IMAGE", "images/inventoryimages/m23m_power_app.tex"),
+    Asset("ATLAS", "images/inventoryimages/m23m_power_app.xml"),
 }
 
 local prefabs = {}
 
 --------------------------------------------------
--- agcw_power_app
+-- m23m_power_app
 --------------------------------------------------
 
 local function OnHammered(inst, worker)
@@ -36,7 +36,7 @@ local function OnSave(inst, data)
 end
 
 local function OnLoad(inst, data)
-	inst.components.agcw_power_appliance:Register()
+	inst.components.m23m_power_appliance:Register()
     if data ~= nil then
 
     end
@@ -46,7 +46,7 @@ local function OnBuilt(inst)
     --inst.SoundEmitter:PlaySound("dontstarve_DLC001/common/firesupressor_craft")
     inst.AnimState:PlayAnimation("drill_pre")
     inst.AnimState:PushAnimation("drill_loop", true)
-    inst.components.agcw_power_appliance:Register()
+    inst.components.m23m_power_appliance:Register()
 end
 
 --------------------------------------------------
@@ -83,9 +83,9 @@ local function fn()
     inst.components.workable:SetWorkLeft(4)
     inst.components.workable:SetOnFinishCallback(OnHammered)
 
-	inst:AddComponent("agcw_power_appliance")
-	inst.components.agcw_power_appliance:SetStandardDemand(2)
-	inst.components.agcw_power_appliance:SetOnEfficiencyChangedFn(function(new_val, old_val)
+	inst:AddComponent("m23m_power_appliance")
+	inst.components.m23m_power_appliance:SetStandardDemand(2)
+	inst.components.m23m_power_appliance:SetOnEfficiencyChangedFn(function(new_val, old_val)
 		print("test -", new_val, old_val)
         if new_val > 0 and old_val == 0 then
             inst.AnimState:PushAnimation("drill_loop", true)
@@ -93,8 +93,8 @@ local function fn()
             inst.AnimState:PlayAnimation("drill_pre")
         end
 	end)
-    inst.components.agcw_power_appliance.on_turnon_fn = OnTurnOn
-    inst.components.agcw_power_appliance:TurnOn()   --The 'TurnOn' should always be called after everything is ready
+    inst.components.m23m_power_appliance.on_turnon_fn = OnTurnOn
+    inst.components.m23m_power_appliance:TurnOn()   --The 'TurnOn' should always be called after everything is ready
 
     MakeSnowCovered(inst)
 
@@ -106,8 +106,8 @@ local function fn()
     return inst
 end
 
-RegisterInventoryItemAtlas("images/inventoryimages/agcw_power_app.xml", "agcw_power_app.tex")
+RegisterInventoryItemAtlas("images/inventoryimages/m23m_power_app.xml", "m23m_power_app.tex")
 
 return
-Prefab("agcw_power_app", fn, assets, prefabs),
-MakePlacer("agcw_power_app_placer", "farm_plow", "farm_plow", "idle_place", nil, true)
+Prefab("m23m_power_app", fn, assets, prefabs),
+MakePlacer("m23m_power_app_placer", "farm_plow", "farm_plow", "idle_place", nil, true)

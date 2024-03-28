@@ -1,6 +1,6 @@
 local TILE_SIZE = 4
-local POWERSOURCE_COMPONENT = "agcw_power_source"
-local POWERAPPLIANCE_COMPONENT = "agcw_power_appliance"
+local POWERSOURCE_COMPONENT = "m23m_power_source"
+local POWERAPPLIANCE_COMPONENT = "m23m_power_appliance"
 local VAILD_TILE = GROUND.ARCHIVE
 
 local function debug_print(...)
@@ -400,7 +400,7 @@ function PowerManager:RefreshEfficiency_Private(net_id, buffer)
 		end
 		self.efficiencies[net_id] = new_efficiency
 		for i, power_app in ipairs(self:GetNetPowerAppliances(net_id)) do
-			power_app:PushEvent("agcw_power_manager.efficiencies", {old = old_efficiency, new = self.efficiencies[net_id]})
+			power_app:PushEvent("m23m_power_manager.efficiencies", {old = old_efficiency, new = self.efficiencies[net_id]})
 		end
 	end
 end
@@ -475,7 +475,7 @@ function PowerManager:OnTileChanged_Private(net_id)
 	end
 	self.efficiencies[net_id] = new_efficiency
 	for i, power_app in ipairs(self:GetNetPowerAppliances(net_id)) do
-		power_app:PushEvent("agcw_power_manager.efficiencies", {old = old_efficiency, new = new_efficiency})
+		power_app:PushEvent("m23m_power_manager.efficiencies", {old = old_efficiency, new = new_efficiency})
 	end
 end
 

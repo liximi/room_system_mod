@@ -8,12 +8,12 @@ local PowerSource = Class(function(self, inst)
 	-- self.output_changed_fn = nil	--fn(self.inst, new_val, old_val)
 	-- self.calc_current_output_fn = nill	--fn(self.inst)
 
-	self.inst:AddTag("agcw_power_source")
+	self.inst:AddTag("m23m_power_source")
 end)
 
 
 function PowerSource:OnRemoveFromEntity()
-	self.inst:RemoveTag("agcw_power_source")
+	self.inst:RemoveTag("m23m_power_source")
 end
 
 function PowerSource:OnRemoveEntity()
@@ -24,11 +24,11 @@ end
 function PowerSource:Register()
 	local pos = self.inst:GetPosition()
 	local tile_x, y, tile_z = TheWorld.Map:GetTileCenterPoint(pos.x, 0, pos.z)
-	return TheWorld.net.AgcwPowerMgr:AddPowerSource(self.inst, tile_x, tile_z)
+	return TheWorld.net.M23M_PowerMgr:AddPowerSource(self.inst, tile_x, tile_z)
 end
 
 function PowerSource:Unregister()
-	return TheWorld.net.AgcwPowerMgr:RemovePowerSource(self.inst)
+	return TheWorld.net.M23M_PowerMgr:RemovePowerSource(self.inst)
 end
 
 
@@ -50,7 +50,7 @@ function PowerSource:SetOuput(val)
 	self.current_output_power = math.clamp(val, 0, self.standard_output_power)
 	local delta = val - old_val
 	if delta ~= 0 then
-		TheWorld.net.AgcwPowerMgr:OnPowerSourceOutputChanged(self.inst, delta)
+		TheWorld.net.M23M_PowerMgr:OnPowerSourceOutputChanged(self.inst, delta)
 		if self.output_changed_fn then
 			self.output_changed_fn(self.inst, self.current_output_power, old_val)
 		end

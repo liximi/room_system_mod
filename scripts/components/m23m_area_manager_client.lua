@@ -1,8 +1,8 @@
-local agcw_area = require "agcw_area"
-local IsValidType = agcw_area.IsValidType
-local GetTypeStringKey = agcw_area.GetTypeStringKey
-local Area = agcw_area.Area
-local AREA_TYPE = AGCW.AREA_TYPE
+local m23m_area = require "m23m_area"
+local IsValidType = m23m_area.IsValidType
+local GetTypeStringKey = m23m_area.GetTypeStringKey
+local Area = m23m_area.Area
+local AREA_TYPE = M23M.AREA_TYPE
 
 
 ------------------------------
@@ -20,18 +20,18 @@ end)
 
 
 function AreaManager:AddArea(tiles, area_type)	--tiles: 由x和y组成的二维数组{x={y=true}}; area_type: AREA_TYPE.xxx
-	SendModRPCToServer(MOD_RPC[AGCW.RPC_NAMESPACE].add_area, tiles, area_type)
+	SendModRPCToServer(MOD_RPC[M23M.RPC_NAMESPACE].add_area, tiles, area_type)
 end
 
 function AreaManager:RemoveArea(id, area_might_type)	--area_might_type: AREA_TYPE.xxx
-	SendModRPCToServer(MOD_RPC[AGCW.RPC_NAMESPACE].remove_area, id, area_might_type)
+	SendModRPCToServer(MOD_RPC[M23M.RPC_NAMESPACE].remove_area, id, area_might_type)
 end
 
 function AreaManager:SetAreaType(id, area_type)
 	if not IsValidType(area_type) then
 		return
 	end
-	SendModRPCToServer(MOD_RPC[AGCW.RPC_NAMESPACE].change_area_type, id, area_type)
+	SendModRPCToServer(MOD_RPC[M23M.RPC_NAMESPACE].change_area_type, id, area_type)
 end
 
 function AreaManager:RefreshClientData(id, tiles, area_type, remove)

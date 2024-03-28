@@ -1,6 +1,6 @@
 local function OnEfficiencyChanged(inst, data)
-	if inst.components.agcw_power_appliance then
-		inst.components.agcw_power_appliance:SetEfficiency(data.new)
+	if inst.components.m23m_power_appliance then
+		inst.components.m23m_power_appliance:SetEfficiency(data.new)
 	end
 end
 
@@ -15,14 +15,14 @@ local PowerApp = Class(function(self, inst)
 	-- self.output_changed_fn = nil	--fn(self.inst, new_val, old_val)
 	-- self.calc_current_demand_fn = nill	--fn(self.inst)
 
-	self.inst:AddTag("agcw_power_appliance")
-	self.inst:ListenForEvent("agcw_power_manager.efficiencies", OnEfficiencyChanged)
+	self.inst:AddTag("m23m_power_appliance")
+	self.inst:ListenForEvent("m23m_power_manager.efficiencies", OnEfficiencyChanged)
 end)
 
 
 function PowerApp:OnRemoveFromEntity()
-	self.inst:RemoveTag("agcw_power_appliance")
-	self.inst:RemoveEventCallback("agcw_power_manager.efficiencies", OnEfficiencyChanged)
+	self.inst:RemoveTag("m23m_power_appliance")
+	self.inst:RemoveEventCallback("m23m_power_manager.efficiencies", OnEfficiencyChanged)
 end
 
 function PowerApp:OnRemoveEntity()
@@ -33,15 +33,15 @@ end
 function PowerApp:Register()
 	local pos = self.inst:GetPosition()
 	local tile_x, y, tile_z = TheWorld.Map:GetTileCenterPoint(pos.x, 0, pos.z)
-	local success, net_id = TheWorld.net.AgcwPowerMgr:AddPowerAppliance(self.inst, tile_x, tile_z)
+	local success, net_id = TheWorld.net.M23M_PowerMgr:AddPowerAppliance(self.inst, tile_x, tile_z)
 	if net_id then
-		self:SetEfficiency(TheWorld.net.AgcwPowerMgr:GetEfficiencyByNet(net_id))
+		self:SetEfficiency(TheWorld.net.M23M_PowerMgr:GetEfficiencyByNet(net_id))
 	end
 	return success, net_id
 end
 
 function PowerApp:Unregister()
-	return TheWorld.net.AgcwPowerMgr:RemovePowerAppliance(self.inst)
+	return TheWorld.net.M23M_PowerMgr:RemovePowerAppliance(self.inst)
 end
 
 
@@ -60,7 +60,7 @@ function PowerApp:SetDemand(val)
 	self.current_demand = math.clamp(val, 0, self.standard_demand)
 	local delta = val - old_val
 	if delta ~= 0 then
-		TheWorld.net.AgcwPowerMgr:OnPowerApplianceDemandChanged(self.inst, delta)
+		TheWorld.net.M23M_PowerMgr:OnPowerApplianceDemandChanged(self.inst, delta)
 		if self.output_changed_fn then
 			self.output_changed_fn(self.inst, self.current_demand, old_val)
 		end
