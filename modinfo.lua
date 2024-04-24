@@ -1,6 +1,6 @@
 local chinese = locale == "zh" or locale  == "zhr"
 
-name = chinese and "农业战争" or "Agricultural Warfare"
+name = chinese and "房间" or "Rooms"
 description = ""
 author = "liximi"
 version = "dev"
