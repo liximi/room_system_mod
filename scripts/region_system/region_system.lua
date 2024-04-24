@@ -202,7 +202,12 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 				end
 			end
 
-			self:private_NewRegion(region_id).tiles = region_tiles
+			local region = self:private_NewRegion(region_id)
+			while not region do
+				region_id = region_id + 1
+				region = self:private_NewRegion(region_id)
+			end
+			region.tiles = region_tiles
 			self:private_AddRegionToRoom(region_id, 1)
 			region_id = region_id + 1
 		end

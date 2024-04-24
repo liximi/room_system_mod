@@ -1,5 +1,5 @@
 local RegionSytem = require "region_system"
-RegionSytem:Generation(64, 64, 16, 16)
+RegionSytem:Generation(425*4, 425*4, 16, 16)
 
 
 local start = os.clock()

@@ -77,6 +77,9 @@ AddPrefabPostInit("forest_network", function(inst)
 	if TheWorld.ismastersim then
         inst.M23M_AreaMgr = inst:AddComponent("m23m_area_manager")
         inst.M23M_PowerMgr = inst:AddComponent("m23m_power_manager")
+        inst.M23M_RegionMgr = inst:AddComponent("m23m_region_manager")
+        local map_w, map_h = TheWorld.Map:GetSize()
+        inst.M23M_RegionMgr:Generation(map_w * 2, map_h * 2, 16, 16)
     else
         inst.M23M_AreaMgr_client = inst:AddComponent("m23m_area_manager_client")
 	end
