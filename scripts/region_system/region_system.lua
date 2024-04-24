@@ -1,13 +1,3 @@
---[[地块数据
-	space: 该地块是否是可通过的空地, true表示为空, false表示有墙体或其他阻碍物
-	region: 切片分组ID, 整数, space为false的地块region固定为0
-	is_door: 该地块是否是门
-]]
-
--- 除了Generation, 永远不要修改tiles[y][x]的引用
-
-
-
 local DIR = {
 	X_POSITIVE = 1,
 	Y_POSITIVE = 2,
@@ -157,6 +147,16 @@ end
 --------------------------------------------------
 -- Map
 --------------------------------------------------
+--[[地块数据
+	x
+	y
+	space: 该地块是否是可通过的空地, true表示为空, false表示有墙体或其他阻碍物
+	region: 切片分组ID, 整数, space为false的地块region固定为0
+	is_door: 该地块是否是门
+]]
+
+-- 除了Generation, 永远不要修改tiles[y][x]的引用
+
 
 local RegionSystem = {
 	DIR = DIR,
@@ -181,7 +181,7 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 	for i = 1, height do
 		self.tiles[i] = {}
 		for j = 1, width do
-			self.tiles[i][j] = { space = true }
+			self.tiles[i][j] = { x = j, y = i, space = true }
 		end
 	end
 	--初始切片
@@ -460,6 +460,31 @@ function RegionSystem:GetRoomId(x, y)
 		return 0
 	end
 	return region_id and self.regions[region_id].room
+end
+
+function RegionSystem:GetAllRegionsInRoom(room_id)	--不要修改返回的表
+	if not room_id or not self.rooms[room_id] then
+		return {}
+	end
+	return self.rooms[room_id].regions
+end
+
+function RegionSystem:GetAllTilesInRoom(room_id)	--性能很差
+	local regions = self:GetAllRegionsInRoom(room_id)
+	local tiles = {}
+	for _, region_id in ipairs(regions) do
+		local region = self.regions[region_id]
+		if region then
+			for _, tile in ipairs(region.tiles) do
+				table.insert(tiles, tile)
+			end
+		end
+	end
+	return tiles
+end
+
+function RegionSystem:GetRegion(region_id)
+	return region_id and self.regions[region_id]
 end
 
 function RegionSystem:GetRegionPassableEdges(region_id)

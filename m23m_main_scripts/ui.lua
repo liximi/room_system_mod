@@ -14,8 +14,8 @@ end)
 local HUD = require "widgets/m23m_hud"
 AddClassPostConstruct("widgets/controls", function(self)
     --添加新UI
-    self.indust_hud = self:AddChild(HUD(self.owner))
-    self.indust_hud:MoveToFront()
+    self.m23m_hud = self:AddChild(HUD(self.owner))
+    self.m23m_hud:MoveToFront()
 
 	self.xp = self:AddChild(Text(UIFONT, 28, "X正"))
     self.xn = self:AddChild(Text(UIFONT, 28, "X负"))

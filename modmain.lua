@@ -4,6 +4,7 @@ PrefabFiles = {
     "m23m_power_source",
     "m23m_power_app",
     "test_box",
+    "m23m_rectangle",
 }
 
 Assets = {
@@ -73,17 +74,53 @@ modimport "m23m_main_scripts/recipes"
 -- [针对本MOD的全局修改逻辑]
 --------------------------------------------------
 
+global("TheRegionMgr")
 AddPrefabPostInit("forest_network", function(inst)
 	if TheWorld.ismastersim then
         inst.M23M_AreaMgr = inst:AddComponent("m23m_area_manager")
         inst.M23M_PowerMgr = inst:AddComponent("m23m_power_manager")
         inst.M23M_RegionMgr = inst:AddComponent("m23m_region_manager")
         local map_w, map_h = TheWorld.Map:GetSize()
-        inst.M23M_RegionMgr:Generation(map_w * 2, map_h * 2, 16, 16)
+        inst.M23M_RegionMgr:Generation(map_w * 4, map_h * 4, 34, 34)    --因为墙体每个只占1格，所以整个地图的尺寸必须是这么多，section尺寸过小会导致性能问题
+        _G.TheRegionMgr = inst.M23M_RegionMgr
     else
         inst.M23M_AreaMgr_client = inst:AddComponent("m23m_area_manager_client")
 	end
 end)
+
+local WALLS = {
+    "wall_stone",
+    "wall_stone_2",
+    "wall_wood",
+    "wall_hay",
+    "wall_ruins",
+    "wall_ruins_2",
+    "wall_moonrock",
+    "wall_dreadstone",
+}
+
+local function init_wall(inst)
+    local pos = inst:GetPosition()
+    local x, y = TheWorld.net.M23M_RegionMgr:GetRegionCoordsAtPoint(pos.x, pos.z)
+    print("Add Wall", inst.prefab, pos, "tile coords:", x, y)
+    TheWorld.net.M23M_RegionMgr:AddWalls({{x, y}})
+end
+local function on_remove_wall(inst)
+    local pos = inst:GetPosition()
+    local x, y = TheWorld.net.M23M_RegionMgr:GetRegionCoordsAtPoint(pos.x, pos.z)
+    print("Remove Wall", inst.prefab, pos, "tile coords:", x, y)
+    TheWorld.net.M23M_RegionMgr:RemoveWalls({{x, y}})
+end
+for _, wall in ipairs(WALLS) do
+    AddPrefabPostInit(wall, function(inst)
+        if TheWorld.ismastersim then
+            inst:DoTaskInTime(0, init_wall)
+            inst:ListenForEvent("onremove", on_remove_wall)
+        end
+    end)
+end
+
+
 
 -- [Camera]
 -- 视角锁定(通过设置摄像机的lock_heading_target属性为true来锁定视角)

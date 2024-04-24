@@ -16,10 +16,10 @@ function _G.IsPointInsideConvexQuad(pos, quad)
         local x1, y1 = quad[i].x, quad[i].y
         local next = i % 4 + 1
         local x2, y2 = quad[next].x, quad[next].y
-        local currSide = (x2 - x1) * (pos.y - y1) - (y2 - y1) * (pos.x - x1)
+        local curr_side = (x2 - x1) * (pos.y - y1) - (y2 - y1) * (pos.x - x1)
         if side == nil then
-            side = currSide
-        elseif side * currSide < 0 then
+            side = curr_side
+        elseif side * curr_side < 0 then
             return false
         end
     end
