@@ -97,18 +97,20 @@ local WALLS = {
     "wall_ruins_2",
     "wall_moonrock",
     "wall_dreadstone",
+    "wall_scrap",
+    "fence",
 }
 
 local function init_wall(inst)
     local pos = inst:GetPosition()
     local x, y = TheWorld.net.M23M_RegionMgr:GetRegionCoordsAtPoint(pos.x, pos.z)
-    print("Add Wall", inst.prefab, pos, "tile coords:", x, y)
+    -- print("Add Wall", inst.prefab, pos, "tile coords:", x, y)
     TheWorld.net.M23M_RegionMgr:AddWalls({{x, y}})
 end
 local function on_remove_wall(inst)
     local pos = inst:GetPosition()
     local x, y = TheWorld.net.M23M_RegionMgr:GetRegionCoordsAtPoint(pos.x, pos.z)
-    print("Remove Wall", inst.prefab, pos, "tile coords:", x, y)
+    -- print("Remove Wall", inst.prefab, pos, "tile coords:", x, y)
     TheWorld.net.M23M_RegionMgr:RemoveWalls({{x, y}})
 end
 for _, wall in ipairs(WALLS) do
@@ -116,6 +118,32 @@ for _, wall in ipairs(WALLS) do
         if TheWorld.ismastersim then
             inst:DoTaskInTime(0, init_wall)
             inst:ListenForEvent("onremove", on_remove_wall)
+        end
+    end)
+end
+
+
+local DOORS = {
+    "fence_gate",
+}
+
+local function init_door(inst)
+    local pos = inst:GetPosition()
+    local x, y = TheWorld.net.M23M_RegionMgr:GetRegionCoordsAtPoint(pos.x, pos.z)
+    -- print("Add Door", inst.prefab, pos, "tile coords:", x, y)
+    TheWorld.net.M23M_RegionMgr:AddDoors({{x, y}})
+end
+local function on_remove_door(inst)
+    local pos = inst:GetPosition()
+    local x, y = TheWorld.net.M23M_RegionMgr:GetRegionCoordsAtPoint(pos.x, pos.z)
+    -- print("Remove Door", inst.prefab, pos, "tile coords:", x, y)
+    TheWorld.net.M23M_RegionMgr:RemoveDoors({{x, y}})
+end
+for _, door in ipairs(DOORS) do
+    AddPrefabPostInit(door, function(inst)
+        if TheWorld.ismastersim then
+            inst:DoTaskInTime(0, init_door)
+            inst:ListenForEvent("onremove", on_remove_door)
         end
     end)
 end

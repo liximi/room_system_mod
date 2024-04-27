@@ -17,8 +17,8 @@ local ROOM_TYPES = {
 	},
 }
 
-local function encode_edge(x, y, dir, length)
-	return x * 16777216 + y * 65536 + dir * 256 + length
+local function encode_edge(x, y, dir, length)	--x, y 坐标只留了12位(最大4095), 不支持负数, 不支持小数
+	return x * 268435456 + y * 65536 + dir * 256 + length
 end
 
 local function decode_edge(code)
@@ -26,8 +26,8 @@ local function decode_edge(code)
 	code = (code - length) / 256
 	local dir = code % 256
 	code = (code - dir) / 256
-	local y = code % 256
-	local x = (code - y) / 256
+	local y = code % 4096
+	local x = (code - y) / 4096
 	return x, y, dir, length
 end
 

@@ -84,3 +84,51 @@ function _G.Delete_UUID(id)
 		spawned_uuids[id] = nil
 	end
 end
+
+
+function _G.EncodePos(x, y, z)	--每个坐标预留了13位(坐标绝对值最大8191, 支出负数, 不支持小数)
+	if type(x) == "table" then
+		y = x.y or x[2]
+		z = x.z or x[3]
+		x = x.x or x[1]
+	end
+	local res = math.abs(z)
+	if z < 0 then
+		res = res + 8192
+	end
+	res = res + math.abs(y) * 16384
+	if y < 0 then
+		res = res + 134217728
+	end
+	res = res + math.abs(x) * 268435456
+	if x < 0 then
+		res = res + 2199023255552
+	end
+	return res
+end
+
+function _G.DecodePos(code)
+	local z = code % 8192
+	code = (code - z) / 8192
+	local is_neg = code % 2
+	if is_neg ~= 0 then
+		z = -z
+	end
+	code = (code - is_neg) / 2
+
+	local y = code % 8192
+	code = (code - y) / 8192
+	is_neg = code % 2
+	if is_neg ~= 0 then
+		y = -y
+	end
+	code = (code - is_neg) / 2
+
+	local x = code % 8192
+	code = (code - x) / 8192
+	is_neg = code % 2
+	if is_neg ~= 0 then
+		x = -x
+	end
+	return x, y ,z
+end
