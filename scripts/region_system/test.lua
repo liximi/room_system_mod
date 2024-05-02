@@ -1,5 +1,14 @@
 local RegionSytem = require "scripts.region_system.region_system"
-RegionSytem:Generation(425*4, 425*4, 16, 16)
+RegionSytem:Generation(64, 64, 16, 16)
+
+local waters = {}
+for i = 40, 50 do
+	for j = 40, 50 do
+		table.insert(waters, {i, j})
+	end
+end
+RegionSytem:AddWaters(waters)
+
 
 local walls = {}
 local doors = {}
@@ -24,11 +33,16 @@ table.insert(doors, {12, 21})
 RegionSytem:AddWalls(walls)
 RegionSytem:AddDoors(doors)
 
-local start = os.clock()
-RegionSytem:GetAllTilesInRoom(RegionSytem:GetRoomId(50, 50))
-print("cost:", os.clock() - start)
+local waters = {}
+for i = 40, 45 do
+	for j = 40, 47 do
+		table.insert(waters, {i, j})
+	end
+end
+RegionSytem:RemoveWaters(waters)
 
--- RegionSytem:Print("region")
+
+RegionSytem:Print("region")
 
 -- local region_id = RegionSytem:GetRegionId(11, 19)
 -- local edges = RegionSytem:GetRegionPassableEdges(region_id)

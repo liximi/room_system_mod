@@ -31,28 +31,25 @@ local function decode_edge(code)
 	return x, y, dir, length
 end
 
-local function flood_fill(tiles, cur_x, cur_y, can_visit, on_visit, visited)
+local function flood_fill(tiles, cur_x, cur_y, can_visit, on_visit, visited, prev_x, prev_y)
 	local cur_tile = tiles[cur_y] and tiles[cur_y][cur_x]
 
 	if not cur_tile then return end
 	if not visited then visited = {} end
 	if visited[cur_tile] then return end
 	visited[cur_tile] = true
-	if can_visit and not can_visit(cur_x, cur_y) then
-		if on_visit then
-			on_visit(cur_x, cur_y, false)
-		end
+	if can_visit and not can_visit(cur_x, cur_y,  prev_x, prev_y) then
 		return
 	end
 
 	if on_visit then
-		on_visit(cur_x, cur_y, true)
+		on_visit(cur_x, cur_y)
 	end
 
-	flood_fill(tiles, cur_x + 1, cur_y, can_visit, on_visit, visited)
-	flood_fill(tiles, cur_x, cur_y + 1, can_visit, on_visit, visited)
-	flood_fill(tiles, cur_x - 1, cur_y, can_visit, on_visit, visited)
-	flood_fill(tiles, cur_x, cur_y - 1, can_visit, on_visit, visited)
+	flood_fill(tiles, cur_x + 1, cur_y, can_visit, on_visit, visited, cur_x, cur_y)
+	flood_fill(tiles, cur_x, cur_y + 1, can_visit, on_visit, visited, cur_x, cur_y)
+	flood_fill(tiles, cur_x - 1, cur_y, can_visit, on_visit, visited, cur_x, cur_y)
+	flood_fill(tiles, cur_x, cur_y - 1, can_visit, on_visit, visited, cur_x, cur_y)
 end
 
 local function flood_fill_region(regions, cur_region_id, can_visit, on_visit, visited)
@@ -153,6 +150,7 @@ end
 	space: 该地块是否是可通过的空地, true表示为空, false表示有墙体或其他阻碍物
 	region: 切片分组ID, 整数, space为false的地块region固定为0
 	is_door: 该地块是否是门
+	is_water: 该地块是否是水域
 ]]
 
 -- 除了Generation, 永远不要修改tiles[y][x]的引用
@@ -225,28 +223,34 @@ function RegionSystem:RefreashSection(x, y)
 
 	if not section_tiles then return end
 
-	local function can_visit(cur_x, cur_y)
-		return self:IsPassable(base_x + cur_x, base_y + cur_y)
+	local function can_visit(cur_x, cur_y, prev_x, prev_y)
+		cur_x, cur_y = base_x + cur_x, base_y + cur_y
+		if not self:IsPassable(cur_x, cur_y) then
+			return false
+		end
+		if not prev_x or not prev_y then
+			return true
+		end
+		prev_x, prev_y = base_x + prev_x, base_y + prev_y
+		if not self:IsPassable(prev_x, prev_y) then
+			return false
+		end
+		return self:IsWater(cur_x, cur_y) == self:IsWater(prev_x, prev_y)
 	end
 
 	local region_index
 	local doors = {}
-	local function on_visit(cur_x, cur_y, passable)
+	local function on_visit(cur_x, cur_y)
 		local cur_tile = section_tiles[cur_y][cur_x]
-		-- self:private_DeleteRegion(cur_tile.region)
 
 		if cur_tile.is_door then
 			table.insert(doors, {base_x + cur_x, base_y + cur_y})
 		end
 
-		if passable then
-			if not self.regions[region_index] then
-				self:private_NewRegion(region_index)
-			end
-			self:private_AddTileToRegion(cur_tile, region_index)
-		else
-			self:private_AddTileToRegion(cur_tile, 0)
+		if not self.regions[region_index] then
+			self:private_NewRegion(region_index)
 		end
+		self:private_AddTileToRegion(cur_tile, region_index)
 
 		section_tiles[cur_y][cur_x] = nil
 		if is_empty_table(section_tiles[cur_y]) then section_tiles[cur_y] = nil end
@@ -256,8 +260,14 @@ function RegionSystem:RefreashSection(x, y)
 	while not is_empty_table(section_tiles) do
 		for _y, xs in pairs(section_tiles) do
 			for _x in pairs(xs) do
-				region_index = get_empty_num_index(self.regions) + 1
-				flood_fill(section_tiles, _x, _y, can_visit, on_visit)
+				if self:IsPassable(base_x + _x, base_y + _y) then
+					region_index = get_empty_num_index(self.regions) + 1
+					flood_fill(section_tiles, _x, _y, can_visit, on_visit)
+				else
+					self:private_AddTileToRegion(self.tiles[base_y + _y][base_x + _x], 0)
+					section_tiles[_y][_x] = nil
+					if is_empty_table(section_tiles[_y]) then section_tiles[_y] = nil end
+				end
 			end
 		end
 	end
@@ -410,8 +420,11 @@ function RegionSystem:OnItemMove(item, old_pos, new_pos)	--pos: {x, y}
 end
 
 function RegionSystem:IsPassable(x, y)
-	local res = self.tiles[y] and self.tiles[y][x] and self.tiles[y][x].space
-	return res
+	return self.tiles[y] and self.tiles[y][x] and self.tiles[y][x].space
+end
+
+function RegionSystem:IsWater(x, y)
+	return self.tiles[y] and self.tiles[y][x] and self.tiles[y][x].is_water == true
 end
 
 function RegionSystem:IsDoorRegion(region_id)
@@ -563,6 +576,56 @@ function RegionSystem:RemoveDoors(doors)	--{x, y}
 	else
 		self:private_SetSpaceBatch(space_datas)
 	end
+end
+
+function RegionSystem:AddWaters(waters)	 --{x, y}
+	local sections = {}		-- y = {x = true}
+	for i, pos in ipairs(waters) do
+		local x, y = pos[1], pos[2]
+		if self.tiles[y] and self.tiles[y][x] then
+			self.tiles[y][x].is_water = true
+		end
+
+		local base_x, base_y = self:GetSectionAABB(pos[1], pos[2])
+		if base_x then
+			if not sections[base_y] then
+				sections[base_y] = {}
+			end
+			sections[base_y][base_x] = true
+		end
+	end
+
+	for y, xs in pairs(sections) do
+		for x, _ in pairs(xs) do
+			self:RefreashSection(x, y)
+		end
+	end
+	self:RefreashRooms()
+end
+
+function RegionSystem:RemoveWaters(waters)	--{x. y}
+	local sections = {}		-- y = {x = true}
+	for i, pos in ipairs(waters) do
+		local x, y = pos[1], pos[2]
+		if self.tiles[y] and self.tiles[y][x] and self.tiles[y][x].is_water then
+			self.tiles[y][x].is_water = nil
+		end
+
+		local base_x, base_y = self:GetSectionAABB(pos[1], pos[2])
+		if base_x then
+			if not sections[base_y] then
+				sections[base_y] = {}
+			end
+			sections[base_y][base_x] = true
+		end
+	end
+
+	for y, xs in pairs(sections) do
+		for x, _ in pairs(xs) do
+			self:RefreashSection(x, y)
+		end
+	end
+	self:RefreashRooms()
 end
 
 function RegionSystem:AddDataToRegion(region_id, key, data)
