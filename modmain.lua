@@ -115,15 +115,15 @@ local WALLS = {
 
 local function init_wall(inst)
     local pos = inst:GetPosition()
-    local x, y = TheWorld.net.M23M_RegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
+    local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
     -- print("Add Wall", inst.prefab, pos, "tile coords:", x, y)
-    TheWorld.net.M23M_RegionMgr:AddWalls({{x, y}})
+    TheRegionMgr:AddWalls({{x, y}})
 end
 local function on_remove_wall(inst)
     local pos = inst:GetPosition()
-    local x, y = TheWorld.net.M23M_RegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
+    local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
     -- print("Remove Wall", inst.prefab, pos, "tile coords:", x, y)
-    TheWorld.net.M23M_RegionMgr:RemoveWalls({{x, y}})
+    TheRegionMgr:RemoveWalls({{x, y}})
 end
 for _, wall in ipairs(WALLS) do
     AddPrefabPostInit(wall, function(inst)
@@ -141,15 +141,15 @@ local DOORS = {
 
 local function init_door(inst)
     local pos = inst:GetPosition()
-    local x, y = TheWorld.net.M23M_RegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
+    local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
     -- print("Add Door", inst.prefab, pos, "tile coords:", x, y)
-    TheWorld.net.M23M_RegionMgr:AddDoors({{x, y}})
+    TheRegionMgr:AddDoors({{x, y}})
 end
 local function on_remove_door(inst)
     local pos = inst:GetPosition()
-    local x, y = TheWorld.net.M23M_RegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
+    local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
     -- print("Remove Door", inst.prefab, pos, "tile coords:", x, y)
-    TheWorld.net.M23M_RegionMgr:RemoveDoors({{x, y}})
+    TheRegionMgr:RemoveDoors({{x, y}})
 end
 for _, door in ipairs(DOORS) do
     AddPrefabPostInit(door, function(inst)
@@ -160,7 +160,25 @@ for _, door in ipairs(DOORS) do
     end)
 end
 
-
+local ROOM_DEF = require "m23m_room_def"
+local function CheckPosition(inst)
+    if TheWorld.ismastersim then
+        inst:AddComponent("m23m_room_key_item")
+    end
+end
+for id, data in pairs(ROOM_DEF) do
+	if type(data.must_items) == "table" then
+		for _, items in ipairs(data.must_items) do
+			if type(items) == "table" then
+				for _, item in ipairs(items) do
+					AddPrefabPostInit(item, CheckPosition)
+				end
+			else
+				AddPrefabPostInit(items, CheckPosition)
+			end
+		end
+	end
+end
 
 -- [Camera]
 -- 视角锁定(通过设置摄像机的lock_heading_target属性为true来锁定视角)

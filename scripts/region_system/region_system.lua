@@ -9,13 +9,8 @@ for dir, val in pairs(DIR) do
 	DIR_REVERSE[val] = dir
 end
 
-local ROOM_TYPES = {
-	NONE = {
-		int_id = 0,
-		-- check_fn = function(items_in_room) return bool end
-		-- check_priority = 0, 越大越优先
-	},
-}
+local ROOM_TYPES = { "NONE", }
+local ROOM_TYPES_REVERSE = {NONE = 1}
 
 local function encode_edge(x, y, dir, length)	--x, y 坐标只留了12位(最大4095), 不支持负数, 不支持小数
 	return x * 268435456 + y * 65536 + dir * 256 + length
@@ -475,6 +470,13 @@ function RegionSystem:GetRoomId(x, y)
 	return region_id and self.regions[region_id].room
 end
 
+function RegionSystem:GetRoomIdByRegion(region_id)
+	if region_id == 0 then
+		return 0
+	end
+	return region_id and self.regions[region_id] and self.regions[region_id].room
+end
+
 function RegionSystem:GetAllRegionsInRoom(room_id)	--不要修改返回的表
 	if not room_id or not self.rooms[room_id] then
 		return {}
@@ -628,7 +630,57 @@ function RegionSystem:RemoveWaters(waters)	--{x. y}
 	self:RefreashRooms()
 end
 
-function RegionSystem:AddDataToRegion(region_id, key, data)
+function RegionSystem:RegisterRoomType(room_type)
+	if type(room_type) == "string" then
+		for _, _type in ipairs(ROOM_TYPES) do
+			if _type == room_type then
+				return
+			end
+		end
+		table.insert(ROOM_TYPES, room_type)
+		ROOM_TYPES_REVERSE[room_type] = #ROOM_TYPES
+	end
+end
+
+function RegionSystem:SetRoomType(room_id, type)	--type是房间字符串id
+	if not self.rooms[room_id] then
+		return false, 0
+	end
+	if not ROOM_TYPES_REVERSE[type] then
+		return false, 1
+	end
+	self.rooms[room_id].type = ROOM_TYPES_REVERSE[type]
+	return true
+end
+
+function RegionSystem:GetRoomTypeById(room_id)
+	if not self.rooms[room_id] then
+		return "NONE"
+	end
+	return ROOM_TYPES[self.rooms[room_id].type] or "NONE"
+end
+
+function RegionSystem:GetRoomType(x, y)
+	local room_id = self:GetRoomId(x, y)
+	if room_id then
+		return self:GetRoomTypeById(room_id)
+	end
+	return "NONE"
+end
+
+function RegionSystem:GetRoomSize(room_id)
+	local regions = self:GetAllRegionsInRoom(room_id)
+	local size = 0
+	for _, region_id in ipairs(regions) do
+		local region = self.regions[region_id]
+		if region then
+			size = size + #region.tiles
+		end
+	end
+	return size
+end
+
+function RegionSystem:SetDataToRegion(region_id, key, data)
 	if not self.regions[region_id] or type(key) ~= "string" then
 		return false
 	end

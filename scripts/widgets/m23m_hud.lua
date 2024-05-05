@@ -1,7 +1,6 @@
 local Widget = require "widgets/widget"
 local Text = require "widgets/text"
 local Templates = require "widgets/redux/templates"
-
 local RoomView = require "widgets/m23m_room_view"
 
 
@@ -35,7 +34,7 @@ function HUD:SwitchRoomView()
 		self.room_view:Kill()
 		self.room_view = nil
 	else
-		self.room_view = RoomView(self.owner)
+		self.room_view = self:AddChild(RoomView(self.owner))
 	end
 end
 

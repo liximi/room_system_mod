@@ -4,6 +4,19 @@ STRINGS.ACTIONS.M23M_SHOW_UI_OVERRIDE = {	--AddAction接口会覆盖STRINGS.ACTI
 	GENERIC = "查看",
 }
 
+-- Rooms
+STRINGS.M23M_ROOM_MUST = "房间中放置下列物品："
+STRINGS.M23M_ROOMS = {
+	NONE = {
+		NAME = "杂间/户外",
+		DESC = "平平无奇。"
+	},
+	KITCHEN = {
+		NAME = "厨房",
+		DESC = "加速烹饪过程，冰箱中食物腐烂速度更慢。"
+	},
+}
+
 --测试电源
 STRINGS.NAMES.M23M_POWER_SOURCE = "测试电源"
 STRINGS.RECIPE_DESC.M23M_POWER_SOURCE = ""
