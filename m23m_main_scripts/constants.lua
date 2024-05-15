@@ -8,5 +8,9 @@ _G.M23M = {
 		NONE = 0,
 		CHOP = 1,
 		MINE = 2,
-	}
+	},
+
+	KITCHEN_COOKTIME_MULT = GetModConfigData("kitchen_cooktime_mult"),
+	PRIMITIVE_KITCHEN_COOKTIME_MULT = GetModConfigData("kitchen_cooktime_mult") * 0.25,
+	ADVANCED_KITCHEN_COOKTIME_MULT = GetModConfigData("kitchen_cooktime_mult") * 1.5,
 }

@@ -23,15 +23,33 @@ server_filter_tags = {} --服务器标签可以不写
 configuration_options =
 {
     {
-        name = "Language",
-        label = "Language",
-        hover = "Set Language/设置语言",
-        options =
-        {
+        name = "language",
+        label = chinese and "语言" or "Language",
+        hover = chinese and "设置语言" or "Set Language",
+        options = {
             {description = "English", data = "ENGLISH"},
             {description = "中文", data = "CHINESE"},
             {description = "Auto/自动", data = "AUTO"}
         },
         default = "AUTO",
+    },
+    {
+        name = "kitchen_cooktime_mult",
+        label = chinese and "厨房的烹饪时间乘数" or "Cook Time Multiplier of Kitchen",
+        hover = chinese and "在厨房中，烹饪时间会缩短。" or "In the kitchen, cooking time will be shortened.",
+        options = {
+            {description = "90%", data = -0.1},
+            {description = "80%", data = -0.2},
+            {description = "75%", data = -0.25},
+            {description = "70%", data = -0.3},
+            {description = "60%", data = -0.4},
+            {description = "50%", data = -0.5},
+            {description = "40%", data = -0.6},
+            {description = "30%", data = -0.7},
+            {description = "75%", data = -0.25},
+            {description = "20%", data = -0.8},
+            {description = "10%", data = -0.9},
+        },
+        default = -0.4,
     },
 }

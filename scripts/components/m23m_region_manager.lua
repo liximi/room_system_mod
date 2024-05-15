@@ -9,8 +9,8 @@ local RegionSystem = Class(REGION_SYS, function (self, inst)
 end)
 
 
-function RegionSystem:GetTileCoordsAtPoint(x, y)
-	return math.floor(x) + math.ceil(self.width/2), math.floor(y) + math.ceil(self.height/2)
+function RegionSystem:GetTileCoordsAtPoint(x, z)
+	return math.floor(x) + math.ceil(self.width/2), math.floor(z) + math.ceil(self.height/2)
 end
 
 function RegionSystem:GetPointAtTileCoords(x, y)
@@ -120,6 +120,10 @@ function RegionSystem:CheckRoomMustItems(room_id, must_items)
 	return true
 end
 
+function RegionSystem:IsInRoom(x, z, room_type)
+	local region_x, region_y = self:GetTileCoordsAtPoint(x, z)
+	return self._base.IsInRoom(self, region_x, region_y, room_type)
+end
 
 
 return RegionSystem

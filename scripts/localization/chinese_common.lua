@@ -13,7 +13,15 @@ STRINGS.M23M_ROOMS = {
 	},
 	KITCHEN = {
 		NAME = "厨房",
-		DESC = "加速烹饪过程，冰箱中食物腐烂速度更慢。"
+		DESC = function() return string.format("烧烤和烹饪时间缩短 %d%%。", M23M.KITCHEN_COOKTIME_MULT * -100) end
+	},
+	PRIMITIVE_KITCHEN = {
+		NAME = "简陋厨房",
+		DESC = function() return string.format("烧烤和烹饪时间缩短 %d%%。", M23M.PRIMITIVE_KITCHEN_COOKTIME_MULT * -100) end
+	},
+	ADVANCED_KITCHEN = {
+		NAME = "专业厨房",
+		DESC = function() return string.format("烧烤和烹饪时间缩短 %d%%。", M23M.ADVANCED_KITCHEN_COOKTIME_MULT * -100) end
 	},
 }
 

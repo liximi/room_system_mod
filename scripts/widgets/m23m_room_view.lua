@@ -55,7 +55,7 @@ function RoomView:SetCurrentRoomId(room_id, start_pos)
 			if room_data.type == self.cur_room_type then
 				self.cur_room_color = room_data.color
 				room_name = room_data.name
-				room_desc = room_data.desc
+				room_desc = FunctionOrValue(room_data.desc)
 			end
 		end
 		self.room_name_text:SetString(room_name)

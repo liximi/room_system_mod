@@ -668,6 +668,10 @@ function RegionSystem:GetRoomType(x, y)
 	return "NONE"
 end
 
+function RegionSystem:IsInRoom(x, y, room_type)
+	return room_type == self:GetRoomType(x, y)
+end
+
 function RegionSystem:GetRoomSize(room_id)
 	local regions = self:GetAllRegionsInRoom(room_id)
 	local size = 0
