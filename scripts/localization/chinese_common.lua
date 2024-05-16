@@ -11,6 +11,10 @@ STRINGS.M23M_ROOMS = {
 		NAME = "杂间/户外",
 		DESC = "平平无奇。"
 	},
+	WAREHOUSE = {
+		NAME = "仓库",
+		DESC = "可以用更低的成本将箱子升级为大箱子，箱子内的物品腐烂速度略微降低。"
+	},
 	KITCHEN = {
 		NAME = "厨房",
 		DESC = function() return string.format("烧烤和烹饪时间缩短 %d%%。", M23M.KITCHEN_COOKTIME_MULT * -100) end
@@ -22,6 +26,26 @@ STRINGS.M23M_ROOMS = {
 	ADVANCED_KITCHEN = {
 		NAME = "专业厨房",
 		DESC = function() return string.format("烧烤和烹饪时间缩短 %d%%。", M23M.ADVANCED_KITCHEN_COOKTIME_MULT * -100) end
+	},
+	LUXURIOUS_KITCHEN = {
+		NAME = "豪华厨房",
+		DESC = function() return string.format("烧烤和烹饪时间缩短 %d%%。", M23M.LUXURIOUS_KITCHEN_COOKTIME_MULT * -100) end
+	},
+	BASIC_WORKSHOP = {
+		NAME = "基础工作间",
+		DESC = "加速制作过程。"
+	},
+	WORKSHOP = {
+		NAME = "工作间",
+		DESC = "加速制作过程，有极小概率产出翻倍。"
+	},
+	CHEMICAL_LABORATORY = {
+		NAME = "化学实验室",
+		DESC = "加速制作过程，有极小概率产出翻倍。"
+	},
+	BEDROOM = {
+		NAME = "卧室",
+		DESC = "加速睡觉时的生命值和san值回复。"
 	},
 }
 

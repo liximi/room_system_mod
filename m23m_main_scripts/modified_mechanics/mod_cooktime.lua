@@ -145,6 +145,11 @@ local function adv_kitchen_mult_cond(inst)
     return TheRegionMgr:IsInRoom(x, z, "advanced_kitchen")
 end
 
+local function luxu_kitchen_mult_cond(inst)
+    local x, y, z = inst.Transform:GetWorldPosition()
+    return TheRegionMgr:IsInRoom(x, z, "luxurious_itchen")
+end
+
 local function cookpot_postinit(inst)
     if not inst.components.stewer then
         return
@@ -152,6 +157,7 @@ local function cookpot_postinit(inst)
     inst.components.stewer:AddCookTimeMultiplier("M23M_KITCHEN_MULT", M23M.KITCHEN_COOKTIME_MULT, kitchen_mult_cond)
     inst.components.stewer:AddCookTimeMultiplier("M23M_PRIMITIVE_KITCHEN_MULT", M23M.PRIMITIVE_KITCHEN_COOKTIME_MULT, primitive_kitchen_mult_cond)
     inst.components.stewer:AddCookTimeMultiplier("M23M_ADVANCED_KITCHEN_MULT", M23M.ADVANCED_KITCHEN_COOKTIME_MULT, adv_kitchen_mult_cond)
+    inst.components.stewer:AddCookTimeMultiplier("M23M_LUXURIOUS_KITCHEN_MULT", M23M.LUXURIOUS_KITCHEN_COOKTIME_MULT, luxu_kitchen_mult_cond)
 end
 
 for _, pref in ipairs(cookpots) do

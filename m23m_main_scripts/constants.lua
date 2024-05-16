@@ -13,4 +13,5 @@ _G.M23M = {
 	KITCHEN_COOKTIME_MULT = GetModConfigData("kitchen_cooktime_mult"),
 	PRIMITIVE_KITCHEN_COOKTIME_MULT = GetModConfigData("kitchen_cooktime_mult") * 0.25,
 	ADVANCED_KITCHEN_COOKTIME_MULT = GetModConfigData("kitchen_cooktime_mult") * 1.5,
+	LUXURIOUS_KITCHEN_COOKTIME_MULT = GetModConfigData("kitchen_cooktime_mult") * 1.2,
 }

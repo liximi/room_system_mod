@@ -50,6 +50,6 @@ configuration_options =
             {description = "20%", data = -0.8},
             {description = "10%", data = -0.9},
         },
-        default = -0.4,
+        default = -0.3,
     },
 }
