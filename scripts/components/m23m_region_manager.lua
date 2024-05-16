@@ -17,20 +17,8 @@ function RegionSystem:GetPointAtTileCoords(x, y)
 	return x - math.ceil(self.width/2) + 0.5, y - math.ceil(self.height/2) + 0.5
 end
 
-function RegionSystem:OnUpdateKeyItemPosition(item_name, old_pos, new_pos)
-	local old_x, old_y, new_x, new_y, old_region, new_region
-	if old_pos then
-		old_x, old_y = self:GetTileCoordsAtPoint(old_pos.x, old_pos.z)
-		old_region = self:GetRegionId(old_x, old_y)
-	end
-	if new_pos then
-		new_x, new_y = self:GetTileCoordsAtPoint(new_pos.x, new_pos.z)
-		new_region = self:GetRegionId(new_x, new_y)
-	end
-	if old_region == new_region then
-		return
-	end
 
+function RegionSystem:ChangeItemRegion(item_name, old_region, new_region, refreash_room)
 	local count
 	if old_region ~= 0 then
 		local items = self:GetDataInRegion(old_region, "items") or {}
@@ -45,29 +33,66 @@ function RegionSystem:OnUpdateKeyItemPosition(item_name, old_pos, new_pos)
 		self:SetDataToRegion(new_region, "items", items)
 	end
 
+	if not refreash_room then
+		return
+	end
+
 	local old_room = self:GetRoomIdByRegion(old_region)
 	local new_room = self:GetRoomIdByRegion(new_region)
 	if old_room == new_room then
 		return
 	end
 
-	self:UpdateRoomType({old_room or new_room, old_room and new_room or nil})
+	if old_room then
+		self:RefreashRoomType(old_room)
+	end
+	if new_room then
+		self:RefreashRoomType(new_room)
+	end
 end
 
-function RegionSystem:UpdateRoomType(rooms)		--roomID数组
-	for _, room_id in ipairs(rooms) do
-		if room_id ~= 0 then
-			local success = false
-			for _, data in ipairs(ROOM_DEF) do
-				if self:CheckRoomSize(room_id, data.min_size, data.max_size) and self:CheckRoomMustItems(room_id, data.must_items) then
-					self:SetRoomType(room_id, data.type)
-					success = true
-					break
-				end
+function RegionSystem:OnChangeTileRegion(x, y, old_region, new_region, refreash_room)	--这个函数会被父类调用
+	local world_x, world_z = self:GetPointAtTileCoords(x, y)
+	for _, ent in ipairs(TheSim:FindEntities(world_x, 0, world_z, 0.75, {"m23m_room_key_item"})) do		-- 0.75 > sqrt(2)/2
+		if ent.components.m23m_room_key_item then
+			local ent_x, ent_y, ent_z = ent.Transform:GetWorldPosition()
+			local region_x, region_y = self:GetTileCoordsAtPoint(ent_x, ent_z)
+			if region_x == x and region_y == y then
+				self:ChangeItemRegion(ent.prefab, old_region, new_region, refreash_room)
 			end
-			if not success then
-				self:SetRoomType(room_id, "NONE")
+		end
+	end
+end
+
+function RegionSystem:OnUpdateKeyItemPosition(item_name, old_pos, new_pos)
+	local old_x, old_y, new_x, new_y, old_region, new_region
+	if old_pos then
+		old_x, old_y = self:GetTileCoordsAtPoint(old_pos.x, old_pos.z)
+		old_region = self:GetRegionId(old_x, old_y)
+	end
+	if new_pos then
+		new_x, new_y = self:GetTileCoordsAtPoint(new_pos.x, new_pos.z)
+		new_region = self:GetRegionId(new_x, new_y)
+	end
+	if old_region == new_region then
+		return
+	end
+
+	self:ChangeItemRegion(item_name, old_region, new_region, true)
+end
+
+function RegionSystem:RefreashRoomType(room_id)		--这个函数会被父类调用
+	if room_id ~= 0 then
+		local success = false
+		for _, data in ipairs(ROOM_DEF) do
+			if self:CheckRoomSize(room_id, data.min_size, data.max_size) and self:CheckRoomMustItems(room_id, data.must_items) then
+				self:SetRoomType(room_id, data.type)
+				success = true
+				break
 			end
+		end
+		if not success then
+			self:SetRoomType(room_id, "NONE")
 		end
 	end
 end

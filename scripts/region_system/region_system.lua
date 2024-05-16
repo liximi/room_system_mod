@@ -379,13 +379,10 @@ function RegionSystem:RefreashRooms()	--遍历全部region, 刷新房间
 		for _, region_id in ipairs(group) do
 			self:private_AddRegionToRoom(region_id, new_room_id)
 		end
-		self:RefreashRoomType(new_room_id)
+		if self.RefreashRoomType then
+			self:RefreashRoomType(new_room_id)
+		end
 	end
-end
-
-function RegionSystem:RefreashRoomType(room_id)
-	if not room_id or self.rooms[room_id] then return end
-	--todo
 end
 
 function RegionSystem:OnItemMove(item, old_pos, new_pos)	--pos: {x, y}
@@ -407,10 +404,14 @@ function RegionSystem:OnItemMove(item, old_pos, new_pos)	--pos: {x, y}
 	end
 
 	if need_refreash_old_room then
-		self:RefreashRoomType(old_room)
+		if self.RefreashRoomType then
+			self:RefreashRoomType(old_room)
+		end
 	end
 	if need_refreash_new_room then
-		self:RefreashRoomType(new_room)
+		if self.RefreashRoomType then
+			self:RefreashRoomType(new_room)
+		end
 	end
 end
 
@@ -733,6 +734,8 @@ function RegionSystem:Print(data_key, sub_key, only_one_section, x, y)
 	end
 end
 
+-- function RegionSystem:RefreashRoomType(room_id)
+-- function RegionSystem:OnChangeTileRegion(x, y, old_region_id, new_region_id, refreash_room)
 
 --------------------------------------------------
 -- 私有函数 Private Functions
@@ -797,6 +800,10 @@ function RegionSystem:private_AddTileToRegion(tile, region_id)
 		table.insert(self.regions[region_id].tiles, tile)
 	end
 	tile.region = region_id
+
+	if self.OnChangeTileRegion then
+		self:OnChangeTileRegion(tile.x, tile.y, old_region_id, region_id)
+	end
 end
 
 function RegionSystem:private_DeleteRegion(region_id)

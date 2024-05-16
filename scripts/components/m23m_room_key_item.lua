@@ -11,6 +11,7 @@ local KeyItem = Class(function (self, inst)
 
 	self.inst:DoTaskInTime(0, function () self:StartUpdating() end)	--等到物品初始化坐标之后再开始更新
 	self.inst:ListenForEvent("onremove", on_remove)	--移除时通知房间系统
+	self.inst:AddTag("m23m_room_key_item")
 end)
 
 function KeyItem:OnRemoveFromEntity()
@@ -18,6 +19,7 @@ function KeyItem:OnRemoveFromEntity()
 	--移除时通知房间系统
 	on_remove(self.inst)
     self.inst:RemoveEventCallback("onremove", on_remove)
+	self.inst:RemoveTag("m23m_room_key_item")
 end
 
 
