@@ -1,3 +1,20 @@
+local INDOOR_TILES ={
+	--XXX = true,	--XXX填WORLD_TILES的Key
+	SHELLBEACH = true,	--贝壳海滩地皮
+	MONKEY_GROUND = true,	--月亮码头海滩地皮
+	BEARD_RUG = true,		--胡须地毯
+	WOODFLOOR = true,	--木地板
+	COTL_GOLD = true,	--黄金地板
+	COTL_BRICK = true,	--砖地板
+	CHECKER = true,		--棋盘地板
+	CARPET = true,		--地毯地板
+	CARPET2 = true,		--茂盛地毯
+	MOSAIC_GREY = true,	--灰色马赛克地板
+	MOSAIC_RED = true,	--红色马赛克地板
+	MOSAIC_BLUE = true,	--蓝色马赛克地板
+}
+
+
 local DEF = {
 	{	--仓库
 		type = "warehouse",
@@ -31,6 +48,7 @@ local DEF = {
 		max_size = 128,
 		priority = 12,
 		color = RGB(255, 255, 0),
+		available_tiles = INDOOR_TILES,
 		must_items = {
 			{"cookpot", "portablecookpot"},		--普通锅或便携锅
 			"icebox",		--冰箱
@@ -44,6 +62,7 @@ local DEF = {
 		max_size = 128,
 		priority = 13,
 		color = RGB(255, 255, 0),
+		available_tiles = INDOOR_TILES,
 		must_items = {
 			"portablecookpot",	--便携锅
 			"icebox",			--冰箱
@@ -59,6 +78,7 @@ local DEF = {
 		max_size = 128,
 		priority = 14,
 		color = RGB(255, 255, 0),
+		available_tiles = INDOOR_TILES,
 		must_items = {
 			"cookpot",			--普通锅
 			"wintersfeastoven",	--砖砌烤炉
@@ -85,6 +105,7 @@ local DEF = {
 		max_size = 128,
 		priority = 22,
 		color = RGB(0, 255, 0),
+		available_tiles = INDOOR_TILES,
 		must_items = {
 			"researchlab2",		--科学机器
 			"researchlab3",		--暗影操控器
@@ -99,6 +120,7 @@ local DEF = {
 		max_size = 128,
 		priority = 23,
 		color = RGB(0, 255, 0),
+		available_tiles = INDOOR_TILES,
 		must_items = {
 			"madscience_lab",	--疯狂科学家实验室
 		},
@@ -111,6 +133,7 @@ local DEF = {
 		max_size = 96,
 		priority = 31,
 		color = RGB(0, 50, 255),
+		available_tiles = INDOOR_TILES,
 		must_items = {
 			{"tent", "portabletent"},	--帐篷/宿营帐篷
 		},

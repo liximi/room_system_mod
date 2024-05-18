@@ -76,6 +76,7 @@ modimport "m23m_main_scripts/recipes"
 
 local mod_files = {
     "mod_world_network",
+    "mod_room_key_items",
     "mod_camera",
     "mod_cooktime",
 }

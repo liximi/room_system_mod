@@ -85,7 +85,7 @@ function RegionSystem:RefreashRoomType(room_id)		--这个函数会被父类调�
 	if room_id ~= 0 then
 		local success = false
 		for _, data in ipairs(ROOM_DEF) do
-			if self:CheckRoomSize(room_id, data.min_size, data.max_size) and self:CheckRoomMustItems(room_id, data.must_items) then
+			if self:CheckRoomSize(room_id, data.min_size, data.max_size) and self:CheckRoomMustItems(room_id, data.must_items) and self:CheckRoomTiles(room_id, data.available_tiles) then
 				self:SetRoomType(room_id, data.type)
 				success = true
 				break
@@ -138,6 +138,34 @@ function RegionSystem:CheckRoomMustItems(room_id, must_items)
 		else
 			if not items_in_room[items] then
 				return false
+			end
+		end
+	end
+
+	return true
+end
+
+function RegionSystem:CheckRoomTiles(room_id, available_tiles)
+	if not available_tiles then
+		 return true
+	end
+
+	local world_tiles = {}
+	local region_ids = self:GetAllRegionsInRoom(room_id)
+	for _, region_id in ipairs(region_ids) do
+		local region = self.regions[region_id]
+		for _, tile in ipairs(region.tiles) do
+			local world_x, world_z = self:GetPointAtTileCoords(tile.x, tile.y)
+			local center_x, center_y, center_z = TheWorld.Map:GetTileCenterPoint(world_x, 0, world_z)
+			if not world_tiles[center_z] then
+				world_tiles[center_z] = {}
+			end
+			if not world_tiles[center_z][center_x] then
+				local tile_id = TheWorld.Map:GetTileAtPoint(world_x, 0, world_z)
+				if not available_tiles[INVERTED_WORLD_TILES[tile_id]] then
+					return false
+				end
+				world_tiles[center_z][center_x] = tile_id
 			end
 		end
 	end

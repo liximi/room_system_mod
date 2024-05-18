@@ -439,8 +439,9 @@ function TileSelection:IsEnableTile(x, z)
 	if not self.enable_ocean and TheWorld.Map:IsOceanTileAtPoint(x, 0, z) then
 		return false
 	end
+	local tile = TheWorld.Map:GetTileAtPoint(x, 0, z)
 	for i, tile_id in ipairs(self.disable_tile_types) do
-		if TheWorld.Map:GetTileAtPoint(x, 0, z) == tile_id then
+		if tile == tile_id then
 			return false
 		end
 	end
