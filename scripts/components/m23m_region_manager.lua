@@ -6,6 +6,12 @@ local RegionSystem = Class(REGION_SYS, function (self, inst)
 	for _, data in ipairs(ROOM_DEF) do
 		self:RegisterRoomType(data.type)
 	end
+
+	self.inst:ListenForEvent("onterraform", function(world, data)
+		--data: {x:tilemap的坐标, y:tilemap的坐标, original_tile:int, tile:int}
+		local pt_x, pt_z = _G.GetTileCenterPointByTileCoords(data.x, data.y)
+		self:OnTerraform(pt_x, pt_z)
+	end, TheWorld)
 end)
 
 
@@ -79,6 +85,27 @@ function RegionSystem:OnUpdateKeyItemPosition(item_name, old_pos, new_pos)
 	end
 
 	self:ChangeItemRegion(item_name, old_region, new_region, true)
+end
+
+function RegionSystem:OnTerraform(x, z)
+	local rooms = {}
+	for _z = z - 2, z + 1 do
+		for _x = x - 2, x + 1 do
+			local region_x, region_y = self:GetTileCoordsAtPoint(_x, _z)
+			local room_id = self:GetRoomId(region_x, region_y)
+			local already_in = false
+			for i, _room_id in ipairs(rooms) do
+				if room_id == _room_id then
+					already_in = true
+					break
+				end
+			end
+			if not already_in then
+				self:RefreashRoomType(room_id)
+				table.insert(rooms, room_id)
+			end
+		end
+	end
 end
 
 function RegionSystem:RefreashRoomType(room_id)		--这个函数会被父类调用

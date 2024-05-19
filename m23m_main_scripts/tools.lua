@@ -132,3 +132,8 @@ function _G.DecodePos(code)
 	end
 	return x, y ,z
 end
+
+function _G.GetTileCenterPointByTileCoords(x, y)
+	local size_x, size_y = TheWorld.Map:GetSize()
+	return (x - math.ceil(size_x/2)) * 4 + 2, (y - math.ceil(size_y/2)) * 4 + 2
+end
