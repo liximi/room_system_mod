@@ -1,7 +1,7 @@
 local Widget = require "widgets/widget"
 local Text = require "widgets/text"
 local Templates = require "widgets/redux/templates"
-local RoomView = require "widgets/m23m_room_view"
+local ViewSwitcher = require "widgets/m23m_view_switcher"
 
 
 local HUD = Class(Widget, function(self, owner)
@@ -14,28 +14,23 @@ local HUD = Class(Widget, function(self, owner)
 	self.top_root:SetVAnchor(ANCHOR_TOP)
 	self.top_root:SetHAnchor(ANCHOR_MIDDLE)
 
+	self.right_root = self:AddChild(Widget("ROOT"))
+	self.right_root:SetVAnchor(ANCHOR_MIDDLE)
+	self.right_root:SetHAnchor(ANCHOR_RIGHT)
+
 	--区域编辑按钮
 	-- self.edit_region_btn = self.top_root:AddChild(Templates.StandardButton(function () self:PopupAreaEditScreen() end,
 	-- 	"区域编辑", {200, 50}))
 	-- self.edit_region_btn:SetPosition(0, -120)
 
-	--房间视图切换
-	self.room_view_switch_btn = self.top_root:AddChild(Templates.StandardButton(function() self:SwitchRoomView() end, "切换视图", {100, 50}))
-	self.room_view_switch_btn:SetPosition(0, -120)
+	--视图切换
+	self.view_switcher = self.right_root:AddChild(ViewSwitcher(self.owner))
+	self.view_switcher:SetPosition(-200, 0)
 end)
 
 
 function HUD:PopupAreaEditScreen()
 	ThePlayer:ShowPopUp(POPUPS.M23M_AREA_EDIT, true)
-end
-
-function HUD:SwitchRoomView()
-	if self.room_view then
-		self.room_view:Kill()
-		self.room_view = nil
-	else
-		self.room_view = self:AddChild(RoomView(self.owner))
-	end
 end
 
 

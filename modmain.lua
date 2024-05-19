@@ -10,6 +10,8 @@ PrefabFiles = {
 Assets = {
 	Asset("ATLAS", "images/ui/fx_multselect.xml"),
 	Asset("IMAGE", "images/ui/fx_multselect.tex"),
+    Asset("ATLAS", "images/ui/nineslice1.xml"),
+	Asset("IMAGE", "images/ui/nineslice1.tex"),
 }
 
 
