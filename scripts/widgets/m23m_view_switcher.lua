@@ -28,7 +28,7 @@ local ViewSwitcher = Class(Widget, function(self, owner)
 
 	--Sub-UI Anchor
 	self.sub_ui_root = self.root:AddChild(Widget("ROOT"))
-	self.sub_ui_root:SetPosition(0, -80)
+	self.sub_ui_root:SetPosition(0, -50)
 
 	--View Btn List
 
@@ -42,7 +42,7 @@ function ViewSwitcher:SwitchRoomView()
 		self.room_view:Kill()
 		self.room_view = nil
 	else
-		self.room_view = self:AddChild(RoomView(self.owner))
+		self.room_view = self.sub_ui_root:AddChild(RoomView(self.owner))
 	end
 end
 

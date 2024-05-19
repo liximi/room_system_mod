@@ -1,5 +1,9 @@
 local Widget = require "widgets/widget"
 local Text = require "widgets/text"
+local Image = require "widgets/image"
+local NineSlice = require "widgets/nineslice"
+local ScrollableList = require "widgets/scrollablelist"
+local RoomInfo = require "widgets/m23m_room_info_panel"
 local ROOM_DEF = require "m23m_room_def"
 
 local RoomView = Class(Widget, function(self, owner)
@@ -18,7 +22,9 @@ local RoomView = Class(Widget, function(self, owner)
 	self.color_alpha = 0.5
 
 	--ROOTS
-	self.top_root = self:AddChild(Widget("ROOT"))
+	self.root = self:AddChild(Widget("ROOT"))
+
+	self.top_root = self:AddChild(Widget("TOP_ROOT"))
 	self.top_root:SetVAnchor(ANCHOR_TOP)
 	self.top_root:SetHAnchor(ANCHOR_MIDDLE)
 
@@ -27,6 +33,30 @@ local RoomView = Class(Widget, function(self, owner)
 
 	self.room_desc_text = self.top_root:AddChild(Text(UIFONT, 24, STRINGS.M23M_ROOMS.NONE.DESC))
 	self.room_desc_text:SetPosition(0, -180)
+
+
+	--UI
+	self.bg = self.root:AddChild(NineSlice("images/ui/nineslice1.xml"))
+	self.bg:SetSize(240, 450)
+	-- self.bg = self.root:AddChild(Image("images/frontend.xml", "nav_bg_med.tex"))
+	local bg_w, bg_h = self.bg:GetSize()
+	self.root:SetPosition(bg_w/2, -bg_h/2)	--根据背景图片的尺寸偏移ROOT的位置
+
+	local room_info_list = {}
+	for i, room_def in ipairs(ROOM_DEF) do
+		table.insert(room_info_list, RoomInfo(self.owner, room_def))
+	end
+
+	self.list = self.root:AddChild(ScrollableList(room_info_list, 112, 420, 45, 4))
+	self.list.scroll_bar_container:SetScale(1.25, 1.25)
+    self.list.scroll_bar_container:SetPosition(0, -17)
+	self.list.up_button:Kill()
+    self.list.down_button:Kill()
+	-- self.list.scroll_bar_line:SetTexture("images/widget_images/rts_hud.xml", "slider_bar.tex")
+    -- self.list.scroll_bar_line:SetScale(1, 1.5)
+    -- self.list.position_marker:SetTextures("images/widget_images/rts_hud.xml", "slider_bar_handle.tex")
+    -- self.list.position_marker.image:SetTexture(self.list.position_marker.atlas, self.list.position_marker.image_normal)
+	self.list:SetPosition(56, 0)
 
 	self:StartUpdating()
 end)

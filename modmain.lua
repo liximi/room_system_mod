@@ -12,6 +12,8 @@ Assets = {
 	Asset("IMAGE", "images/ui/fx_multselect.tex"),
     Asset("ATLAS", "images/ui/nineslice1.xml"),
 	Asset("IMAGE", "images/ui/nineslice1.tex"),
+    Asset("ATLAS", "images/ui/room_icon.xml"),
+	Asset("IMAGE", "images/ui/room_icon.tex"),
 }
 
 
