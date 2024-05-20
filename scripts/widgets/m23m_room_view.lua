@@ -2,9 +2,10 @@ local Widget = require "widgets/widget"
 local Text = require "widgets/text"
 local Image = require "widgets/image"
 local NineSlice = require "widgets/nineslice"
-local ScrollableList = require "widgets/scrollablelist"
+local TrueScrollList = require "widgets/truescrolllist"
 local RoomInfo = require "widgets/m23m_room_info_panel"
 local ROOM_DEF = require "m23m_room_def"
+
 
 local RoomView = Class(Widget, function(self, owner)
     Widget._ctor(self, "M23M_RoomView")
@@ -21,42 +22,53 @@ local RoomView = Class(Widget, function(self, owner)
 	self.is_showing_region = false
 	self.color_alpha = 0.5
 
-	--ROOTS
-	self.root = self:AddChild(Widget("ROOT"))
-
-	self.top_root = self:AddChild(Widget("TOP_ROOT"))
-	self.top_root:SetVAnchor(ANCHOR_TOP)
-	self.top_root:SetHAnchor(ANCHOR_MIDDLE)
-
-	self.room_name_text = self.top_root:AddChild(Text(UIFONT, 28, STRINGS.M23M_ROOMS.NONE.NAME))
-	self.room_name_text:SetPosition(0, -150)
-
-	self.room_desc_text = self.top_root:AddChild(Text(UIFONT, 24, STRINGS.M23M_ROOMS.NONE.DESC))
-	self.room_desc_text:SetPosition(0, -180)
-
-
 	--UI
-	self.bg = self.root:AddChild(NineSlice("images/ui/nineslice1.xml"))
-	self.bg:SetSize(240, 450)
-	-- self.bg = self.root:AddChild(Image("images/frontend.xml", "nav_bg_med.tex"))
-	local bg_w, bg_h = self.bg:GetSize()
-	self.root:SetPosition(bg_w/2, -bg_h/2)	--根据背景图片的尺寸偏移ROOT的位置
+	-- self.root = self:AddChild(Widget("ROOT"))
 
-	local room_info_list = {}
-	for i, room_def in ipairs(ROOM_DEF) do
-		table.insert(room_info_list, RoomInfo(self.owner, room_def))
+	local bg_w, bg_h = 220, 300
+	self.bg = self:AddChild(NineSlice("images/ui/nineslice1.xml"))
+	self.bg:SetSize(bg_w, bg_h)
+	self.bg:SetPosition(bg_w/2, -bg_h/2)
+
+	--scrollbar_xoffset控制滚动条水平方向的位置，为0时贴着列表右边缘，scrollbar_yoffset是用来控制滚动条长度的
+	local list_w, list_h, scrollbar_xoffset, scrollbar_yoffset = bg_w - 20, bg_h, 10, -50
+	local function create_widgets_fn(context, parent, scroll_list)
+		local widgets = {}
+		local SPACING = 36
+		local NUM_ROWS = math.floor(list_h / SPACING) + 2
+		local y_offset = (NUM_ROWS * 0.5 - 0.35) * SPACING
+
+		for i = 1, NUM_ROWS do
+			local room_info = parent:AddChild(RoomInfo())
+			room_info:SetPosition(0, y_offset - i * SPACING)
+			table.insert(widgets, room_info)
+		end
+
+		return widgets, 1, SPACING, NUM_ROWS-2, 0.7
 	end
 
-	self.list = self.root:AddChild(ScrollableList(room_info_list, 112, 420, 45, 4))
-	self.list.scroll_bar_container:SetScale(1.25, 1.25)
-    self.list.scroll_bar_container:SetPosition(0, -17)
-	self.list.up_button:Kill()
-    self.list.down_button:Kill()
-	-- self.list.scroll_bar_line:SetTexture("images/widget_images/rts_hud.xml", "slider_bar.tex")
-    -- self.list.scroll_bar_line:SetScale(1, 1.5)
-    -- self.list.position_marker:SetTextures("images/widget_images/rts_hud.xml", "slider_bar_handle.tex")
-    -- self.list.position_marker.image:SetTexture(self.list.position_marker.atlas, self.list.position_marker.image_normal)
-	self.list:SetPosition(56, 0)
+	local function update_fn(context, list_widget, data, data_index)
+		if not data then
+			list_widget:Hide()
+		else
+			list_widget:SetRoomDef(data)
+			list_widget:Show()
+		end
+	end
+
+	self.list = self:AddChild(TrueScrollList({}, create_widgets_fn, update_fn, -list_w/2, -list_h/2, list_w, list_h, scrollbar_xoffset, scrollbar_yoffset))
+	self.list:SetItemsData(ROOM_DEF)
+	self.list.bg:Kill()
+	self.list.bg = nil
+	self.list:SetPosition(bg_w/2 - scrollbar_xoffset - 5, -bg_h/2 + 2)
+
+
+	self.room_name_text = self:AddChild(Text(UIFONT, 28, STRINGS.M23M_ROOMS.NONE.NAME))
+	self.room_name_text:SetPosition(0, -bg_h - 20)
+
+	self.room_desc_text = self:AddChild(Text(UIFONT, 24, STRINGS.M23M_ROOMS.NONE.DESC))
+	self.room_desc_text:SetPosition(0, -bg_h - 40)
+
 
 	self:StartUpdating()
 end)

@@ -9,14 +9,13 @@ local RoomView = require "widgets/m23m_room_view"
 local ViewSwitcher = Class(Widget, function(self, owner)
     Widget._ctor(self, "M23M_ViewSwitcher")
 	self.owner = owner
-    -- self:SetScaleMode(SCALEMODE_PROPORTIONAL)
 
 	--ROOTS
 	self.root = self:AddChild(Widget("ROOT"))
 
 	--BG
 	self.bg = self.root:AddChild(NineSlice("images/ui/nineslice1.xml"))
-	self.bg:SetSize(128, 32)
+	self.bg:SetSize(128, 24)
 	self.bg:SetPosition(64, 0)
 
 	--Drag Btn
@@ -28,12 +27,12 @@ local ViewSwitcher = Class(Widget, function(self, owner)
 
 	--Sub-UI Anchor
 	self.sub_ui_root = self.root:AddChild(Widget("ROOT"))
-	self.sub_ui_root:SetPosition(0, -50)
+	self.sub_ui_root:SetPosition(0, -45)
 
 	--View Btn List
 
 	--房间视图切换
-	self.room_view_btn = self.root:AddChild(Templates.StandardButton(function() self:SwitchRoomView() end, "Room", {36, 36}))
+	self.room_view_btn = self.root:AddChild(Templates.StandardButton(function() self:SwitchRoomView() end, "Room", {32, 32}))
 	self.room_view_btn:SetPosition(32, 0)
 end)
 

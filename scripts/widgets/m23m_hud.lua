@@ -7,16 +7,17 @@ local ViewSwitcher = require "widgets/m23m_view_switcher"
 local HUD = Class(Widget, function(self, owner)
     Widget._ctor(self, "M23M_HUD")
 	self.owner = owner
-    self:SetScaleMode(SCALEMODE_PROPORTIONAL)
 
 	--ROOTS
 	self.top_root = self:AddChild(Widget("ROOT"))
 	self.top_root:SetVAnchor(ANCHOR_TOP)
 	self.top_root:SetHAnchor(ANCHOR_MIDDLE)
+	self.top_root:SetScaleMode(SCALEMODE_PROPORTIONAL)
 
 	self.right_root = self:AddChild(Widget("ROOT"))
 	self.right_root:SetVAnchor(ANCHOR_MIDDLE)
 	self.right_root:SetHAnchor(ANCHOR_RIGHT)
+	self.right_root:SetScaleMode(SCALEMODE_PROPORTIONAL)
 
 	--区域编辑按钮
 	-- self.edit_region_btn = self.top_root:AddChild(Templates.StandardButton(function () self:PopupAreaEditScreen() end,
@@ -25,7 +26,7 @@ local HUD = Class(Widget, function(self, owner)
 
 	--视图切换
 	self.view_switcher = self.right_root:AddChild(ViewSwitcher(self.owner))
-	self.view_switcher:SetPosition(-300, 0)
+	self.view_switcher:SetPosition(-350, 50)
 end)
 
 
