@@ -64,6 +64,9 @@ modimport "m23m_main_scripts/ui"
 --[Actions]
 modimport "m23m_main_scripts/actions"
 
+--[StateGraphs]
+modimport "m23m_main_scripts/stategraphs.lua"
+
 --[Recipes]
 modimport "m23m_main_scripts/recipes"
 
@@ -83,6 +86,7 @@ local mod_files = {
     "mod_room_key_items",
     "mod_camera",
     "mod_cooktime",
+    "mod_craft_multiple_products",
 }
 
 for _, file in ipairs(mod_files) do

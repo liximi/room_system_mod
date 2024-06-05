@@ -52,4 +52,23 @@ configuration_options =
         },
         default = -0.3,
     },
+    {
+        name = "ws_mult_crafting_probability",
+        label = chinese and "工作间双倍产出的概率" or "Probability Double Output in Workshop",
+        hover = chinese and "在工作间/化学实验室中制作物品时，双倍产出的概率。" or "The probability of double output when making items in the Workshop/Chemistry Laboratory.",
+        options = {
+            {description = "0%", data = 0},
+            {description = "1%", data = 0.01},
+            {description = "2%", data = 0.02},
+            {description = "3%", data = 0.03},
+            {description = "4%", data = 0.04},
+            {description = "5%", data = 0.05},
+            {description = "10%", data = 0.1},
+            {description = "15%", data = 0.15},
+            {description = "20%", data = 0.2},
+            {description = "25%", data = 0.25},
+            {description = "30%", data = 0.3},
+        },
+        default = 0.05,
+    },
 }

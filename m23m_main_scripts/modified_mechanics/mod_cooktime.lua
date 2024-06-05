@@ -130,34 +130,24 @@ local cookpots = {
     "archive_cookpot",
 }
 
-local function kitchen_mult_cond(inst)
-    local x, y, z = inst.Transform:GetWorldPosition()
-    return TheRegionMgr:IsInRoom(x, z, "kitchen")
+local function kitchen_mult_cond_spawner(room_id)
+    return function(inst)
+        local x, y, z = inst.Transform:GetWorldPosition()
+        return TheRegionMgr:IsInRoom(x, z, room_id)
+    end
 end
 
-local function primitive_kitchen_mult_cond(inst)
-    local x, y, z = inst.Transform:GetWorldPosition()
-    return TheRegionMgr:IsInRoom(x, z, "primitive_kitchen")
-end
-
-local function adv_kitchen_mult_cond(inst)
-    local x, y, z = inst.Transform:GetWorldPosition()
-    return TheRegionMgr:IsInRoom(x, z, "advanced_kitchen")
-end
-
-local function luxu_kitchen_mult_cond(inst)
-    local x, y, z = inst.Transform:GetWorldPosition()
-    return TheRegionMgr:IsInRoom(x, z, "luxurious_itchen")
-end
-
+local kitchen_mult_conds = {}
 local function cookpot_postinit(inst)
     if not inst.components.stewer then
         return
     end
-    inst.components.stewer:AddCookTimeMultiplier("M23M_KITCHEN_MULT", M23M.KITCHEN_COOKTIME_MULT, kitchen_mult_cond)
-    inst.components.stewer:AddCookTimeMultiplier("M23M_PRIMITIVE_KITCHEN_MULT", M23M.PRIMITIVE_KITCHEN_COOKTIME_MULT, primitive_kitchen_mult_cond)
-    inst.components.stewer:AddCookTimeMultiplier("M23M_ADVANCED_KITCHEN_MULT", M23M.ADVANCED_KITCHEN_COOKTIME_MULT, adv_kitchen_mult_cond)
-    inst.components.stewer:AddCookTimeMultiplier("M23M_LUXURIOUS_KITCHEN_MULT", M23M.LUXURIOUS_KITCHEN_COOKTIME_MULT, luxu_kitchen_mult_cond)
+    for room, mult in pairs(M23M.KITCHEN_ROOMS) do
+        if not kitchen_mult_conds[room] then
+            kitchen_mult_conds[room] = kitchen_mult_cond_spawner(room)
+        end
+        inst.components.stewer:AddCookTimeMultiplier("M23M_"..string.upper(room).."_MULT", mult, kitchen_mult_conds[room])
+    end
 end
 
 for _, pref in ipairs(cookpots) do

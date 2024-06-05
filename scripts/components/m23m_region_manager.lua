@@ -205,5 +205,9 @@ function RegionSystem:IsInRoom(x, z, room_type)
 	return self._base.IsInRoom(self, region_x, region_y, room_type)
 end
 
+function RegionSystem:GetRoomType(x, z)
+	local region_x, region_y = self:GetTileCoordsAtPoint(x, z)
+	return self._base.GetRoomType(self, region_x, region_y)
+end
 
 return RegionSystem

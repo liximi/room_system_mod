@@ -71,7 +71,7 @@ local DEF = {
 		},
 	},
 	{	--豪华厨房
-		type = "luxurious_itchen",
+		type = "luxurious_kitchen",
 		name = STRINGS.M23M_ROOMS.LUXURIOUS_KITCHEN.NAME,
 		desc = STRINGS.M23M_ROOMS.LUXURIOUS_KITCHEN.DESC,
 		min_size = 32,
@@ -107,7 +107,7 @@ local DEF = {
 		color = RGB(0, 255, 0),
 		available_tiles = INDOOR_TILES,
 		must_items = {
-			"researchlab2",		--科学机器
+			"researchlab2",		--炼金引擎
 			"researchlab3",		--暗影操控器
 			"cartographydesk",	--制图桌
 		},
@@ -141,7 +141,25 @@ local DEF = {
 }
 
 
+-- 厨房类型的房间需要注册以实现其效果
+function _G.AddKitchenRoom(room_id, cooktime_mult)
+	_G.M23M.KITCHEN_ROOMS[room_id] = cooktime_mult
+end
 
+-- 工作间类型的房间需要注册以实现其效果
+function _G.AddWorkShopRoom(room_id, mult_crafting_probability)
+	_G.M23M.WORKSHOP_ROOMS[room_id] = mult_crafting_probability
+end
+
+
+AddKitchenRoom("primitive_kitchen", M23M.PRIMITIVE_KITCHEN_COOKTIME_MULT)
+AddKitchenRoom("kitchen", M23M.KITCHEN_COOKTIME_MULT)
+AddKitchenRoom("advanced_kitchen", M23M.ADVANCED_KITCHEN_COOKTIME_MULT)
+AddKitchenRoom("luxurious_kitchen", M23M.LUXURIOUS_KITCHEN_COOKTIME_MULT)
+
+AddWorkShopRoom("basic_workshop", M23M.BASIC_WORKSHOP_MULT_CRAFTING_PROBABILITY)
+AddWorkShopRoom("workshop", M23M.WORKSHOP_MULT_CRAFTING_PROBABILITY)
+AddWorkShopRoom("chemical_laboratory", M23M.CHEMICAL_LABORATORY_MULT_CRAFTING_PROBABILITY)
 
 --------------------------------------------------
 

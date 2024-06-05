@@ -37,11 +37,11 @@ STRINGS.M23M_ROOMS = {
 	},
 	WORKSHOP = {
 		NAME = "工作间",
-		DESC = "加速制作过程，有极小概率产出翻倍。"
+		DESC = function() return string.format("加速制作过程，在工作间内制作物品时有 %.1f%% 概率使产物数量+1。", M23M.WORKSHOP_MULT_CRAFTING_PROBABILITY * 100) end
 	},
 	CHEMICAL_LABORATORY = {
 		NAME = "化学实验室",
-		DESC = "加速制作过程，有极小概率产出翻倍。"
+		DESC = function() return string.format("加速制作过程，在化学实验室间内制作物品时有 %.2f%% 概率使产物数量+1。", M23M.CHEMICAL_LABORATORY_MULT_CRAFTING_PROBABILITY * 100) end
 	},
 	BEDROOM = {
 		NAME = "卧室",
