@@ -74,7 +74,7 @@ local DEF = {
 		type = "luxurious_kitchen",
 		name = STRINGS.M23M_ROOMS.LUXURIOUS_KITCHEN.NAME,
 		desc = STRINGS.M23M_ROOMS.LUXURIOUS_KITCHEN.DESC,
-		min_size = 32,
+		min_size = 16,
 		max_size = 128,
 		priority = 14,
 		color = RGB(255, 255, 0),
@@ -151,6 +151,11 @@ function _G.AddWorkShopRoom(room_id, mult_crafting_probability)
 	_G.M23M.WORKSHOP_ROOMS[room_id] = mult_crafting_probability
 end
 
+--卧室类型的房间需要注册以实现其效果
+function _G.AddBedroom(room_id, extra_vital_indicators_tick_mult)
+	_G.M23M.BEDROOMS[room_id] = extra_vital_indicators_tick_mult
+end
+
 
 AddKitchenRoom("primitive_kitchen", M23M.PRIMITIVE_KITCHEN_COOKTIME_MULT)
 AddKitchenRoom("kitchen", M23M.KITCHEN_COOKTIME_MULT)
@@ -160,6 +165,8 @@ AddKitchenRoom("luxurious_kitchen", M23M.LUXURIOUS_KITCHEN_COOKTIME_MULT)
 AddWorkShopRoom("basic_workshop", M23M.BASIC_WORKSHOP_MULT_CRAFTING_PROBABILITY)
 AddWorkShopRoom("workshop", M23M.WORKSHOP_MULT_CRAFTING_PROBABILITY)
 AddWorkShopRoom("chemical_laboratory", M23M.CHEMICAL_LABORATORY_MULT_CRAFTING_PROBABILITY)
+
+AddBedroom("bedroom", M23M.BEDROOM_EXTRAL_MULT)
 
 --------------------------------------------------
 

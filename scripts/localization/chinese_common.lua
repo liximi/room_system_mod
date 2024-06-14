@@ -45,7 +45,7 @@ STRINGS.M23M_ROOMS = {
 	},
 	BEDROOM = {
 		NAME = "卧室",
-		DESC = "加速睡觉时的生命值和san值回复。"
+		DESC = function() return string.format("睡觉时的生命值和san值回复速度变为 %0.1f%%。", M23M.BEDROOM_EXTRAL_MULT * 100) end
 	},
 }
 
