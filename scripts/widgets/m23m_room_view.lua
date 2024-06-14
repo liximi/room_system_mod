@@ -40,6 +40,9 @@ local RoomView = Class(Widget, function(self, owner)
 
 		for i = 1, NUM_ROWS do
 			local room_info = parent:AddChild(RoomInfo())
+			room_info:SetOnGainFocus(function()
+				self.list:OnWidgetFocus(room_info)
+			end)
 			room_info:SetPosition(0, y_offset - i * SPACING)
 			table.insert(widgets, room_info)
 		end
@@ -76,6 +79,16 @@ end)
 
 function RoomView:OnKill()
 	self:HideAllTiles()
+end
+
+
+function RoomView:OnGainFocus()
+	TheCamera:SetControllable(false)
+end
+
+
+function RoomView:OnLoseFocus()
+	TheCamera:SetControllable(true)
 end
 
 
