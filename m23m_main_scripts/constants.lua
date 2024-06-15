@@ -12,6 +12,7 @@ _G.M23M = {
 		MINE = 2,
 	},
 
+	WAREHOUSE_ROOMS = {},
 	KITCHEN_ROOMS = {},
 	WORKSHOP_ROOMS = {},
 	BEDROOMS = {},
@@ -26,4 +27,6 @@ _G.M23M = {
 	CHEMICAL_LABORATORY_MULT_CRAFTING_PROBABILITY = GetModConfigData("ws_mult_crafting_probability"),	--0 ~ 1
 
 	BEDROOM_EXTRAL_MULT = GetModConfigData("bedroom_mult"),
+
+	WAREHOUSE_FREE_UPGRDE_PROBABILITY = GetModConfigData("warehouse_free_upgrade_probability"),	--0 ~ 1
 }

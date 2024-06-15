@@ -10,6 +10,9 @@ local RoomInfo = Class(Widget, function(self, room_def)
 	self.bg:SetScale(0.6, 0.4)
 	local bg_w, bg_h = self.bg:GetSize()
 
+	self.bg_hover = self.bg:AddChild(Image("images/frontend_redux.xml", "listitem_thick_hover.tex"))
+	self.bg_hover:Hide()
+
 	self.icon = self:AddChild(Image("images/ui/room_icon.xml", "room_icon.tex"))
 	self.icon:SetScale(0.3, 0.3)
 	self.icon:SetPosition(64*0.3 - bg_w/2 * 0.6, 0)
@@ -34,5 +37,14 @@ function RoomInfo:SetRoomDef(room_def)
 		self.name_text:SetPosition(70 - bg_w/2 * 0.8 + self.name_text:GetRegionSize()/2, 0)
 end
 
+function RoomInfo:OnGainFocus()
+	if self.enabled then
+		self.bg_hover:Show()
+	end
+end
+
+function RoomInfo:OnLoseFocus()
+	self.bg_hover:Hide()
+end
 
 return RoomInfo

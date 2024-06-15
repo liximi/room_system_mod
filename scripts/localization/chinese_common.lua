@@ -13,7 +13,7 @@ STRINGS.M23M_ROOMS = {
 	},
 	WAREHOUSE = {
 		NAME = "仓库",
-		DESC = "可以用更低的成本将箱子升级为大箱子，箱子内的物品腐烂速度略微降低。"
+		DESC = function() return string.format("升级仓库中的箱子时，有 %.1f%% 概率不消耗升级工具。", M23M.WAREHOUSE_FREE_UPGRDE_PROBABILITY * 100) end
 	},
 	KITCHEN = {
 		NAME = "厨房",

@@ -141,6 +141,11 @@ local DEF = {
 }
 
 
+-- 仓库类型的房间需要注册以实现其效果
+function _G.AddWarehouseRoom(room_id, free_upgrade_probability)
+	_G.M23M.WAREHOUSE_ROOMS[room_id] = free_upgrade_probability
+end
+
 -- 厨房类型的房间需要注册以实现其效果
 function _G.AddKitchenRoom(room_id, cooktime_mult)
 	_G.M23M.KITCHEN_ROOMS[room_id] = cooktime_mult
@@ -156,6 +161,8 @@ function _G.AddBedroom(room_id, extra_vital_indicators_tick_mult)
 	_G.M23M.BEDROOMS[room_id] = extra_vital_indicators_tick_mult
 end
 
+
+AddWarehouseRoom("warehouse", M23M.WAREHOUSE_FREE_UPGRDE_PROBABILITY)
 
 AddKitchenRoom("primitive_kitchen", M23M.PRIMITIVE_KITCHEN_COOKTIME_MULT)
 AddKitchenRoom("kitchen", M23M.KITCHEN_COOKTIME_MULT)

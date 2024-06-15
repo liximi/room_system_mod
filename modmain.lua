@@ -88,6 +88,7 @@ local mod_files = {
     "mod_cooktime",
     "mod_craft_multiple_products",
     "mod_bedroom_mechanic",
+    "mod_upgradeable",
 }
 
 for _, file in ipairs(mod_files) do
