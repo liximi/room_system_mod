@@ -27,7 +27,7 @@ local ViewSwitcher = Class(Widget, function(self, owner)
 
 	--Sub-UI Anchor
 	self.sub_ui_root = self.root:AddChild(Widget("ROOT"))
-	self.sub_ui_root:SetPosition(0, -45)
+	self.sub_ui_root:SetPosition(128, -45)
 
 	--View Btn List
 
@@ -40,8 +40,11 @@ function ViewSwitcher:SwitchRoomView()
 	if self.room_view then
 		self.room_view:Kill()
 		self.room_view = nil
+		ThePlayer.is_room_view_active = false
 	else
 		self.room_view = self.sub_ui_root:AddChild(RoomView(self.owner))
+		self.room_view:SetPosition(-220, 0)
+		ThePlayer.is_room_view_active = true
 	end
 end
 

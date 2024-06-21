@@ -8,7 +8,7 @@ STRINGS.ACTIONS.M23M_SHOW_UI_OVERRIDE = {	--AddAction接口会覆盖STRINGS.ACTI
 STRINGS.M23M_ROOM_MUST = "房间中放置下列物品："
 STRINGS.M23M_ROOMS = {
 	NONE = {
-		NAME = "杂间/户外",
+		NAME = "杂间/非房间",
 		DESC = "平平无奇。"
 	},
 	WAREHOUSE = {

@@ -210,4 +210,16 @@ function RegionSystem:GetRoomType(x, z)
 	return self._base.GetRoomType(self, region_x, region_y)
 end
 
+function RegionSystem:GetRoomData(room_type)
+	if type(room_type) ~= "string" then
+		return
+	end
+	for i, v in ipairs(ROOM_DEF) do
+		if v.type == room_type then
+			return v
+		end
+	end
+end
+
+
 return RegionSystem

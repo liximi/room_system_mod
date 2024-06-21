@@ -26,7 +26,7 @@ local HUD = Class(Widget, function(self, owner)
 
 	--视图切换
 	self.view_switcher = self.right_root:AddChild(ViewSwitcher(self.owner))
-	self.view_switcher:SetPosition(-350, 50)
+	self.view_switcher:SetPosition(-180, 100)
 end)
 
 

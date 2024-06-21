@@ -65,14 +65,6 @@ local RoomView = Class(Widget, function(self, owner)
 	self.list.bg = nil
 	self.list:SetPosition(bg_w/2 - scrollbar_xoffset - 5, -bg_h/2 + 2)
 
-
-	self.room_name_text = self:AddChild(Text(UIFONT, 28, STRINGS.M23M_ROOMS.NONE.NAME))
-	self.room_name_text:SetPosition(0, -bg_h - 20)
-
-	self.room_desc_text = self:AddChild(Text(UIFONT, 24, STRINGS.M23M_ROOMS.NONE.DESC))
-	self.room_desc_text:SetPosition(0, -bg_h - 40)
-
-
 	self:StartUpdating()
 end)
 
@@ -100,21 +92,13 @@ function RoomView:SetCurrentRoomId(room_id, start_pos)
 	self.cur_room_type = TheRegionMgr:GetRoomTypeById(room_id)
 	self.cur_room_color = nil
 
-	if self.cur_room_type == "NONE" then
-		self.room_name_text:SetString(STRINGS.M23M_ROOMS.NONE.NAME)
-		self.room_desc_text:SetString(STRINGS.M23M_ROOMS.NONE.DESC)
-	else
-		local room_name = ""
-		local room_desc = ""
+	if self.cur_room_type ~= "NONE" then
 		for _, room_data in ipairs(ROOM_DEF) do
 			if room_data.type == self.cur_room_type then
 				self.cur_room_color = room_data.color
-				room_name = room_data.name
-				room_desc = FunctionOrValue(room_data.desc)
+				break
 			end
 		end
-		self.room_name_text:SetString(room_name)
-		self.room_desc_text:SetString(room_desc)
 	end
 
 	start_pos.x = math.floor(start_pos.x)
