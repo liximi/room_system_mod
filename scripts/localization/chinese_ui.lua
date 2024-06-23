@@ -1,5 +1,11 @@
 STRINGS.TILE_SELECTION_HOVERER_TEXT_SELECT = "点击或拖拽框选地块"
 STRINGS.TILE_SELECTION_HOVERER_TEXT_DISELECT = "点击或拖拽取消选择"
 STRINGS.M23M_UI = {
-	ROOM = "房间"
+	ROOM = "房间",
+	SIZE_LIMITATION = "尺寸要求：",
+	SIZE_LIMITATION2 = "1单位等于1/16个地皮面积",
+	MUST_ITEMS_TITLE = "房间内需要放置下列物品：",
+	MUST_TILES_TITLE = "房间内只能含有下列地皮：",
+	ANY = "其中之一：",
+	NONE = "无",
 }

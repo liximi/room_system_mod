@@ -4,17 +4,26 @@ local Image = require "widgets/image"
 local NineSlice = require "widgets/nineslice"
 local TrueScrollList = require "widgets/truescrolllist"
 local RoomInfo = require "widgets/m23m_room_info_panel"
+
 local ROOM_DEF = require "m23m_room_def"
+local GroundTiles = require("worldtiledefs")
+
+local COLOR1 = RGB(225, 225, 180)
+local COLOR2 = RGB(240, 230, 130)
+local COLOR3 = RGB(150, 140, 65)
+local FONT_SIZE1, FONT_SIZE2, FONT_SIZE3, FONT_SIZE4 = 24, 22, 18, 16
+local TIP_MARGIN = 2.5	--Tip内文本的边距
+local TIP_SEGMENT_SPACING = 4	--Tip内文本的段间距
 
 
 local RoomView = Class(Widget, function(self, owner)
     Widget._ctor(self, "M23M_RoomView")
 	self.owner = owner
 
-	self.cur_room_id = nil
-	self.cur_room_type = "NONE"
-	-- self.cur_room_color = RGB(128, 128, 128)
-	self.cur_region_ids = {}
+	self.cur_room_id = nil			--地图上鼠标下面的房间
+	self.cur_room_type = "NONE"		--地图上鼠标下面的房间
+	-- self.cur_room_color = RGB(128, 128, 128)	--地图上鼠标下面的房间
+	self.cur_region_ids = {}		--地图上鼠标下面的房间
 	self.temp_open_tiles = {}		--用于存储已经访问过但是还没有继续拓展的地块
 	self.temp_visited_tiles = {}	--用于存储已经访问过的地块
 	self.rects = {}
@@ -23,18 +32,16 @@ local RoomView = Class(Widget, function(self, owner)
 	self.color_alpha = 0.5
 
 	--UI
-	-- self.root = self:AddChild(Widget("ROOT"))
-
-	local bg_w, bg_h = 220, 300
+	self.bg_w, self.bg_h = 185, 280
 	self.bg = self:AddChild(NineSlice("images/ui/nineslice1.xml"))
-	self.bg:SetSize(bg_w, bg_h)
-	self.bg:SetPosition(bg_w/2, -bg_h/2)
+	self.bg:SetSize(self.bg_w, self.bg_h)
+	self.bg:SetPosition(self.bg_w/2, -self.bg_h/2)
 
 	--scrollbar_xoffset控制滚动条水平方向的位置，为0时贴着列表右边缘，scrollbar_yoffset是用来控制滚动条长度的
-	local list_w, list_h, scrollbar_xoffset, scrollbar_yoffset = bg_w - 20, bg_h, 10, -50
+	local list_w, list_h, scrollbar_xoffset, scrollbar_yoffset = self.bg_w - 10, self.bg_h, 10, -50
 	local function create_widgets_fn(context, parent, scroll_list)
 		local widgets = {}
-		local SPACING = 36
+		local SPACING = 32
 		local NUM_ROWS = math.floor(list_h / SPACING) + 2
 		local y_offset = (NUM_ROWS * 0.5 - 0.35) * SPACING
 
@@ -42,6 +49,10 @@ local RoomView = Class(Widget, function(self, owner)
 			local room_info = parent:AddChild(RoomInfo())
 			room_info:SetOnGainFocus(function()
 				self.list:OnWidgetFocus(room_info)
+				self:ShowRoomTip(room_info.room_def)
+			end)
+			room_info:SetOnLoseFocus(function()
+				self:HideRoomTip(room_info.room_def)
 			end)
 			room_info:SetPosition(0, y_offset - i * SPACING)
 			table.insert(widgets, room_info)
@@ -63,7 +74,43 @@ local RoomView = Class(Widget, function(self, owner)
 	self.list:SetItemsData(ROOM_DEF)
 	self.list.bg:Kill()
 	self.list.bg = nil
-	self.list:SetPosition(bg_w/2 - scrollbar_xoffset - 5, -bg_h/2 + 2)
+	self.list:SetPosition(self.bg_w/2 - scrollbar_xoffset + 1, -self.bg_h/2 + 2)
+
+	self.list.up_button:SetScale(0.18)
+	self.list.down_button:SetScale(0.18)
+
+	--Tooltips
+	self.tip_w = 180
+	self.tip_root = self:AddChild(Widget("TipRoot"))
+	self.tip_root:SetPosition(-self.tip_w - 30, 0)
+	self.tip_root:Hide()
+
+	self.tip_bg = self.tip_root:AddChild(NineSlice("images/ui/nineslice1.xml"))
+	self.tip_text_root = self.tip_root:AddChild(Widget("TipTextRoot"))
+	-- self.tip_text_root.type: string
+
+	self.tip_name = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE1, "ROOM NAME"))
+	self.tip_name:SetHAlign(ANCHOR_LEFT)
+
+	self.tip_desc = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE2, "ROOM DESC", COLOR2))
+	self.tip_desc:SetHAlign(ANCHOR_LEFT)
+
+	self.tip_roomsize = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE3, STRINGS.M23M_UI.SIZE_LIMITATION))
+	self.tip_roomsize:SetHAlign(ANCHOR_LEFT)
+
+	self.tip_roomsize_note_img = self.tip_text_root:AddChild(Image("images/global_redux.xml", "star_checked.tex"))
+	self.tip_roomsize_note_img:SetScale(0.3, 0.3)
+	self.tip_roomsize_note_img:SetTint(unpack(RGB(220, 220, 220)))
+	self.tip_roomsize_note = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE4, STRINGS.M23M_UI.SIZE_LIMITATION2, COLOR3))
+	self.tip_roomsize_note:SetHAlign(ANCHOR_LEFT)
+
+	self.tip_must_items_title = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE3, STRINGS.M23M_UI.MUST_ITEMS_TITLE))
+	self.tip_must_items_title:SetHAlign(ANCHOR_LEFT)
+	self.tip_must_items_texts = {}
+
+	self.tip_must_tiles_title = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE3, STRINGS.M23M_UI.MUST_TILES_TITLE))
+	self.tip_must_tiles_title:SetHAlign(ANCHOR_LEFT)
+	self.tip_must_tiles_texts = {}
 
 	self:StartUpdating()
 end)
@@ -81,6 +128,175 @@ end
 
 function RoomView:OnLoseFocus()
 	TheCamera:SetControllable(true)
+end
+
+
+local function get_prefab_name(prefab)
+	return type(prefab) == "string" and STRINGS.NAMES[string.upper(prefab)] or tostring(prefab)
+end
+
+--获取地皮对应的地毯的名称
+local function get_tile_item_name(tile_name)
+	local tile_id = WORLD_TILES[tile_name]
+	if not tile_id then
+		return tile_name
+	end
+	local turf_def = GroundTiles.turf[tile_id]
+	if not turf_def or not turf_def.name then
+		return tile_name
+	end
+	return get_prefab_name("TURF_" .. turf_def.name)
+end
+
+local function is_empty_table(tab)
+	if type(tab) ~= "table" then
+		return true
+	end
+	for k, v in pairs(tab) do
+		return false
+	end
+	return true
+end
+
+function RoomView:ConstructTipText(room_def)
+	local next_y = -TIP_MARGIN
+	local pre_text_height = 0
+	local function calc_next_y(segment_spacing, h)
+		next_y = next_y - pre_text_height/2 - segment_spacing - h/2
+		pre_text_height = h
+	end
+	local function set_pos(text, segment_spacing, x_offset)
+		local w, h = text:GetRegionSize()
+		calc_next_y(segment_spacing, h)
+		x_offset = x_offset or 0
+		text:SetPosition(TIP_MARGIN + x_offset + w/2, next_y)
+	end
+
+	----
+	local text_max_w = self.tip_w - TIP_MARGIN * 2
+	local x_offset = 8
+
+	--tip_name
+	self.tip_name:SetString(room_def.name)
+	local tip_name_w, tip_name_h = self.tip_name:GetRegionSize()
+	if tip_name_w > text_max_w then
+		self.tip_name:SetHorizontalSqueeze(text_max_w / tip_name_w)
+	end
+	calc_next_y(0, tip_name_h)
+	self.tip_name:SetPosition(TIP_MARGIN + math.min(text_max_w, tip_name_w)/2, next_y)
+
+	--tip_desc
+	self.tip_desc:SetMultilineTruncatedString(FunctionOrValue(room_def.desc), 10, text_max_w)
+	set_pos(self.tip_desc, TIP_SEGMENT_SPACING * 1.5)
+
+	--tip_roomsize
+	self.tip_roomsize:SetMultilineTruncatedString(STRINGS.M23M_UI.SIZE_LIMITATION .. string.format("%d ~ %d", room_def.min_size or 0, room_def.max_size or 0), 2, text_max_w)
+	set_pos(self.tip_roomsize, TIP_SEGMENT_SPACING)
+
+	--tip_roomsize_note
+	set_pos(self.tip_roomsize_note, TIP_SEGMENT_SPACING * 0.2, x_offset + 14)
+	self.tip_roomsize_note_img:SetPosition(TIP_MARGIN + 14, next_y)
+
+	--tip_must_items_title
+	set_pos(self.tip_must_items_title, TIP_SEGMENT_SPACING)
+
+	--tip_must_items_texts
+	local need_items = false
+	if type(room_def.must_items) == "table" then
+		for _, items in ipairs(room_def.must_items) do
+			local str
+			if type(items) == "table" then
+				local names = {}
+				for _, item in ipairs(items) do
+					table.insert(names, get_prefab_name(item))
+				end
+				if #names > 0 then
+					str = STRINGS.M23M_UI.ANY .. table.concat(names, "/")
+				end
+			else
+				str = get_prefab_name(items)
+			end
+			if str then
+				need_items = true
+				local text = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE3, nil, COLOR1))
+				table.insert(self.tip_must_items_texts, text)
+				text:SetHAlign(ANCHOR_LEFT)
+				text:SetMultilineTruncatedString(str, 2, text_max_w)
+				set_pos(text, TIP_SEGMENT_SPACING, x_offset)
+			end
+		end
+	end
+	if not need_items then	--如果不需要任何物品，就显示为"无"
+		local text = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE3, nil, COLOR1))
+		table.insert(self.tip_must_items_texts, text)
+		text:SetHAlign(ANCHOR_LEFT)
+		text:SetMultilineTruncatedString(STRINGS.M23M_UI.NONE, 2, text_max_w)
+		set_pos(text, TIP_SEGMENT_SPACING, x_offset)
+	end
+
+	--tip_must_tiles_title 如果没有地皮限制，就不显示对应的标题
+	if is_empty_table(room_def.available_tiles) then
+		self.tip_must_tiles_title:Hide()
+	else
+		self.tip_must_tiles_title:Show()
+		set_pos(self.tip_must_tiles_title, TIP_SEGMENT_SPACING)
+
+		for tile_name, _ in pairs(room_def.available_tiles) do
+			local str = get_tile_item_name(tile_name)
+			if str then
+				local text = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE3, nil, COLOR1))
+				table.insert(self.tip_must_tiles_texts, text)
+				text:SetHAlign(ANCHOR_LEFT)
+				text:SetMultilineTruncatedString(str, 2, text_max_w)
+				set_pos(text, TIP_SEGMENT_SPACING, x_offset)
+			end
+		end
+	end
+
+	--BG
+	local total_height = -next_y + pre_text_height/2 + TIP_MARGIN
+	self.tip_bg:SetSize(self.tip_w, total_height)
+	self.tip_bg:SetPosition(self.tip_w/2, total_height <= self.bg_h and -total_height/2 or (total_height/2 - self.bg_h))
+
+	--Text Root
+	self.tip_text_root:SetPosition(0, total_height <= self.bg_h and 0 or (total_height - self.bg_h))
+end
+
+
+function RoomView:ShowRoomTip(room_def)
+	if not room_def or room_def.type == self.tip_text_root.type then
+		return
+	end
+
+	self.tip_text_root.type = room_def.type
+	for _, text in ipairs(self.tip_must_items_texts) do
+		text:Kill()
+	end
+	self.tip_must_items_texts = {}
+	for _, text in ipairs(self.tip_must_tiles_texts) do
+		text:Kill()
+	end
+	self:ConstructTipText(room_def)
+	self.tip_root:Show()
+end
+
+
+function RoomView:HideRoomTip(room_def)
+	if not self.tip_root.shown or not room_def or room_def.type ~= self.tip_text_root.type then
+		return
+	end
+
+	self.tip_text_root.type = nil
+	for _, text in ipairs(self.tip_must_items_texts) do
+		text:Kill()
+	end
+	self.tip_must_items_texts = {}
+	for _, text in ipairs(self.tip_must_tiles_texts) do
+		text:Kill()
+	end
+	self.tip_must_tiles_texts = {}
+
+	self.tip_root:Hide()
 end
 
 

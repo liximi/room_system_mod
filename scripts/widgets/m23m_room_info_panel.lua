@@ -6,18 +6,20 @@ local RoomInfo = Class(Widget, function(self, room_def)
 	Widget._ctor(self, "M23M_RoomInfo")
 	self.room_def = room_def
 
+	local scale_w, scale_h = 0.55, 0.35
 	self.bg = self:AddChild(Image("images/frontend_redux.xml", "listitem_thick_normal.tex"))
-	self.bg:SetScale(0.6, 0.4)
+	self.bg:SetScale(scale_w, scale_h)
 	local bg_w, bg_h = self.bg:GetSize()
 
 	self.bg_hover = self.bg:AddChild(Image("images/frontend_redux.xml", "listitem_thick_hover.tex"))
 	self.bg_hover:Hide()
 
+	local icon_scale = 0.25
 	self.icon = self:AddChild(Image("images/ui/room_icon.xml", "room_icon.tex"))
-	self.icon:SetScale(0.3, 0.3)
-	self.icon:SetPosition(64*0.3 - bg_w/2 * 0.6, 0)
+	self.icon:SetScale(icon_scale, icon_scale)
+	self.icon:SetPosition(64 * icon_scale - bg_w/2 * scale_w, 0)
 
-	self.name_text = self:AddChild(Text(UIFONT, 26, STRINGS.M23M_ROOMS.NONE.NAME))
+	self.name_text = self:AddChild(Text(UIFONT, 24, STRINGS.M23M_ROOMS.NONE.NAME))
 
 	self:SetRoomDef(room_def)
 end)

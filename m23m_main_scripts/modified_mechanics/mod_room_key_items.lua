@@ -69,7 +69,7 @@ local function CheckPosition(inst)
         inst:AddComponent("m23m_room_key_item")
     end
 end
-for id, data in pairs(ROOM_DEF) do
+for _, data in pairs(ROOM_DEF) do
 	if type(data.must_items) == "table" then
 		for _, items in ipairs(data.must_items) do
 			if type(items) == "table" then

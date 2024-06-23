@@ -43,7 +43,7 @@ function ViewSwitcher:SwitchRoomView()
 		ThePlayer.is_room_view_active = false
 	else
 		self.room_view = self.sub_ui_root:AddChild(RoomView(self.owner))
-		self.room_view:SetPosition(-220, 0)
+		self.room_view:SetPosition(-self.room_view.bg_w, 0)
 		ThePlayer.is_room_view_active = true
 	end
 end
