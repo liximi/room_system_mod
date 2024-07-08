@@ -211,6 +211,8 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 			self:RefreashSectionEdges(base_j, base_i)
 		end
 	end
+
+	self:private_PushEvent("on_generate", width, height, section_width, section_height)
 end
 
 function RegionSystem:RefreashSection(x, y)
@@ -866,6 +868,12 @@ function RegionSystem:private_AddRegionToRoom(region_id, room_id)
 	end
 	if self.rooms[room_id] then
 		table.insert(self.rooms[room_id].regions, region_id)
+	end
+end
+
+function RegionSystem:private_PushEvent(event, ...)
+	if self.ListenForRegionEvent then
+		self:ListenForRegionEvent(event, ...)
 	end
 end
 

@@ -23,8 +23,6 @@ AddPrefabPostInit("forest_network", function(inst)
         inst.M23M_RegionMgr:AddWaters(waters)
 
         print(string.format("[M23M] Init Region Manager Cost: %.2f sec", (os:clock() - start_clock)/1000))
-
-        _G.TheRegionMgr = inst.M23M_RegionMgr
     else
         inst.M23M_AreaMgr_client = inst:AddComponent("m23m_area_manager_client")
 	end

@@ -71,6 +71,7 @@ modimport "m23m_main_scripts/stategraphs.lua"
 modimport "m23m_main_scripts/recipes"
 
 --[replica组件注册]
+AddReplicableComponent("m23m_region_manager")
 
 
 --注册地图图标

@@ -12,6 +12,12 @@ local RegionSystem = Class(REGION_SYS, function (self, inst)
 		local pt_x, pt_z = _G.GetTileCenterPointByTileCoords(data.x, data.y)
 		self:OnTerraform(pt_x, pt_z)
 	end, TheWorld)
+
+	self.net_vars = {
+		size_data = net_ushortarray(self.inst.GUID, "region_sys.size_data", "region_sys.size_data"),
+	}
+
+	_G.TheRegionMgr = self
 end)
 
 
@@ -23,6 +29,37 @@ function RegionSystem:GetPointAtTileCoords(x, y)
 	return x - math.ceil(self.width/2) + 0.5, y - math.ceil(self.height/2) + 0.5
 end
 
+
+function RegionSystem:GetRegionId(x, z)
+	local _x, _y = self:GetTileCoordsAtPoint(x, z)
+	return self._base.GetRegionId(self, _x, _y)
+end
+
+function RegionSystem:GetRoomId(x, z)
+	local _x, _y = self:GetTileCoordsAtPoint(x, z)
+	return self._base.GetRoomId(self, _x, _y)
+end
+
+function RegionSystem:IsInRoom(x, z, room_type)
+	local region_x, region_y = self:GetTileCoordsAtPoint(x, z)
+	return self._base.IsInRoom(self, region_x, region_y, room_type)
+end
+
+function RegionSystem:GetRoomType(x, z)
+	local region_x, region_y = self:GetTileCoordsAtPoint(x, z)
+	return self._base.GetRoomType(self, region_x, region_y)
+end
+
+function RegionSystem:GetRoomData(room_type)
+	if type(room_type) ~= "string" then
+		return
+	end
+	for i, v in ipairs(ROOM_DEF) do
+		if v.type == room_type then
+			return v
+		end
+	end
+end
 
 function RegionSystem:ChangeItemRegion(item_name, old_region, new_region, refreash_room)
 	local count
@@ -71,14 +108,12 @@ function RegionSystem:OnChangeTileRegion(x, y, old_region, new_region, refreash_
 end
 
 function RegionSystem:OnUpdateKeyItemPosition(item_name, old_pos, new_pos)
-	local old_x, old_y, new_x, new_y, old_region, new_region
+	local old_region, new_region
 	if old_pos then
-		old_x, old_y = self:GetTileCoordsAtPoint(old_pos.x, old_pos.z)
-		old_region = self:GetRegionId(old_x, old_y)
+		old_region = self:GetRegionId(old_pos.x, old_pos.z)
 	end
 	if new_pos then
-		new_x, new_y = self:GetTileCoordsAtPoint(new_pos.x, new_pos.z)
-		new_region = self:GetRegionId(new_x, new_y)
+		new_region = self:GetRegionId(new_pos.x, new_pos.z)
 	end
 	if old_region == new_region then
 		return
@@ -91,8 +126,7 @@ function RegionSystem:OnTerraform(x, z)
 	local rooms = {}
 	for _z = z - 2, z + 1 do
 		for _x = x - 2, x + 1 do
-			local region_x, region_y = self:GetTileCoordsAtPoint(_x, _z)
-			local room_id = self:GetRoomId(region_x, region_y)
+			local room_id = self:GetRoomId(_x, _z)
 			local already_in = false
 			for i, _room_id in ipairs(rooms) do
 				if room_id == _room_id then
@@ -200,24 +234,13 @@ function RegionSystem:CheckRoomTiles(room_id, available_tiles)
 	return true
 end
 
-function RegionSystem:IsInRoom(x, z, room_type)
-	local region_x, region_y = self:GetTileCoordsAtPoint(x, z)
-	return self._base.IsInRoom(self, region_x, region_y, room_type)
-end
+--主要是向客户端同步数据
+function RegionSystem:ListenForRegionEvent(event, ...)
+	local args = {...}
+	if event == "on_generate" then
 
-function RegionSystem:GetRoomType(x, z)
-	local region_x, region_y = self:GetTileCoordsAtPoint(x, z)
-	return self._base.GetRoomType(self, region_x, region_y)
-end
+	else
 
-function RegionSystem:GetRoomData(room_type)
-	if type(room_type) ~= "string" then
-		return
-	end
-	for i, v in ipairs(ROOM_DEF) do
-		if v.type == room_type then
-			return v
-		end
 	end
 end
 

@@ -362,7 +362,7 @@ function RoomView:ShowTile()
 
 	self.temp_visited_tiles[cur_pos_code] = true
 	local cur_pos = Vector3(DecodePos(cur_pos_code))
-	local region_id = TheRegionMgr:GetRegionId(TheRegionMgr:GetTileCoordsAtPoint(cur_pos.x, cur_pos.z))
+	local region_id = TheRegionMgr:GetRegionId(cur_pos.x, cur_pos.z)
 	if not self.cur_region_ids[region_id] then
 		return
 	end
@@ -403,8 +403,7 @@ end
 function RoomView:OnUpdate(dt)
 	local pos = TheInput:GetWorldPosition()
 	if TheRegionMgr and pos then
-		local region_x, region_y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
-		local room_id = TheRegionMgr:GetRoomId(region_x, region_y)
+		local room_id = TheRegionMgr:GetRoomId(pos.x, pos.z)
 		self:SetCurrentRoomId(room_id, pos)
 	end
 
