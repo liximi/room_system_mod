@@ -137,19 +137,8 @@ local function get_empty_num_index(tab)
 end
 
 --------------------------------------------------
--- Map
+-- RegionSystem
 --------------------------------------------------
---[[地块数据
-	x
-	y
-	space: 该地块是否是可通过的空地, true表示为空, false表示有墙体或其他阻碍物
-	region: 切片分组ID, 整数, space为false的地块region固定为0
-	is_door: 该地块是否是门
-	is_water: 该地块是否是水域
-]]
-
--- 除了Generation, 永远不要修改tiles[y][x]的引用
-
 
 local RegionSystem = {
 	DIR = DIR,
@@ -160,8 +149,17 @@ local RegionSystem = {
 	section_width = 0,
 	section_height = 0,
 	tiles = {},
-	regions = {},	--不记录ID为0的region, {tiles = {}, passable_edges = {target_region_id = edge_code}, room = int}
-	rooms = {},		--不记录ID为0的房间, {regions = {array}, type = int(ROOM_TYPES)}
+	-- 除了Generation, 永远不要修改tiles[y][x]的引用
+	--[[tiles 地块数据
+		x
+		y
+		space: 该地块是否是可通过的空地, true表示为空, false表示有墙体或其他阻碍物
+		region: 切片分组ID, 整数, space为false的地块region固定为0
+		is_door: 该地块是否是门
+		is_water: 该地块是否是水域
+	]]
+	regions = {},	--不记录ID为0的region, {tiles = {array of tile}, passable_edges = {target_region_id = edge_code}, room = int}
+	rooms = {},		--不记录ID为0的房间, {regions = {array of region's id}, type = int(ROOM_TYPES)}
 }
 
 
@@ -211,8 +209,6 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 			self:RefreashSectionEdges(base_j, base_i)
 		end
 	end
-
-	self:private_PushEvent("on_generate", width, height, section_width, section_height)
 end
 
 function RegionSystem:RefreashSection(x, y)
@@ -606,6 +602,7 @@ function RegionSystem:AddWaters(waters)	 --{x, y}
 		end
 	end
 	self:RefreashRooms()
+	self:private_PushEvent("section_update_mult", sections)
 end
 
 function RegionSystem:RemoveWaters(waters)	--{x. y}
@@ -631,6 +628,7 @@ function RegionSystem:RemoveWaters(waters)	--{x. y}
 		end
 	end
 	self:RefreashRooms()
+	self:private_PushEvent("section_update_mult", sections)
 end
 
 function RegionSystem:RegisterRoomType(room_type)
@@ -705,7 +703,6 @@ end
 function RegionSystem:Print(data_key, sub_key, only_one_section, x, y)
 	data_key = data_key or "space"
 	print(string.format("width: %d, height: %d", self.width, self.height))
-	print("lines")
 
 	local max_line_number_len = count_digits(self.height)
 	local start_x, start_y, w, h = 1, 1, self.width, self.height
@@ -714,6 +711,7 @@ function RegionSystem:Print(data_key, sub_key, only_one_section, x, y)
 		if not start_x then
 			start_x, start_y, w, h = 1, 1, self.width, self.height
 		end
+		print(string.format("start_x: %d, start_y: %d", start_x, start_y))
 	end
 	for i = start_y, h do
 		local line = {}
@@ -736,8 +734,10 @@ function RegionSystem:Print(data_key, sub_key, only_one_section, x, y)
 	end
 end
 
--- function RegionSystem:RefreashRoomType(room_id)
--- function RegionSystem:OnChangeTileRegion(x, y, old_region_id, new_region_id, refreash_room)
+
+-- function RegionSystem:RefreashRoomType(room_id) end
+-- function RegionSystem:OnChangeTileRegion(x, y, old_region_id, new_region_id, refreash_room) end
+-- function RegionSystem:ListenForRegionEvent(event, ...) end
 
 --------------------------------------------------
 -- 私有函数 Private Functions
@@ -747,6 +747,7 @@ function RegionSystem:private_SetSpace(x, y, space)
 	self.tiles[y][x].space = space
 	self:RefreashSection(x, y)
 	self:RefreashRooms()
+	self:private_PushEvent("section_update_single", x, y)
 end
 
 function RegionSystem:private_SetSpaceBatch(datas)	-- {x, y, space}, private_SetSpace的批处理版本, 在需要更新的地块较多时性能较好
@@ -768,6 +769,7 @@ function RegionSystem:private_SetSpaceBatch(datas)	-- {x, y, space}, private_Set
 		end
 	end
 	self:RefreashRooms()
+	self:private_PushEvent("section_update_mult", sections)
 end
 
 function RegionSystem:private_NewRegion(region_id)

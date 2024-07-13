@@ -18,7 +18,7 @@ AddStategraphState("wilson_client", State({
 --当角色位于工作间内时，减少制作时间
 AddStategraphActionHandler("wilson", ActionHandler(ACTIONS.BUILD, function(inst, action)
 	local x, y, z = inst.Transform:GetWorldPosition()
-	local cur_room_type = TheRegionMgr:GetRoomType(x, z)
+	local cur_room_type = TheRegionMgr:GetRoomTypeAtPoint(x, z)
 	if M23M.WORKSHOP_ROOMS[cur_room_type] then
 		return "do_m23m_fastaction"
 	end
@@ -26,7 +26,7 @@ AddStategraphActionHandler("wilson", ActionHandler(ACTIONS.BUILD, function(inst,
 end))
 AddStategraphActionHandler("wilson_client",  ActionHandler(ACTIONS.BUILD, function(inst, action)
 	local x, y, z = inst.Transform:GetWorldPosition()
-	local cur_room_type = TheRegionMgr:GetRoomType(x, z)
+	local cur_room_type = TheRegionMgr:GetRoomTypeAtPoint(x, z)
 	if M23M.WORKSHOP_ROOMS[cur_room_type] then
 		return "do_m23m_fastaction"
 	end

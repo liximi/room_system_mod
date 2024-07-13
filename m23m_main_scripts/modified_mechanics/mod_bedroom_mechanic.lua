@@ -2,7 +2,7 @@
 local SleepingBagUser = require "components/sleepingbaguser"
 
 local function GetBedroomMult(pt)
-	local cur_room_type = TheRegionMgr:GetRoomType(pt.x, pt.z)
+	local cur_room_type = TheRegionMgr:GetRoomTypeAtPoint(pt.x, pt.z)
 	return M23M.BEDROOMS[cur_room_type] or 1
 end
 

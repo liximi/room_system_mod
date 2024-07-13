@@ -1,5 +1,6 @@
 local REGION_SYS = require "region_system/region_system"
 local ROOM_DEF = require "m23m_room_def"
+local json = require "json"
 
 local RegionSystem = Class(REGION_SYS, function (self, inst)
 	self.inst = inst
@@ -13,9 +14,13 @@ local RegionSystem = Class(REGION_SYS, function (self, inst)
 		self:OnTerraform(pt_x, pt_z)
 	end, TheWorld)
 
-	self.net_vars = {
-		size_data = net_ushortarray(self.inst.GUID, "region_sys.size_data", "region_sys.size_data"),
-	}
+	self.inst:ListenForEvent("ms_playerjoined", function(world, player)
+		if TheNet:IsDedicated() or (TheWorld.ismastersim and player ~= ThePlayer) then
+			SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_size_data, player.userid, self.width, self.height, self.section_width, self.section_height)
+			SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_rooms_data, player.userid, self:EncodeRooms())
+			self:SendMapStreamToClient(player.userid)
+		end
+	end, TheWorld)
 
 	_G.TheRegionMgr = self
 end)
@@ -29,25 +34,9 @@ function RegionSystem:GetPointAtTileCoords(x, y)
 	return x - math.ceil(self.width/2) + 0.5, y - math.ceil(self.height/2) + 0.5
 end
 
-
-function RegionSystem:GetRegionId(x, z)
-	local _x, _y = self:GetTileCoordsAtPoint(x, z)
-	return self._base.GetRegionId(self, _x, _y)
-end
-
-function RegionSystem:GetRoomId(x, z)
-	local _x, _y = self:GetTileCoordsAtPoint(x, z)
-	return self._base.GetRoomId(self, _x, _y)
-end
-
-function RegionSystem:IsInRoom(x, z, room_type)
+function RegionSystem:GetRoomTypeAtPoint(x, z)
 	local region_x, region_y = self:GetTileCoordsAtPoint(x, z)
-	return self._base.IsInRoom(self, region_x, region_y, room_type)
-end
-
-function RegionSystem:GetRoomType(x, z)
-	local region_x, region_y = self:GetTileCoordsAtPoint(x, z)
-	return self._base.GetRoomType(self, region_x, region_y)
+	return self:GetRoomType(region_x, region_y)
 end
 
 function RegionSystem:GetRoomData(room_type)
@@ -85,7 +74,7 @@ function RegionSystem:ChangeItemRegion(item_name, old_region, new_region, refrea
 	if old_room == new_room then
 		return
 	end
-
+	print("ChangeItemRegion", old_room, new_room)
 	if old_room then
 		self:RefreashRoomType(old_room)
 	end
@@ -108,12 +97,14 @@ function RegionSystem:OnChangeTileRegion(x, y, old_region, new_region, refreash_
 end
 
 function RegionSystem:OnUpdateKeyItemPosition(item_name, old_pos, new_pos)
-	local old_region, new_region
+	local old_x, old_y, new_x, new_y, old_region, new_region
 	if old_pos then
-		old_region = self:GetRegionId(old_pos.x, old_pos.z)
+		old_x, old_y = self:GetTileCoordsAtPoint(old_pos.x, old_pos.z)
+		old_region = self:GetRegionId(old_x, old_y)
 	end
 	if new_pos then
-		new_region = self:GetRegionId(new_pos.x, new_pos.z)
+		new_x, new_y = self:GetTileCoordsAtPoint(new_pos.x, new_pos.z)
+		new_region = self:GetRegionId(new_x, new_y)
 	end
 	if old_region == new_region then
 		return
@@ -126,7 +117,8 @@ function RegionSystem:OnTerraform(x, z)
 	local rooms = {}
 	for _z = z - 2, z + 1 do
 		for _x = x - 2, x + 1 do
-			local room_id = self:GetRoomId(_x, _z)
+			local region_x, region_y = self:GetTileCoordsAtPoint(_x, _z)
+			local room_id = self:GetRoomId(region_x, region_y)
 			local already_in = false
 			for i, _room_id in ipairs(rooms) do
 				if room_id == _room_id then
@@ -143,18 +135,24 @@ function RegionSystem:OnTerraform(x, z)
 end
 
 function RegionSystem:RefreashRoomType(room_id)		--这个函数会被父类调用
-	if room_id ~= 0 then
-		local success = false
-		for _, data in ipairs(ROOM_DEF) do
-			if self:CheckRoomSize(room_id, data.min_size, data.max_size) and self:CheckRoomMustItems(room_id, data.must_items) and self:CheckRoomTiles(room_id, data.available_tiles) then
-				self:SetRoomType(room_id, data.type)
-				success = true
-				break
-			end
+	if room_id == 0 then
+		return
+	end
+
+	local success = false
+	for _, data in ipairs(ROOM_DEF) do
+		local size_ok = self:CheckRoomSize(room_id, data.min_size, data.max_size)
+		local must_item_ok = self:CheckRoomMustItems(room_id, data.must_items)
+		local tiles_ok = self:CheckRoomTiles(room_id, data.available_tiles)
+		print("RefreashRoomType", data.type, size_ok, must_item_ok, tiles_ok)
+		if size_ok and must_item_ok and tiles_ok then
+			self:SetRoomType(room_id, data.type)
+			success = true
+			break
 		end
-		if not success then
-			self:SetRoomType(room_id, "NONE")
-		end
+	end
+	if not success then
+		self:SetRoomType(room_id, "NONE")
 	end
 end
 
@@ -234,13 +232,67 @@ function RegionSystem:CheckRoomTiles(room_id, available_tiles)
 	return true
 end
 
+
 --主要是向客户端同步数据
+--[[
+	tiles = {要更新的地块数据}
+	regions = {要更新的区域数据}
+	rooms = {要更新的房间数据}
+]]
+local event_handlers = {
+	section_update_single = function (self, x, y)
+		
+	end,
+
+	section_update_mult = function (self, sections)
+		
+	end,
+}
 function RegionSystem:ListenForRegionEvent(event, ...)
-	local args = {...}
-	if event == "on_generate" then
+	if event_handlers[event] then
+		event_handlers[event](self, ...)
+	end
+end
 
-	else
+--将tiles数据进行压缩，用于RPC传输
+--压缩后为一个整数数组，每2个连续元素存储1个地块的数据:
+--  地块坐标: (y - 1) * self.width + x
+--  地块信息: 1 bit:space | 1 bit:is_door | 1 bit:is_water | 29 bit: region(max:536870911)
+function RegionSystem:EncodeTiles(start_y, lines)
+	local tiles = {}
+	for y = start_y, start_y + lines - 1 do
+		for x, data in ipairs(self.tiles[y]) do
+			local tile_pos = (y - 1) * self.width + x
+			--2^32: 4294967296 | 2^31: 2147483648 | 2^30: 1073741824
+			local tile_info = (data.is_water and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + (data.space and 1 or 0) * 1073741824 + data.region
+			table.insert(tiles, tile_pos)
+			table.insert(tiles, tile_info)
+		end
+	end
+	return json.encode(tiles)
+end
 
+--将rooms数据进行压缩，用于RPC传输
+--压缩后为一个整数数组，每n个连续元素存储1个地块的数据
+-- room_id, type, region_count, region_id[region_count]
+function RegionSystem:EncodeRooms()
+	local rooms = {}
+	for room_id, data in pairs(self.rooms) do
+		table.insert(rooms, room_id)
+		table.insert(rooms, data.type)
+		table.insert(rooms, #data.regions)
+		for i, region_id in ipairs(data.regions) do
+			table.insert(rooms, region_id)
+		end
+	end
+	return json.encode(rooms)
+end
+
+
+function RegionSystem:SendMapStreamToClient(user_id)
+	for i = 1, self.height do
+		local code = self:EncodeTiles(i, 1)
+		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_tiles_stream, user_id, code)
 	end
 end
 

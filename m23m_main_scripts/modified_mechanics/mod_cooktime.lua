@@ -133,7 +133,8 @@ local cookpots = {
 local function kitchen_mult_cond_spawner(room_id)
     return function(inst)
         local x, y, z = inst.Transform:GetWorldPosition()
-        return TheRegionMgr:IsInRoom(x, z, room_id)
+        local region_x, region_y = TheRegionMgr:GetTileCoordsAtPoint(x, z)
+        return TheRegionMgr:IsInRoom(region_x, region_y, room_id)
     end
 end
 
