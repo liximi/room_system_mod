@@ -2,6 +2,12 @@ local REGION_SYS = require "region_system/region_system"
 local ROOM_DEF = require "m23m_room_def"
 local json = require "json"
 
+
+--------------------------------------------------
+-- RegionSystem
+--------------------------------------------------
+
+
 local RegionSystem = Class(REGION_SYS, function (self, inst)
 	self.inst = inst
 	for _, data in ipairs(ROOM_DEF) do
@@ -74,7 +80,7 @@ function RegionSystem:ChangeItemRegion(item_name, old_region, new_region, refrea
 	if old_room == new_room then
 		return
 	end
-	print("ChangeItemRegion", old_room, new_room)
+
 	if old_room then
 		self:RefreashRoomType(old_room)
 	end
@@ -144,7 +150,6 @@ function RegionSystem:RefreashRoomType(room_id)		--这个函数会被父类调�
 		local size_ok = self:CheckRoomSize(room_id, data.min_size, data.max_size)
 		local must_item_ok = self:CheckRoomMustItems(room_id, data.must_items)
 		local tiles_ok = self:CheckRoomTiles(room_id, data.available_tiles)
-		print("RefreashRoomType", data.type, size_ok, must_item_ok, tiles_ok)
 		if size_ok and must_item_ok and tiles_ok then
 			self:SetRoomType(room_id, data.type)
 			success = true
@@ -234,18 +239,30 @@ end
 
 
 --主要是向客户端同步数据
---[[
-	tiles = {要更新的地块数据}
-	regions = {要更新的区域数据}
-	rooms = {要更新的房间数据}
-]]
+
+local function send_section_data_to_clients(self, x, y)
+	local tiles = self:GetAllTilesInSection(x, y)
+	local rooms = {}
+	local tiles_code = self:EncodeTiles(tiles, function(tile)
+		table.insert(rooms, self.rooms[self:GetRoomIdByRegion(tile.region)])
+	end)
+	local rooms_code = self:EncodeRooms(rooms)
+	local data_pack = {tiles = tiles_code, rooms = rooms_code}
+	for _, player in ipairs(AllPlayers) do
+		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_update_section_data, player.user_id, data_pack)
+	end
+end
+
 local event_handlers = {
 	section_update_single = function (self, x, y)
-		
+		send_section_data_to_clients(self, x, y)
 	end,
-
 	section_update_mult = function (self, sections)
-		
+		for y, xs in pairs(sections) do
+			for x, _ in pairs(xs) do
+				send_section_data_to_clients(self, x, y)
+			end
+		end
 	end,
 }
 function RegionSystem:ListenForRegionEvent(event, ...)
@@ -258,40 +275,55 @@ end
 --压缩后为一个整数数组，每2个连续元素存储1个地块的数据:
 --  地块坐标: (y - 1) * self.width + x
 --  地块信息: 1 bit:space | 1 bit:is_door | 1 bit:is_water | 29 bit: region(max:536870911)
-function RegionSystem:EncodeTiles(start_y, lines)
+
+function RegionSystem:EncodeTiles(tiles_matrix, tile_fn)	--二维矩阵，角标从1开始
 	local tiles = {}
-	for y = start_y, start_y + lines - 1 do
-		for x, data in ipairs(self.tiles[y]) do
-			local tile_pos = (y - 1) * self.width + x
-			--2^32: 4294967296 | 2^31: 2147483648 | 2^30: 1073741824
-			local tile_info = (data.is_water and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + (data.space and 1 or 0) * 1073741824 + data.region
-			table.insert(tiles, tile_pos)
-			table.insert(tiles, tile_info)
+	if tile_fn then
+		for y, xs in ipairs(tiles_matrix) do
+			for x, data in ipairs(xs) do
+				local tile_pos = (y - 1) * self.width + x
+				--2^32: 4294967296 | 2^31: 2147483648 | 2^30: 1073741824
+				local tile_info = (data.is_water and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + (data.space and 1 or 0) * 1073741824 + data.region
+				table.insert(tiles, tile_pos)
+				table.insert(tiles, tile_info)
+				tile_fn(data)
+			end
+		end
+	else
+		for y, xs in ipairs(tiles_matrix) do
+			for x, data in ipairs(xs) do
+				local tile_pos = (y - 1) * self.width + x
+				--2^32: 4294967296 | 2^31: 2147483648 | 2^30: 1073741824
+				local tile_info = (data.is_water and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + (data.space and 1 or 0) * 1073741824 + data.region
+				table.insert(tiles, tile_pos)
+				table.insert(tiles, tile_info)
+			end
 		end
 	end
+
 	return json.encode(tiles)
 end
 
 --将rooms数据进行压缩，用于RPC传输
 --压缩后为一个整数数组，每n个连续元素存储1个地块的数据
 -- room_id, type, region_count, region_id[region_count]
-function RegionSystem:EncodeRooms()
-	local rooms = {}
-	for room_id, data in pairs(self.rooms) do
-		table.insert(rooms, room_id)
-		table.insert(rooms, data.type)
-		table.insert(rooms, #data.regions)
+function RegionSystem:EncodeRooms(rooms)
+	local rooms_data = {}
+	for room_id, data in pairs(rooms or self.rooms) do
+		table.insert(rooms_data, room_id)
+		table.insert(rooms_data, data.type)
+		table.insert(rooms_data, #data.regions)
 		for i, region_id in ipairs(data.regions) do
-			table.insert(rooms, region_id)
+			table.insert(rooms_data, region_id)
 		end
 	end
-	return json.encode(rooms)
+	return json.encode(rooms_data)
 end
 
 
 function RegionSystem:SendMapStreamToClient(user_id)
 	for i = 1, self.height do
-		local code = self:EncodeTiles(i, 1)
+		local code = self:EncodeTiles({self.tiles[i]})
 		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_tiles_stream, user_id, code)
 	end
 end

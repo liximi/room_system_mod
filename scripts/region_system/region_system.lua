@@ -251,8 +251,8 @@ function RegionSystem:RefreashSection(x, y)
 
 	--泛洪算法更新region
 	while not is_empty_table(section_tiles) do
-		for _y, xs in pairs(section_tiles) do
-			for _x in pairs(xs) do
+		for _y, xs in ipairs(section_tiles) do
+			for _x in ipairs(xs) do
 				if self:IsPassable(base_x + _x, base_y + _y) then
 					region_index = get_empty_num_index(self.regions) + 1
 					flood_fill(section_tiles, _x, _y, can_visit, on_visit)
@@ -447,10 +447,10 @@ function RegionSystem:GetAllTilesInSection(x, y)	--通过坐标获取该坐标�
 		return
 	end
 	local tiles = {}
-	for i = base_y, math.min(base_y + self.section_height - 1, self.height) do
+	for i = base_y+1, math.min(base_y + self.section_height, self.height+1) do
 		tiles[i - base_y] = {}
-		for j = base_x, math.min(base_x + self.section_width - 1, self.width) do
-			tiles[i - base_y][j - base_x] = self.tiles[i][j]
+		for j = base_x+1, math.min(base_x + self.section_width, self.width+1) do
+			tiles[i - base_y][j - base_x] = self.tiles[i-1][j-1]
 		end
 	end
 

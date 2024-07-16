@@ -94,3 +94,11 @@ AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_tiles_stream", fu
 		TheRegionMgr:ReceiveTileStream(tiles)
 	end
 end)
+
+AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_update_section_data", function(data_pack)	--{tiles = {要更新的地块数据}, rooms = {要更新的房间数据}}
+	local data = json.decode(data_pack)
+	print("region_system_update_section_data", data)
+	if TheRegionMgr and TheRegionMgr.ReceiveSectionUpdateData and type(data) == "table" then
+		TheRegionMgr:ReceiveSectionUpdateData(data)
+	end
+end)

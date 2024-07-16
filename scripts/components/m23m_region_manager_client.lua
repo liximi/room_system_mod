@@ -237,4 +237,9 @@ function RegionSystem:ReceiveTileStream(tiles)
 	end
 end
 
+--{tiles = {要更新的地块数据}, rooms = {要更新的房间数据}}
+function RegionSystem:ReceiveSectionUpdateData(data)
+
+end
+
 return RegionSystem
