@@ -158,7 +158,7 @@ AddClassPostConstruct("widgets/hoverer",function(self)
 			local mouse_pos = TheInput:GetWorldPosition()
 			if mouse_pos then
 				local room_name
-				local room_type = TheRegionMgr:GetRoomType(mouse_pos.x, mouse_pos.z)
+				local room_type = TheRegionMgr:GetRoomTypeAtPoint(mouse_pos.x, mouse_pos.z)
 				if room_type == "NONE" then
 					room_name = STRINGS.M23M_ROOMS.NONE.NAME
 				end

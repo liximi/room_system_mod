@@ -10,7 +10,7 @@ local function GiveOrDropItem(inst, recipe, item, pt)
 end
 
 local function GetProbability(pt)
-	local cur_room_type = TheRegionMgr:GetRoomType(pt.x, pt.z)
+	local cur_room_type = TheRegionMgr:GetRoomTypeAtPoint(pt.x, pt.z)
 	return M23M.WORKSHOP_ROOMS[cur_room_type] or 0
 end
 

@@ -70,19 +70,24 @@ end
 
 function AreaManager:RefreshClientData(area, remove)	--Area Instance
 	print("RefreshClientData", area, remove)
+	local userids = {}
 	for _, player in ipairs(AllPlayers) do
-		if remove then
-			SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].remove_area, player.user_id, area:GetID())
-		else
-			local tiles = area:GetTiles()
-			local _tiles = {}
-			for x, zs in pairs(tiles) do
-				for z, _ in pairs(zs) do
-					table.insert(_tiles, {x, z})	--由于json.encode会改变表结构，因此需要重新处理表结构
-				end
-			end
-			SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].refresh_area_data, player.user_id, area:GetID(), json.encode(_tiles), area:GetType())
+		if TheNet:IsDedicated() or (TheWorld.ismastersim and player ~= ThePlayer) then
+			table.insert(userids, player.userid)
 		end
+	end
+
+	if remove then
+		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].remove_area, userids, area:GetID())
+	else
+		local tiles = area:GetTiles()
+		local _tiles = {}
+		for x, zs in pairs(tiles) do
+			for z, _ in pairs(zs) do
+				table.insert(_tiles, {x, z})	--由于json.encode会改变表结构，因此需要重新处理表结构
+			end
+		end
+		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].refresh_area_data, userids, area:GetID(), json.encode(_tiles), area:GetType())
 	end
 end
 

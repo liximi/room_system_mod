@@ -66,7 +66,9 @@ end
 local ROOM_DEF = require "m23m_room_def"
 local function CheckPosition(inst)
     if TheWorld.ismastersim then
-        inst:AddComponent("m23m_room_key_item")
+        if not inst.components.m23m_room_key_item then
+            inst:AddComponent("m23m_room_key_item")
+        end
     end
 end
 for _, data in pairs(ROOM_DEF) do

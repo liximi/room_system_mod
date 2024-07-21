@@ -1,8 +1,13 @@
 global("TheRegionMgr")
-AddPrefabPostInit("forest_network", function(inst)
-	if TheWorld.ismastersim then
-        inst.M23M_AreaMgr = inst:AddComponent("m23m_area_manager")
-        inst.M23M_PowerMgr = inst:AddComponent("m23m_power_manager")
+
+local world_networks = {
+    "forest_network",
+    "cave_network",
+}
+
+local function PostInit(inst)
+    if TheWorld.ismastersim then
+        -- inst.M23M_PowerMgr = inst:AddComponent("m23m_power_manager")
 
         local start_clock = os:clock()
 
@@ -22,10 +27,13 @@ AddPrefabPostInit("forest_network", function(inst)
         end
         inst.M23M_RegionMgr:AddWaters(waters)
 
-        print(string.format("[M23M] Init Region Manager Cost: %.2f sec", (os:clock() - start_clock)/1000))
-
-        _G.TheRegionMgr = inst.M23M_RegionMgr
+        print(string.format("[M23M] Init Region Manager Cost: %.2f secs", (os:clock() - start_clock)/1000))
     else
-        inst.M23M_AreaMgr_client = inst:AddComponent("m23m_area_manager_client")
-	end
-end)
+        inst.M23M_RegionMgr = inst:AddComponent("m23m_region_manager_client")
+    end
+end
+
+
+for _, network in ipairs(world_networks) do
+    AddPrefabPostInit(network, PostInit)
+end
