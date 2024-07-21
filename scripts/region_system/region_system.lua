@@ -217,14 +217,14 @@ function RegionSystem:RefreashSection(x, y)
 	if not section_tiles then return end
 
 	local function can_visit(cur_x, cur_y, prev_x, prev_y)
-		cur_x, cur_y = base_x + cur_x, base_y + cur_y
+		cur_x, cur_y = base_x + cur_x - 1, base_y + cur_y - 1
 		if not self:IsPassable(cur_x, cur_y) then
 			return false
 		end
 		if not prev_x or not prev_y then
 			return true
 		end
-		prev_x, prev_y = base_x + prev_x, base_y + prev_y
+		prev_x, prev_y = base_x + prev_x - 1, base_y + prev_y - 1
 		if not self:IsPassable(prev_x, prev_y) then
 			return false
 		end
@@ -237,7 +237,7 @@ function RegionSystem:RefreashSection(x, y)
 		local cur_tile = section_tiles[cur_y][cur_x]
 
 		if cur_tile.is_door then
-			table.insert(doors, {base_x + cur_x, base_y + cur_y})
+			table.insert(doors, {base_x + cur_x - 1, base_y + cur_y - 1})
 		end
 
 		if not self.regions[region_index] then
@@ -251,13 +251,13 @@ function RegionSystem:RefreashSection(x, y)
 
 	--泛洪算法更新region
 	while not is_empty_table(section_tiles) do
-		for _y, xs in ipairs(section_tiles) do
-			for _x in ipairs(xs) do
-				if self:IsPassable(base_x + _x, base_y + _y) then
+		for _y, xs in pairs(section_tiles) do
+			for _x in pairs(xs) do
+				if self:IsPassable(base_x + _x - 1, base_y + _y - 1) then
 					region_index = get_empty_num_index(self.regions) + 1
 					flood_fill(section_tiles, _x, _y, can_visit, on_visit)
 				else
-					self:private_AddTileToRegion(self.tiles[base_y + _y][base_x + _x], 0)
+					self:private_AddTileToRegion(self.tiles[base_y + _y - 1][base_x + _x - 1], 0)
 					section_tiles[_y][_x] = nil
 					if is_empty_table(section_tiles[_y]) then section_tiles[_y] = nil end
 				end
@@ -383,36 +383,6 @@ function RegionSystem:RefreashRooms()	--遍历全部region, 刷新房间
 	end
 end
 
-function RegionSystem:OnItemMove(item, old_pos, new_pos)	--pos: {x, y}
-	if not item then return end
-
-	local old_room, new_room = 0, 0
-	if old_pos and new_pos then
-		old_room = self:GetRoomId(old_pos[1], old_pos[2])
-	end
-	if new_pos then
-		new_room = self:GetRoomId(new_pos[1], new_pos[2])
-	end
-	if old_room == 0 and new_room == 0 then return end
-
-	local need_refreash_old_room = old_room ~= 0
-	local need_refreash_new_room = new_room ~= 0
-	if old_room == new_room then
-		need_refreash_new_room = false
-	end
-
-	if need_refreash_old_room then
-		if self.RefreashRoomType then
-			self:RefreashRoomType(old_room)
-		end
-	end
-	if need_refreash_new_room then
-		if self.RefreashRoomType then
-			self:RefreashRoomType(new_room)
-		end
-	end
-end
-
 function RegionSystem:IsPassable(x, y)
 	return self.tiles[y] and self.tiles[y][x] and self.tiles[y][x].space
 end
@@ -447,10 +417,11 @@ function RegionSystem:GetAllTilesInSection(x, y)	--通过坐标获取该坐标�
 		return
 	end
 	local tiles = {}
-	for i = base_y+1, math.min(base_y + self.section_height, self.height+1) do
-		tiles[i - base_y] = {}
-		for j = base_x+1, math.min(base_x + self.section_width, self.width+1) do
-			tiles[i - base_y][j - base_x] = self.tiles[i-1][j-1]
+	for i = base_y, math.min(base_y + self.section_height - 1, self.height) do
+		local _y = i - base_y + 1
+		tiles[_y] = {}
+		for j = base_x, math.min(base_x + self.section_width - 1, self.width) do
+			tiles[_y][j - base_x + 1] = self.tiles[i][j]
 		end
 	end
 
@@ -744,7 +715,7 @@ end
 --------------------------------------------------
 
 function RegionSystem:private_SetSpace(x, y, space)
-	self.tiles[y][x].space = space
+	self.tiles[y][x].space = space and true or nil
 	self:RefreashSection(x, y)
 	self:RefreashRooms()
 	self:private_PushEvent("section_update_single", x, y)
@@ -873,6 +844,11 @@ function RegionSystem:private_AddRegionToRoom(region_id, room_id)
 	end
 end
 
+--[[Events List:
+	section_update_single: x, y
+	section_update_mult: sections={y1={x1, x2, ...}, y2={...}}
+	rooms_type_update: changes={{room_id, new_room_type}, ...}
+]]
 function RegionSystem:private_PushEvent(event, ...)
 	if self.ListenForRegionEvent then
 		self:ListenForRegionEvent(event, ...)

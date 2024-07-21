@@ -81,11 +81,32 @@ function RegionSystem:ChangeItemRegion(item_name, old_region, new_region, refrea
 		return
 	end
 
+	local changes = {}
 	if old_room then
+		local old_type = self.rooms[old_room] and self.rooms[old_room].type or 1
 		self:RefreashRoomType(old_room)
+		local new_type = self.rooms[old_room] and self.rooms[old_room].type or 1
+		if new_type ~= old_type then
+			table.insert(changes, {old_room, new_type})
+		end
 	end
 	if new_room then
+		local old_type = self.rooms[new_room] and self.rooms[new_room].type or 1
 		self:RefreashRoomType(new_room)
+		local new_type = self.rooms[new_room] and self.rooms[new_room].type or 1
+		if new_type ~= old_type then
+			table.insert(changes, {new_room, new_type})
+		end
+	end
+
+	if not IsEmptyTable(changes) then
+		local userids = {}
+		for _, player in ipairs(AllPlayers) do
+			if TheNet:IsDedicated() or (TheWorld.ismastersim and player ~= ThePlayer) then
+				table.insert(userids, player.userid)
+			end
+		end
+		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_update_room_type, userids, json.encode(changes))
 	end
 end
 
@@ -121,22 +142,30 @@ end
 
 function RegionSystem:OnTerraform(x, z)
 	local rooms = {}
+	local changes = {}
 	for _z = z - 2, z + 1 do
 		for _x = x - 2, x + 1 do
 			local region_x, region_y = self:GetTileCoordsAtPoint(_x, _z)
 			local room_id = self:GetRoomId(region_x, region_y)
-			local already_in = false
-			for i, _room_id in ipairs(rooms) do
-				if room_id == _room_id then
-					already_in = true
-					break
+			if not rooms[room_id] then
+				rooms[room_id] = true
+				local old_type = self.rooms[room_id] and self.rooms[room_id].type or 1
+				self:RefreashRoomType(room_id)
+				local new_type = self.rooms[room_id] and self.rooms[room_id].type or 1
+				if new_type ~= old_type then
+					table.insert(changes, {room_id, new_type})
 				end
 			end
-			if not already_in then
-				self:RefreashRoomType(room_id)
-				table.insert(rooms, room_id)
+		end
+	end
+	if not IsEmptyTable(changes) then
+		local userids = {}
+		for _, player in ipairs(AllPlayers) do
+			if TheNet:IsDedicated() or (TheWorld.ismastersim and player ~= ThePlayer) then
+				table.insert(userids, player.userid)
 			end
 		end
+		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_update_room_type, userids, json.encode(changes))
 	end
 end
 
@@ -242,22 +271,38 @@ end
 
 local function send_section_data_to_clients(self, x, y)
 	local tiles = self:GetAllTilesInSection(x, y)
-	local rooms = {}
-	local tiles_code = self:EncodeTiles(tiles, function(tile)
-		table.insert(rooms, self.rooms[self:GetRoomIdByRegion(tile.region)])
-	end)
-	local rooms_code = self:EncodeRooms(rooms)
-	local data_pack = {tiles = tiles_code, rooms = rooms_code}
+	local tiles_code = self:EncodeTiles(tiles)
+	local rooms_code = self:EncodeRooms()
+	local data_pack = string.format("{\"tiles\": %s, \"rooms\": %s}", tiles_code, rooms_code)
+	local userids = {}
 	for _, player in ipairs(AllPlayers) do
-		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_update_section_data, player.user_id, data_pack)
+		if TheNet:IsDedicated() or (TheWorld.ismastersim and player ~= ThePlayer) then
+			table.insert(userids, player.userid)
+		end
 	end
+	SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_update_section_data, userids, data_pack)
+end
+
+local function check_should_send_rpc_to_clients()
+	if TheNet:IsDedicated() then
+		return true
+	elseif TheWorld.ismastersim then
+		for _, player in ipairs(AllPlayers) do
+			if player ~= ThePlayer then
+				return true
+			end
+		end
+	end
+	return false
 end
 
 local event_handlers = {
 	section_update_single = function (self, x, y)
+		if not check_should_send_rpc_to_clients() then return end
 		send_section_data_to_clients(self, x, y)
 	end,
 	section_update_mult = function (self, sections)
+		if not check_should_send_rpc_to_clients() then return end
 		for y, xs in pairs(sections) do
 			for x, _ in pairs(xs) do
 				send_section_data_to_clients(self, x, y)
@@ -276,31 +321,17 @@ end
 --  地块坐标: (y - 1) * self.width + x
 --  地块信息: 1 bit:space | 1 bit:is_door | 1 bit:is_water | 29 bit: region(max:536870911)
 
-function RegionSystem:EncodeTiles(tiles_matrix, tile_fn)	--二维矩阵，角标从1开始
+function RegionSystem:EncodeTiles(tiles_matrix)	--二维矩阵
 	local tiles = {}
-	if tile_fn then
-		for y, xs in ipairs(tiles_matrix) do
-			for x, data in ipairs(xs) do
-				local tile_pos = (y - 1) * self.width + x
-				--2^32: 4294967296 | 2^31: 2147483648 | 2^30: 1073741824
-				local tile_info = (data.is_water and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + (data.space and 1 or 0) * 1073741824 + data.region
-				table.insert(tiles, tile_pos)
-				table.insert(tiles, tile_info)
-				tile_fn(data)
-			end
-		end
-	else
-		for y, xs in ipairs(tiles_matrix) do
-			for x, data in ipairs(xs) do
-				local tile_pos = (y - 1) * self.width + x
-				--2^32: 4294967296 | 2^31: 2147483648 | 2^30: 1073741824
-				local tile_info = (data.is_water and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + (data.space and 1 or 0) * 1073741824 + data.region
-				table.insert(tiles, tile_pos)
-				table.insert(tiles, tile_info)
-			end
+	for i, v in pairs(tiles_matrix) do
+		for j, data in pairs(v) do
+			local tile_pos = (data.y - 1) * self.width + data.x
+			--2^32: 4294967296 | 2^31: 2147483648 | 2^30: 1073741824
+			local tile_info = (data.is_water and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + (data.space and 1 or 0) * 1073741824 + data.region
+			table.insert(tiles, tile_pos)
+			table.insert(tiles, tile_info)
 		end
 	end
-
 	return json.encode(tiles)
 end
 
@@ -321,10 +352,10 @@ function RegionSystem:EncodeRooms(rooms)
 end
 
 
-function RegionSystem:SendMapStreamToClient(user_id)
+function RegionSystem:SendMapStreamToClient(userid)
 	for i = 1, self.height do
 		local code = self:EncodeTiles({self.tiles[i]})
-		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_tiles_stream, user_id, code)
+		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_tiles_stream, userid, code)
 	end
 end
 

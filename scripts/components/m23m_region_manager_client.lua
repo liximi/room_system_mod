@@ -3,6 +3,27 @@ local ROOM_DEF = require "m23m_room_def"
 local ROOM_TYPES = { "NONE", }
 local ROOM_TYPES_REVERSE = {NONE = 1}
 
+local ERR_ROOM_DATA_NOT_SYNCHRONIZED = "RegionSystem Error: Room Data Not Synchronized"
+local ERR_NEGATIVE_MAP_SIZE_DATA = "RegionSystem ERRO: Negative Map Size Data"
+
+--解析来自主机的 rooms 数据数组
+local function decode_roomsdata(roomsdata)
+	local rooms = {}
+	local cur_head, len_of_arr = 1, #roomsdata
+	while cur_head < len_of_arr do
+		local room_id = roomsdata[cur_head]
+		local room_type = roomsdata[cur_head + 1]
+		local regions_count = roomsdata[cur_head + 2]
+		local regions = {}
+		for i = 1, regions_count do
+			table.insert(regions, roomsdata[cur_head + 2 + i])
+		end
+		rooms[room_id] = {type = room_type, regions = regions}
+		cur_head = cur_head + regions_count + 3
+	end
+	return rooms
+end
+
 --解析来自主机的 tile code
 local function decode_tile_code(code)
 	local tile = {}
@@ -11,7 +32,9 @@ local function decode_tile_code(code)
 	tile.space = code % 2
 	code = (code - tile.space) / 2
 	tile.is_door = code % 2
-	tile.is_water = (code - tile.is_door) / 2
+	tile.is_water = ((code - tile.is_door) / 2) == 1 and true or nil
+	tile.is_door = tile.is_door == 1 and true or nil
+	tile.space = tile.space == 1 and true or nil
 	return tile
 end
 
@@ -179,7 +202,7 @@ end
 
 --tiles的结构参主机组件的 EncodeTiles 函数
 function RegionSystem:ReceiveMapSizeData(width, height, section_width, section_height)
-	assert(width > 0 and height > 0 and section_width > 0 and section_height > 0, "RegionSystem Error")
+	assert(width > 0 and height > 0 and section_width > 0 and section_height > 0, ERR_NEGATIVE_MAP_SIZE_DATA)
 	self.width = width
 	self.height = height
 	self.section_width = section_width
@@ -187,25 +210,9 @@ function RegionSystem:ReceiveMapSizeData(width, height, section_width, section_h
 end
 
 function RegionSystem:ReceiveRoomsData(roomsdata, refresh_region)
-	local rooms = {}
-
-	local cur_head, len_of_arr = 1, #roomsdata
-	while cur_head < len_of_arr do
-		local room_id = roomsdata[cur_head]
-		local room_type = roomsdata[cur_head + 1]
-		local regions_count = roomsdata[cur_head + 2]
-		local regions = {}
-		for i = 1, regions_count do
-			table.insert(regions, roomsdata[cur_head + 2 + i])
-		end
-		rooms[room_id] = {type = room_type, regions = regions}
-		cur_head = cur_head + regions_count + 3
-	end
-
-	self.rooms = rooms
-
+	self.rooms = decode_roomsdata(roomsdata)
 	if refresh_region then
-		for room_id, data in pairs(rooms) do
+		for room_id, data in pairs(self.rooms) do
 			for _, region_id in ipairs(data.regions) do
 				if not self.regions[region_id] then
 					self.regions[region_id] = {tiles = {}, room = room_id}
@@ -231,15 +238,64 @@ function RegionSystem:ReceiveTileStream(tiles)
 		self.tiles[y][x] = tile
 
 		if tile.region ~= 0 then
-			assert(self.regions[tile.region] ~= nil, "RegionSystem Error: Not Received Rooms Data")
+			assert(self.regions[tile.region] ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
 			table.insert(self.regions[tile.region].tiles, tile)
 		end
 	end
 end
 
---{tiles = {要更新的地块数据}, rooms = {要更新的房间数据}}
+--{tiles = {要更新的地块数据}, rooms = {全部房间数据}}
 function RegionSystem:ReceiveSectionUpdateData(data)
+	if type(data.rooms) == "table" then
+		self:ReceiveRoomsData(data.rooms, true)
+	end
 
+	if type(data.tiles) ~= "table" then
+		return
+	end
+	local tiles = data.tiles
+	for i = 1, #tiles, 2 do
+		local tile = decode_tile_code(tiles[i+1])
+		local y = math.floor(tiles[i] / self.width) + 1
+		local x = tiles[i] - (y - 1) * self.width
+		tile.y = y
+		tile.x = x
+
+		local old_tile_data = self.tiles[y][x]
+		self.tiles[y][x] = tile
+		if tile.region ~= old_tile_data.region and old_tile_data.region ~= 0 then
+			local old_region = self.regions[old_tile_data.region]
+			if old_region then
+				for j, t in ipairs(old_region.tiles) do
+					if t.x == x and t.y == y then
+						table.remove(old_region.tiles, j)
+						if IsEmptyTable(old_region.tiles) then
+							self.regions[old_tile_data.region] = nil
+						end
+						break
+					end
+				end
+			end
+
+			if tile.region ~= 0 then
+				assert(self.regions[tile.region] ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+				table.insert(self.regions[tile.region].tiles, tile)
+			end
+		end
+	end
 end
+
+function RegionSystem:ReceiveRoomsTypeUpdateData(data)
+	if type(data) ~= "table" then
+		return
+	end
+	for _, room in ipairs(data) do
+		local room_id = room[1]
+		local room_type = room[2]
+		assert(self.rooms[room_id], ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+		self.rooms[room_id].type = room_type
+	end
+end
+
 
 return RegionSystem

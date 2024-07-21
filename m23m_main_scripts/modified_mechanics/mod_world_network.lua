@@ -7,8 +7,7 @@ local world_networks = {
 
 local function PostInit(inst)
     if TheWorld.ismastersim then
-        inst.M23M_AreaMgr = inst:AddComponent("m23m_area_manager")
-        inst.M23M_PowerMgr = inst:AddComponent("m23m_power_manager")
+        -- inst.M23M_PowerMgr = inst:AddComponent("m23m_power_manager")
 
         local start_clock = os:clock()
 
@@ -30,7 +29,6 @@ local function PostInit(inst)
 
         print(string.format("[M23M] Init Region Manager Cost: %.2f secs", (os:clock() - start_clock)/1000))
     else
-        inst.M23M_AreaMgr_client = inst:AddComponent("m23m_area_manager_client")
         inst.M23M_RegionMgr = inst:AddComponent("m23m_region_manager_client")
     end
 end

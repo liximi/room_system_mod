@@ -13,7 +13,7 @@ AddModRPCHandler(M23M.RPC_NAMESPACE, "add_area", function(player, tiles)
 			end
 			_tiles[pt[1]][pt[2]] = true
 		end
-		TheWorld.net.M23M_AreaMgr:AddArea(_tiles, nil, player.user_id)
+		TheWorld.net.M23M_AreaMgr:AddArea(_tiles, nil, player.userid)
 	end
 end)
 
@@ -27,7 +27,7 @@ AddModRPCHandler(M23M.RPC_NAMESPACE, "area_might_type", function(player, tiles)
 			end
 			_tiles[pt[1]][pt[2]] = true
 		end
-		TheWorld.net.M23M_AreaMgr:AddArea(_tiles, nil, player.user_id)
+		TheWorld.net.M23M_AreaMgr:AddArea(_tiles, nil, player.userid)
 	end
 end)
 
@@ -41,7 +41,7 @@ AddModRPCHandler(M23M.RPC_NAMESPACE, "change_area_type", function(player, tiles)
 			end
 			_tiles[pt[1]][pt[2]] = true
 		end
-		TheWorld.net.M23M_AreaMgr:AddArea(_tiles, nil, player.user_id)
+		TheWorld.net.M23M_AreaMgr:AddArea(_tiles, nil, player.userid)
 	end
 end)
 
@@ -95,10 +95,18 @@ AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_tiles_stream", fu
 	end
 end)
 
-AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_update_section_data", function(data_pack)	--{tiles = {要更新的地块数据}, rooms = {要更新的房间数据}}
+AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_update_section_data", function(data_pack)	--{tiles = {要更新的地块数据}, rooms = {全部房间数据}}
 	local data = json.decode(data_pack)
-	print("region_system_update_section_data", data)
+	-- print("region_system_update_section_data", data)
 	if TheRegionMgr and TheRegionMgr.ReceiveSectionUpdateData and type(data) == "table" then
 		TheRegionMgr:ReceiveSectionUpdateData(data)
+	end
+end)
+
+AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_update_room_type", function(changes)	--{{room_id, room_type}, ...}
+	local data = json.decode(changes)
+	-- print("region_system_update_room_type", data)
+	if TheRegionMgr and TheRegionMgr.ReceiveRoomsTypeUpdateData and type(data) == "table" then
+		TheRegionMgr:ReceiveRoomsTypeUpdateData(data)
 	end
 end)

@@ -137,3 +137,10 @@ function _G.GetTileCenterPointByTileCoords(x, y)
 	local size_x, size_y = TheWorld.Map:GetSize()
 	return (x - math.ceil(size_x/2)) * 4 + 2, (y - math.ceil(size_y/2)) * 4 + 2
 end
+
+function _G.IsEmptyTable(tab)
+	for k, v in pairs(tab) do
+		return false
+	end
+	return true
+end
