@@ -3,8 +3,8 @@ local ROOM_DEF = require "m23m_room_def"
 local ROOM_TYPES = { "NONE", }
 local ROOM_TYPES_REVERSE = {NONE = 1}
 
-local ERR_ROOM_DATA_NOT_SYNCHRONIZED = "RegionSystem Error: Room Data Not Synchronized"
-local ERR_NEGATIVE_MAP_SIZE_DATA = "RegionSystem ERRO: Negative Map Size Data"
+local ERR_ROOM_DATA_NOT_SYNCHRONIZED = "RegionSystem Error: Room Data Not Synchronized."
+local ERR_NEGATIVE_MAP_SIZE_DATA = "RegionSystem ERRO: Negative Map Size Data."
 
 --解析来自主机的 rooms 数据数组
 local function decode_roomsdata(roomsdata)
