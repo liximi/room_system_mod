@@ -141,39 +141,125 @@ local DEF = {
 }
 
 
+local function check_color_data_structure(val)
+	if type(val) ~= "table" or #val ~= 3 then
+		return false
+	end
+	for i, v in ipairs(val) do
+		if not (type(v) == "number" and v >= 0 and v <= 1) then
+			return false
+		end
+	end
+	return true
+end
+
+local function check_tiles_data_structure(val)
+	if type(val) ~= "table" then
+		return false
+	end
+	for k, v in pairs(val) do
+		if type(k) ~= "string" or not WORLD_TILES[k] or not v then
+			return false
+		end
+	end
+	return true
+end
+
+local function check_mustitems_data_structure(val)	--只能是string数组, 只能嵌套两层, 不能为空表
+	if type(val) ~= "table" or #val == 0 then
+		return false
+	end
+	for i, v in ipairs(val) do
+		if type(v) == "table" then
+			if #v == 0 then
+				return false
+			end
+			for j, vv in ipairs(v) do
+				if type(vv) ~= "string" then
+					return false
+				end
+			end
+		elseif type(v) ~= "string" then
+			return false
+		end
+	end
+	return true
+end
+
+
+--需要在主机和客机都调用
+function _G.AddM23MRoom(room_data)
+	if type(room_data) ~= "table" or type(room_data.type) ~= "string" then
+		print("RegionSystem Error: Add Room Failed! Invalid Room Data Structure.")
+		return
+	end
+
+	local max_priority = 0
+	for i, v in ipairs(DEF) do
+		if v.type == room_data.type then
+			print(string.format("RegionSystem Error: Add Room(%s) Failed! Room Existed.", room_data.type))
+			return
+		end
+		if v.priority > max_priority then
+			max_priority = v.priority
+		end
+	end
+	local room_def = {
+		type = room_data.type,
+		name = type(room_data.name) == "string" and room_data.name or STRINGS.M23M_ROOMS.NO_NAME.NAME,
+		desc = type(room_data.desc) == "string" and room_data.desc or STRINGS.M23M_ROOMS.NO_NAME.DESC,
+		min_size = type(room_data.min_size) == "number" and math.ceil(room_data.min_size) or 16,
+		max_size = type(room_data.max_size) == "number" and math.ceil(room_data.max_size) or 128,
+		priority = type(room_data.priority) == "number" and math.ceil(room_data.priority) or max_priority + 1,
+		color = check_color_data_structure(room_data.color) and room_data.color or {math.random(), math.random(), math.random()},
+		available_tiles = check_tiles_data_structure(room_data.available_tiles) and room_data.available_tiles or nil,
+	}
+	if check_mustitems_data_structure(room_data.must_items) then
+		room_def.must_items = room_data.must_items
+	else
+		print(string.format("RegionSystem Error: Add Room(%s) Failed! Data Structure of must_items is Wrong or must_items is nil.", room_data.type))
+		return
+	end
+	table.insert(DEF, room_def)
+	if TheRegionMgr then
+		TheRegionMgr:RegisterRoomType(room_def.type)
+	end
+end
+
+
 -- 仓库类型的房间需要注册以实现其效果
-function _G.AddWarehouseRoom(room_id, free_upgrade_probability)
+function _G.RegisterWarehouseRoom(room_id, free_upgrade_probability)
 	_G.M23M.WAREHOUSE_ROOMS[room_id] = free_upgrade_probability
 end
 
 -- 厨房类型的房间需要注册以实现其效果
-function _G.AddKitchenRoom(room_id, cooktime_mult)
+function _G.RegisterKitchenRoom(room_id, cooktime_mult)
 	_G.M23M.KITCHEN_ROOMS[room_id] = cooktime_mult
 end
 
 -- 工作间类型的房间需要注册以实现其效果
-function _G.AddWorkShopRoom(room_id, mult_crafting_probability)
+function _G.RegisterWorkShopRoom(room_id, mult_crafting_probability)
 	_G.M23M.WORKSHOP_ROOMS[room_id] = mult_crafting_probability
 end
 
 --卧室类型的房间需要注册以实现其效果
-function _G.AddBedroom(room_id, extra_vital_indicators_tick_mult)
+function _G.RegisterBedroom(room_id, extra_vital_indicators_tick_mult)
 	_G.M23M.BEDROOMS[room_id] = extra_vital_indicators_tick_mult
 end
 
 
-AddWarehouseRoom("warehouse", M23M.WAREHOUSE_FREE_UPGRDE_PROBABILITY)
+RegisterWarehouseRoom("warehouse", M23M.WAREHOUSE_FREE_UPGRDE_PROBABILITY)
 
-AddKitchenRoom("primitive_kitchen", M23M.PRIMITIVE_KITCHEN_COOKTIME_MULT)
-AddKitchenRoom("kitchen", M23M.KITCHEN_COOKTIME_MULT)
-AddKitchenRoom("advanced_kitchen", M23M.ADVANCED_KITCHEN_COOKTIME_MULT)
-AddKitchenRoom("luxurious_kitchen", M23M.LUXURIOUS_KITCHEN_COOKTIME_MULT)
+RegisterKitchenRoom("primitive_kitchen", M23M.PRIMITIVE_KITCHEN_COOKTIME_MULT)
+RegisterKitchenRoom("kitchen", M23M.KITCHEN_COOKTIME_MULT)
+RegisterKitchenRoom("advanced_kitchen", M23M.ADVANCED_KITCHEN_COOKTIME_MULT)
+RegisterKitchenRoom("luxurious_kitchen", M23M.LUXURIOUS_KITCHEN_COOKTIME_MULT)
 
-AddWorkShopRoom("basic_workshop", M23M.BASIC_WORKSHOP_MULT_CRAFTING_PROBABILITY)
-AddWorkShopRoom("workshop", M23M.WORKSHOP_MULT_CRAFTING_PROBABILITY)
-AddWorkShopRoom("chemical_laboratory", M23M.CHEMICAL_LABORATORY_MULT_CRAFTING_PROBABILITY)
+RegisterWorkShopRoom("basic_workshop", M23M.BASIC_WORKSHOP_MULT_CRAFTING_PROBABILITY)
+RegisterWorkShopRoom("workshop", M23M.WORKSHOP_MULT_CRAFTING_PROBABILITY)
+RegisterWorkShopRoom("chemical_laboratory", M23M.CHEMICAL_LABORATORY_MULT_CRAFTING_PROBABILITY)
 
-AddBedroom("bedroom", M23M.BEDROOM_EXTRAL_MULT)
+RegisterBedroom("bedroom", M23M.BEDROOM_EXTRAL_MULT)
 
 --------------------------------------------------
 

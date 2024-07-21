@@ -44,37 +44,32 @@ end
 
 --[Constants]
 modimport "m23m_main_scripts/constants"
-
 --[Tools]
 modimport "m23m_main_scripts/tools"
-
 --[Containers]
 modimport "m23m_main_scripts/containers"
-
 --[RPCs]
 modimport "m23m_main_scripts/rpcs"
-
 --[Controller]
 modimport "m23m_main_scripts/controller"
-
 --[UI]
 modimport "m23m_main_scripts/ui"
-
 --[Actions]
 modimport "m23m_main_scripts/actions"
-
 --[StateGraphs]
 modimport "m23m_main_scripts/stategraphs.lua"
-
 --[Recipes]
 modimport "m23m_main_scripts/recipes"
 
 --[replica组件注册]
 -- AddReplicableComponent("m23m_region_manager")
 
-
 --注册地图图标
 -- AddMinimapAtlas("images/minimap/xxx_mini.xml")
+
+
+--添加注册房间的全局函数
+require "m23m_room_def"
 
 
 --------------------------------------------------

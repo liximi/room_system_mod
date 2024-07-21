@@ -7,6 +7,10 @@ STRINGS.ACTIONS.M23M_SHOW_UI_OVERRIDE = {	--AddAction接口会覆盖STRINGS.ACTI
 -- Rooms
 STRINGS.M23M_ROOM_MUST = "房间中放置下列物品："
 STRINGS.M23M_ROOMS = {
+	NO_NAME = {
+		NAME = "未命名",
+		DESC = "Mod注册了该房间类型，但是没有为它配置说明。"
+	},
 	NONE = {
 		NAME = "杂间/非房间",
 		DESC = "平平无奇。"
