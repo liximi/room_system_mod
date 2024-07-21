@@ -3,7 +3,6 @@ GLOBAL.setmetatable(env,{__index=function(t,k) return GLOBAL.rawget(GLOBAL,k) en
 PrefabFiles = {
     "m23m_power_source",
     "m23m_power_app",
-    "test_box",
     "m23m_rectangle",
 }
 

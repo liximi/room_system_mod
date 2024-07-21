@@ -30,7 +30,7 @@ local AreaEditScreen = Class(Screen, function(self, owner, data)
 					table.insert(_tiles, {x, z})	--由于json.encode会改变表结构，因此需要重新处理表结构
 				end
 			end
-			SendModRPCToServer(MOD_RPC[M23M.RPC_NAMESPACE].add_area, json.encode(_tiles))
+			-- SendModRPCToServer(MOD_RPC[M23M.RPC_NAMESPACE].add_area, json.encode(_tiles))
 		end
         TheFrontEnd:PopScreen()
 	end, "确定", {100, 50}))
