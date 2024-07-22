@@ -13,7 +13,7 @@ reign_of_giants_compatible = true
 all_clients_require_mod=true
 
 api_version = 10
-priority = -9999
+priority = 0
 
 icon_atlas = "modicon.xml"
 icon = "modicon.tex"
@@ -32,6 +32,16 @@ configuration_options =
             {description = "Auto/自动", data = "AUTO"}
         },
         default = "AUTO",
+    },
+    {
+        name = "enable_default_rooms",
+        label = chinese and "启用默认房间" or "Enable Default Rooms",
+        hover = chinese and "启用本Mod默认提供的房间。" or "Enable the default rooms provided by this Mod.",
+        options = {
+            {description = chinese and "是" or "Yes", data = true},
+            {description = chinese and "否" or "No", data = false},
+        },
+        default = true,
     },
     {
         name = "kitchen_cooktime_mult",

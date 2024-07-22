@@ -5,7 +5,6 @@ local NineSlice = require "widgets/nineslice"
 local TrueScrollList = require "widgets/truescrolllist"
 local RoomInfo = require "widgets/m23m_room_info_panel"
 
-local ROOM_DEF = require "m23m_room_def"
 local GroundTiles = require("worldtiledefs")
 
 local COLOR1 = RGB(225, 225, 180)
@@ -71,7 +70,7 @@ local RoomView = Class(Widget, function(self, owner)
 	end
 
 	self.list = self:AddChild(TrueScrollList({}, create_widgets_fn, update_fn, -list_w/2, -list_h/2, list_w, list_h, scrollbar_xoffset, scrollbar_yoffset))
-	self.list:SetItemsData(ROOM_DEF)
+	self.list:SetItemsData(M23M.ROOM_DEFS)
 	self.list.bg:Kill()
 	self.list.bg = nil
 	self.list:SetPosition(self.bg_w/2 - scrollbar_xoffset + 1, -self.bg_h/2 + 2)
@@ -309,7 +308,7 @@ function RoomView:SetCurrentRoomId(room_id, start_pos)
 	self.cur_room_color = nil
 
 	if self.cur_room_type ~= "NONE" then
-		for _, room_data in ipairs(ROOM_DEF) do
+		for _, room_data in ipairs(M23M.ROOM_DEFS) do
 			if room_data.type == self.cur_room_type then
 				self.cur_room_color = room_data.color
 				break

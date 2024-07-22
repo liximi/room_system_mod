@@ -1,5 +1,4 @@
 local REGION_SYS = require "region_system/region_system"
-local ROOM_DEF = require "m23m_room_def"
 local json = require "json"
 
 
@@ -10,7 +9,7 @@ local json = require "json"
 
 local RegionSystem = Class(REGION_SYS, function (self, inst)
 	self.inst = inst
-	for _, data in ipairs(ROOM_DEF) do
+	for _, data in ipairs(M23M.ROOM_DEFS) do
 		self:RegisterRoomType(data.type)
 	end
 
@@ -49,7 +48,7 @@ function RegionSystem:GetRoomData(room_type)
 	if type(room_type) ~= "string" then
 		return
 	end
-	for i, v in ipairs(ROOM_DEF) do
+	for i, v in ipairs(M23M.ROOM_DEFS) do
 		if v.type == room_type then
 			return v
 		end
@@ -175,7 +174,7 @@ function RegionSystem:RefreashRoomType(room_id)		--这个函数会被父类调�
 	end
 
 	local success = false
-	for _, data in ipairs(ROOM_DEF) do
+	for _, data in ipairs(M23M.ROOM_DEFS) do
 		local size_ok = self:CheckRoomSize(room_id, data.min_size, data.max_size)
 		local must_item_ok = self:CheckRoomMustItems(room_id, data.must_items)
 		local tiles_ok = self:CheckRoomTiles(room_id, data.available_tiles)

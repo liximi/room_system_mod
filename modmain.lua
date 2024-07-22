@@ -68,10 +68,6 @@ modimport "m23m_main_scripts/recipes"
 -- AddMinimapAtlas("images/minimap/xxx_mini.xml")
 
 
---添加注册房间的全局函数
-require "m23m_room_def"
-
-
 --------------------------------------------------
 -- [本MOD针对游戏本体的修改内容]
 --------------------------------------------------

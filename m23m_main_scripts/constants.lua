@@ -4,18 +4,13 @@ _G.M23M = {
 	SELECT_UNIT_BUTTON = MOUSEBUTTON_LEFT,		--选择地块的鼠标按键
 	DISELECT_TILE_BUTTON = MOUSEBUTTON_RIGHT,	--取消选择地块的鼠标按键
 
-	ENABLE_DEFAULT_ROOMS = true,		--启用本Mod默认提供的房间
-
-	AREA_TYPE = {								--区域类型
-		NONE = 0,
-		CHOP = 1,
-		MINE = 2,
-	},
-
+	ROOM_DEFS = {},
 	WAREHOUSE_ROOMS = {},
 	KITCHEN_ROOMS = {},
 	WORKSHOP_ROOMS = {},
 	BEDROOMS = {},
+
+	ENABLE_DEFAULT_ROOMS = GetModConfigData("enable_default_rooms"),	--启用本Mod默认提供的房间
 
 	KITCHEN_COOKTIME_MULT = GetModConfigData("kitchen_cooktime_mult"),
 	PRIMITIVE_KITCHEN_COOKTIME_MULT = GetModConfigData("kitchen_cooktime_mult") * 0.25,

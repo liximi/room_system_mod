@@ -1,5 +1,4 @@
 --用于从主机同步数据到客机，为客机提供数据查询接口
-local ROOM_DEF = require "m23m_room_def"
 local ROOM_TYPES = { "NONE", }
 local ROOM_TYPES_REVERSE = {NONE = 1}
 
@@ -57,7 +56,7 @@ end
 
 local RegionSystem = Class(function (self, inst)
 	self.inst = inst
-	for _, data in ipairs(ROOM_DEF) do
+	for _, data in ipairs(M23M.ROOM_DEFS) do
 		self:RegisterRoomType(data.type)
 	end
 
@@ -134,7 +133,7 @@ function RegionSystem:GetRoomData(room_type)
 	if type(room_type) ~= "string" then
 		return
 	end
-	for i, v in ipairs(ROOM_DEF) do
+	for i, v in ipairs(M23M.ROOM_DEFS) do
 		if v.type == room_type then
 			return v
 		end
