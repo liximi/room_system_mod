@@ -10,6 +10,7 @@ local function PostInit(inst)
         -- inst.M23M_PowerMgr = inst:AddComponent("m23m_power_manager")
 
         local start_clock = os:clock()
+        local memory_before = collectgarbage("count")
 
         inst.M23M_RegionMgr = inst:AddComponent("m23m_region_manager")
         local map_w, map_h = TheWorld.Map:GetSize()
@@ -27,7 +28,9 @@ local function PostInit(inst)
         end
         inst.M23M_RegionMgr:AddWaters(waters)
 
-        print(string.format("[M23M] Init Region Manager Cost: %.2f secs", (os:clock() - start_clock)/1000))
+        local end_clock = os:clock()
+        local memory_after = collectgarbage("count")
+        print(string.format("[M23M] Init Region Manager | Cost Time: %.2f secs | RAM Usage: %.2f Mb", (end_clock - start_clock)/1000, (memory_after - memory_before)/1024))
     else
         inst.M23M_RegionMgr = inst:AddComponent("m23m_region_manager_client")
     end

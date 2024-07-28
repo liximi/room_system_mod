@@ -1,3 +1,5 @@
+local memory_before = collectgarbage("count")
+
 local RegionSytem = require "scripts.region_system.region_system"
 RegionSytem:Generation(64, 64, 16, 16)
 
@@ -64,3 +66,7 @@ print("----------")
 for room_id, data in pairs(RegionSytem.rooms) do
 	print(string.format("room: %d, regions: %s", room_id, table.concat(data.regions, ",")))
 end
+
+local memory_after = collectgarbage("count")
+local memory_used = memory_after - memory_before
+print("Memory Delta:", memory_used/1024, "Mb")

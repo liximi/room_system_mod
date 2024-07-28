@@ -137,8 +137,8 @@ function _G.AddM23MRoom(room_data)
 	end
 	local room_def = {
 		type = room_data.type,
-		name = type(room_data.name) == "string" and room_data.name or STRINGS.M23M_ROOMS.NO_NAME.NAME,
-		desc = type(room_data.desc) == "string" and room_data.desc or STRINGS.M23M_ROOMS.NO_NAME.DESC,
+		name = (type(room_data.name) == "string" or type(room_data.name) == "function") and room_data.name or STRINGS.M23M_ROOMS.NO_NAME.NAME,
+		desc = (type(room_data.desc) == "string" or type(room_data.desc) == "function") and room_data.desc or STRINGS.M23M_ROOMS.NO_NAME.DESC,
 		min_size = type(room_data.min_size) == "number" and math.ceil(room_data.min_size) or 16,
 		max_size = type(room_data.max_size) == "number" and math.ceil(room_data.max_size) or 128,
 		priority = type(room_data.priority) == "number" and math.ceil(room_data.priority) or max_priority + 1,
@@ -152,6 +152,7 @@ function _G.AddM23MRoom(room_data)
 		return
 	end
 	table.insert(M23M.ROOM_DEFS, room_def)
+	table.sort(M23M.ROOM_DEFS, function(a, b) return (a.priority or 1) > (b.priority or 1) end)
 
     if type(room_def.must_items) == "table" then
 		for _, items in ipairs(room_def.must_items) do

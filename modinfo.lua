@@ -34,16 +34,6 @@ configuration_options =
         default = "AUTO",
     },
     {
-        name = "enable_default_rooms",
-        label = chinese and "启用默认房间" or "Enable Default Rooms",
-        hover = chinese and "启用本Mod默认提供的房间。" or "Enable the default rooms provided by this Mod.",
-        options = {
-            {description = chinese and "是" or "Yes", data = true},
-            {description = chinese and "否" or "No", data = false},
-        },
-        default = true,
-    },
-    {
         name = "kitchen_cooktime_mult",
         label = chinese and "厨房的烹饪时间乘数" or "Cook Time Multiplier of Kitchen",
         hover = chinese and "在厨房中，烹饪时间会缩短。" or "In the kitchen, cooking time will be shortened.",

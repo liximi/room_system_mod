@@ -10,7 +10,7 @@ _G.M23M = {
 	WORKSHOP_ROOMS = {},
 	BEDROOMS = {},
 
-	ENABLE_DEFAULT_ROOMS = GetModConfigData("enable_default_rooms"),	--启用本Mod默认提供的房间
+	ENABLE_DEFAULT_ROOMS = true,	--启用本Mod默认提供的房间
 
 	KITCHEN_COOKTIME_MULT = GetModConfigData("kitchen_cooktime_mult"),
 	PRIMITIVE_KITCHEN_COOKTIME_MULT = GetModConfigData("kitchen_cooktime_mult") * 0.25,
