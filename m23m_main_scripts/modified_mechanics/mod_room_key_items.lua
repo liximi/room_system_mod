@@ -145,6 +145,12 @@ function _G.AddM23MRoom(room_data)
 		color = check_color_data_structure(room_data.color) and room_data.color or {math.random(), math.random(), math.random(), 1},
 		available_tiles = check_tiles_data_structure(room_data.available_tiles) and room_data.available_tiles or nil,
 	}
+
+	if type(room_data.icon_atlas) == "string" and type(room_data.icon_image) == "string" then
+		room_def.icon_atlas = room_data.icon_atlas
+		room_def.icon_image = room_data.icon_image
+	end
+
 	if check_mustitems_data_structure(room_data.must_items) then
 		room_def.must_items = room_data.must_items
 	else

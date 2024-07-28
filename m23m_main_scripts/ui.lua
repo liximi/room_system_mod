@@ -154,7 +154,8 @@ AddClassPostConstruct("widgets/hoverer",function(self)
 		end
 
 		---- MOD
-		if ThePlayer.is_room_view_active then
+		local is_on_ui = TheInput:GetHUDEntityUnderMouse()
+		if ThePlayer.is_room_view_active and not is_on_ui then
 			local mouse_pos = TheInput:GetWorldPosition()
 			if mouse_pos then
 				local room_name

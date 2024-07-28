@@ -1,7 +1,7 @@
 local Widget = require "widgets/widget"
 local NineSlice = require "widgets/nineslice"
 local ImageBtn = require "widgets/imagebutton"
-local Templates = require "widgets/redux/templates"
+local Text = require "widgets/text"
 
 local RoomView = require "widgets/m23m_room_view"
 
@@ -14,26 +14,31 @@ local ViewSwitcher = Class(Widget, function(self, owner)
 	self.root = self:AddChild(Widget("ROOT"))
 
 	--BG
+	local bg_w = 185
 	self.bg = self.root:AddChild(NineSlice("images/ui/nineslice1.xml"))
-	self.bg:SetSize(128, 24)
-	self.bg:SetPosition(64, 0)
+	self.bg:SetSize(bg_w, 20)
+	self.bg:SetPosition(bg_w/2, 0)
 
-	--Drag Btn
-	-- self.drag_btn = self.root:AddChild(ImageBtn("images/hud.xml", "cursor01.tex", "cursor02.tex", nil, "cursor02.tex", "cursor02.tex"))
-	self.drag_btn = self.root:AddChild(ImageBtn("images/hud.xml", "equip_slot_hud.tex"))
-	self.drag_btn:SetNormalScale(0.65, 0.65, 0.65)
-	self.drag_btn:SetFocusScale(0.75, 0.75, 0.75)
-	self.drag_btn:SetPosition(0, 20)
+	--icon
+	self.icon = self:AddChild(Image("images/ui/room_icon.xml", "room_icon.tex"))
+	self.icon:ScaleToSize(24, 24)
+	self.icon:SetPosition(14, 0)
+
+	--text
+	self.text = self:AddChild(Text(UIFONT, 26, STRINGS.M23M_UI.ROOM_OVERVIEW))
+	self.text:SetPosition(30 + self.text:GetRegionSize()/2, 0)
+
+	--房间视图切换
+	self.room_view_btn = self.root:AddChild(ImageBtn("images/global_redux.xml", "arrow2_right.tex", "arrow2_right_over.tex", "arrow_right_disabled.tex", "arrow2_right_over.tex", "arrow2_right_over.tex", {0.25, 0.25}))
+	self.room_view_btn:SetFocusScale(0.3, 0.3, 0.3)
+	self.room_view_btn:SetPosition(bg_w - 16, 0)
+	self.room_view_btn:SetOnClick(function ()
+		self:SwitchRoomView()
+	end)
 
 	--Sub-UI Anchor
 	self.sub_ui_root = self.root:AddChild(Widget("ROOT"))
-	self.sub_ui_root:SetPosition(128, -45)
-
-	--View Btn List
-
-	--房间视图切换
-	self.room_view_btn = self.root:AddChild(Templates.StandardButton(function() self:SwitchRoomView() end, "Room", {32, 32}))
-	self.room_view_btn:SetPosition(32, 0)
+	self.sub_ui_root:SetPosition(bg_w, -35)
 end)
 
 function ViewSwitcher:SwitchRoomView()
@@ -41,10 +46,12 @@ function ViewSwitcher:SwitchRoomView()
 		self.room_view:Kill()
 		self.room_view = nil
 		ThePlayer.is_room_view_active = false
+		self.room_view_btn:SetRotation(0)
 	else
 		self.room_view = self.sub_ui_root:AddChild(RoomView(self.owner))
 		self.room_view:SetPosition(-self.room_view.bg_w, 0)
 		ThePlayer.is_room_view_active = true
+		self.room_view_btn:SetRotation(90)
 	end
 end
 

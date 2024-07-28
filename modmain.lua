@@ -13,6 +13,8 @@ Assets = {
 	Asset("IMAGE", "images/ui/nineslice1.tex"),
     Asset("ATLAS", "images/ui/room_icon.xml"),
 	Asset("IMAGE", "images/ui/room_icon.tex"),
+    Asset("ATLAS", "images/ui/color_cube.xml"),
+	Asset("IMAGE", "images/ui/color_cube.tex"),
 }
 
 
