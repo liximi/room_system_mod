@@ -14,7 +14,7 @@ local ViewSwitcher = Class(Widget, function(self, owner)
 	self.root = self:AddChild(Widget("ROOT"))
 
 	--BG
-	local bg_w = 185
+	local bg_w = 195
 	self.bg = self.root:AddChild(NineSlice("images/ui/nineslice1.xml"))
 	self.bg:SetSize(bg_w, 20)
 	self.bg:SetPosition(bg_w/2, 0)
@@ -38,7 +38,7 @@ local ViewSwitcher = Class(Widget, function(self, owner)
 
 	--Sub-UI Anchor
 	self.sub_ui_root = self.root:AddChild(Widget("ROOT"))
-	self.sub_ui_root:SetPosition(bg_w, -35)
+	self.sub_ui_root:SetPosition(bg_w, -30)
 end)
 
 function ViewSwitcher:SwitchRoomView()

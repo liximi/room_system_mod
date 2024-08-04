@@ -31,18 +31,19 @@ local RoomView = Class(Widget, function(self, owner)
 	self.color_alpha = 0.5
 
 	--UI
-	self.bg_w, self.bg_h = 185, 280
+	self.bg_w, self.bg_h = 195, 280
 	self.bg = self:AddChild(NineSlice("images/ui/nineslice1.xml"))
 	self.bg:SetSize(self.bg_w, self.bg_h)
 	self.bg:SetPosition(self.bg_w/2, -self.bg_h/2)
 
-	--scrollbar_xoffset控制滚动条水平方向的位置，为0时贴着列表右边缘，scrollbar_yoffset是用来控制滚动条长度的
-	local list_w, list_h, scrollbar_xoffset, scrollbar_yoffset = self.bg_w - 10, self.bg_h, 10, -50
+	--scrollbar_xoffset控制滚动条水平方向的位置，为0时贴着列表右边缘
+	--scrollbar_yoffset是用来控制滚动条长度的
+	local list_w, list_h, scrollbar_xoffset, scrollbar_yoffset = self.bg_w - 10, self.bg_h - 4, 6, -50
 	local function create_widgets_fn(context, parent, scroll_list)
 		local widgets = {}
-		local SPACING = 32
+		local SPACING = 34
 		local NUM_ROWS = math.floor(list_h / SPACING) + 2
-		local y_offset = (NUM_ROWS * 0.5 - 0.35) * SPACING
+		local y_offset = (NUM_ROWS * 0.5 - 0.5) * SPACING
 
 		for i = 1, NUM_ROWS do
 			local room_info = parent:AddChild(RoomInfo())
@@ -57,7 +58,7 @@ local RoomView = Class(Widget, function(self, owner)
 			table.insert(widgets, room_info)
 		end
 
-		return widgets, 1, SPACING, NUM_ROWS-2, 0.7
+		return widgets, 1, SPACING, NUM_ROWS-2, 1
 	end
 
 	local function update_fn(context, list_widget, data, data_index)
@@ -73,7 +74,7 @@ local RoomView = Class(Widget, function(self, owner)
 	self.list:SetItemsData(M23M.ROOM_DEFS)
 	self.list.bg:Kill()
 	self.list.bg = nil
-	self.list:SetPosition(self.bg_w/2 - scrollbar_xoffset + 1, -self.bg_h/2 + 2)
+	self.list:SetPosition(self.bg_w/2 - scrollbar_xoffset - 2, -self.bg_h/2)
 
 	self.list.up_button:SetScale(0.18)
 	self.list.down_button:SetScale(0.18)
@@ -81,7 +82,7 @@ local RoomView = Class(Widget, function(self, owner)
 	--Tooltips
 	self.tip_w = 180
 	self.tip_root = self:AddChild(Widget("TipRoot"))
-	self.tip_root:SetPosition(-self.tip_w - 30, 0)
+	self.tip_root:SetPosition(-self.tip_w - 20, 0)
 	self.tip_root:Hide()
 
 	self.tip_bg = self.tip_root:AddChild(NineSlice("images/ui/nineslice1.xml"))
