@@ -25,8 +25,9 @@ local HUD = Class(Widget, function(self, owner)
 	-- self.edit_region_btn:SetPosition(0, -120)
 
 	--视图切换
-	self.view_switcher = self.right_root:AddChild(ViewSwitcher(self.owner))
-	self.view_switcher:SetPosition(-210, 100)
+	self.view_switcher = self:AddChild(ViewSwitcher(self.owner))
+	local screen_w, screen_h = TheSim:GetScreenSize()
+	self.view_switcher:SetPosition(screen_w - 210, screen_h/2 - 100)
 end)
 
 

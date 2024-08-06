@@ -55,5 +55,29 @@ function ViewSwitcher:SwitchRoomView()
 	end
 end
 
+function ViewSwitcher:OnMouseButton(button, down, x, y)
+	if button == MOUSEBUTTON_LEFT and down then
+		local mousepos = TheInput:GetScreenPosition()
+		local my_pos = self:GetWorldPosition()
+		self.drag_offset = my_pos - mousepos
+		self.draging = true
+		self:StartUpdating()
+    elseif button == MOUSEBUTTON_LEFT then
+		self.draging = false
+		self:StopUpdating()
+	end
+end
+
+function ViewSwitcher:OnUpdate(dt)
+	if self.draging then
+		local mousepos = TheInput:GetScreenPosition()
+		local pos = mousepos - self.parent:GetWorldPosition()
+		local scale = self.parent:GetScale()
+		local drag_x = (pos.x + self.drag_offset.x) / scale.x
+		local drag_y = (pos.y + self.drag_offset.y) / scale.y
+		self:SetPosition(drag_x, drag_y)
+	end
+end
+
 
 return ViewSwitcher
