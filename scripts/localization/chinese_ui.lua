@@ -9,4 +9,5 @@ STRINGS.M23M_UI = {
 	MUST_TILES_TITLE = "房间内只能含有下列地皮：",
 	ANY = "其中之一：",
 	NONE = "无",
+	DRAG = "拖拽以移动",
 }

@@ -16,22 +16,44 @@ local ViewSwitcher = Class(Widget, function(self, owner)
 	--BG
 	local bg_w = 195
 	self.bg = self.root:AddChild(NineSlice("images/ui/nineslice1.xml"))
-	self.bg:SetSize(bg_w, 20)
+	self.bg:SetSize(bg_w, 22)
 	self.bg:SetPosition(bg_w/2, 0)
 
+	self.bg.OnMouseButton = function(_self, button, down, x, y)
+		if button == MOUSEBUTTON_LEFT and down then
+			local mousepos = TheInput:GetScreenPosition()
+			local my_pos = self:GetWorldPosition()
+			self.drag_offset = my_pos - mousepos
+			self.draging = true
+			self:StartUpdating()
+		elseif button == MOUSEBUTTON_LEFT then
+			self.draging = false
+			self:StopUpdating()
+		end
+	end
+
+	self.bg:SetHoverText(STRINGS.M23M_UI.DRAG, {
+		font = NEWFONT_OUTLINE,
+		font_size = 18,
+		offset_x = 0,
+		offset_y = 35,
+		colour = UICOLOURS.WHITE,
+		attach_to_parent = self.bg,
+	})
+
 	--icon
-	self.icon = self:AddChild(Image("images/ui/room_icon.xml", "room_icon.tex"))
+	self.icon = self.bg:AddChild(Image("images/ui/room_icon.xml", "room_icon.tex"))
 	self.icon:ScaleToSize(24, 24)
-	self.icon:SetPosition(14, 0)
+	self.icon:SetPosition(14 - bg_w/2, 0)
 
 	--text
-	self.text = self:AddChild(Text(UIFONT, 26, STRINGS.M23M_UI.ROOM_OVERVIEW))
-	self.text:SetPosition(30 + self.text:GetRegionSize()/2, 0)
+	self.text = self.bg:AddChild(Text(UIFONT, 26, STRINGS.M23M_UI.ROOM_OVERVIEW))
+	self.text:SetPosition(30 + self.text:GetRegionSize()/2 - bg_w/2, 0)
 
 	--房间视图切换
-	self.room_view_btn = self.root:AddChild(ImageBtn("images/global_redux.xml", "arrow2_right.tex", "arrow2_right_over.tex", "arrow_right_disabled.tex", "arrow2_right_over.tex", "arrow2_right_over.tex", {0.25, 0.25}))
+	self.room_view_btn = self.bg:AddChild(ImageBtn("images/global_redux.xml", "arrow2_right.tex", "arrow2_right_over.tex", "arrow_right_disabled.tex", "arrow2_right_over.tex", "arrow2_right_over.tex", {0.25, 0.25}))
 	self.room_view_btn:SetFocusScale(0.3, 0.3, 0.3)
-	self.room_view_btn:SetPosition(bg_w - 16, 0)
+	self.room_view_btn:SetPosition(bg_w/2 - 16, 0)
 	self.room_view_btn:SetOnClick(function ()
 		self:SwitchRoomView()
 	end)
@@ -52,19 +74,6 @@ function ViewSwitcher:SwitchRoomView()
 		self.room_view:SetPosition(-self.room_view.bg_w, 0)
 		ThePlayer.is_room_view_active = true
 		self.room_view_btn:SetRotation(90)
-	end
-end
-
-function ViewSwitcher:OnMouseButton(button, down, x, y)
-	if button == MOUSEBUTTON_LEFT and down then
-		local mousepos = TheInput:GetScreenPosition()
-		local my_pos = self:GetWorldPosition()
-		self.drag_offset = my_pos - mousepos
-		self.draging = true
-		self:StartUpdating()
-    elseif button == MOUSEBUTTON_LEFT then
-		self.draging = false
-		self:StopUpdating()
 	end
 end
 
