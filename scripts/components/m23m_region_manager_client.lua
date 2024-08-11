@@ -253,6 +253,7 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 		return
 	end
 	local tiles = data.tiles
+	local empty_regions = {}
 	for i = 1, #tiles, 2 do
 		local tile = decode_tile_code(tiles[i+1])
 		local y = math.floor(tiles[i] / self.width) + 1
@@ -269,7 +270,7 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 					if t.x == x and t.y == y then
 						table.remove(old_region.tiles, j)
 						if IsEmptyTable(old_region.tiles) then
-							self.regions[old_tile_data.region] = nil
+							empty_regions[old_tile_data.region] = true
 						end
 						break
 					end
@@ -279,8 +280,15 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 			if tile.region ~= 0 then
 				assert(self.regions[tile.region] ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
 				table.insert(self.regions[tile.region].tiles, tile)
+				if empty_regions[tile.region] then
+					empty_regions[tile.region] = nil
+				end
 			end
 		end
+	end
+
+	for region, _ in pairs(empty_regions) do
+		self.regions[region] = nil
 	end
 end
 
