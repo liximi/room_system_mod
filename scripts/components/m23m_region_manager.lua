@@ -279,7 +279,9 @@ local function send_section_data_to_clients(self, x, y)
 			table.insert(userids, player.userid)
 		end
 	end
-	SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_update_section_data, userids, data_pack)
+	if #userids > 0 then
+		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_update_section_data, userids, data_pack)
+	end
 end
 
 local function check_should_send_rpc_to_clients()

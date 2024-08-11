@@ -180,6 +180,7 @@ function _G.AddM23MRoom(room_data)
 		TheRegionMgr:RegisterRoomType(room_def.type)
 	end
 	print(string.format("RegionSystem Info: Add Room(%s) Success!", room_data.type))
+	return true
 end
 
 --注册房间
