@@ -1,4 +1,4 @@
-local INDOOR_TILES ={
+local INDOOR_TILES = {
 	--XXX = true,	--XXX填WORLD_TILES的Key
 	SHELLBEACH = true,	--贝壳海滩地皮
 	MONKEY_GROUND = true,	--月亮码头海滩地皮

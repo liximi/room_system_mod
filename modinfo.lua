@@ -20,8 +20,7 @@ icon = "modicon.tex"
 
 server_filter_tags = {} --服务器标签可以不写
 
-configuration_options =
-{
+configuration_options = {
     {
         name = "language",
         label = chinese and "语言" or "Language",
