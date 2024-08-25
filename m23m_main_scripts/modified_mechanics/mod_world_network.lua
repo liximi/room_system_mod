@@ -27,7 +27,8 @@ local function PostInit(inst)
             end
         end
         inst.M23M_RegionMgr:AddWaters(waters)
-
+        waters = nil
+        collectgarbage("collect")
         local end_clock = os:clock()
         local memory_after = collectgarbage("count")
         print(string.format("[M23M] Init Region Manager | Cost Time: %.2f secs | RAM Usage: %.2f Mb", (end_clock - start_clock)/1000, (memory_after - memory_before)/1024))
