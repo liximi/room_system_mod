@@ -17,18 +17,21 @@ AddClassPostConstruct("widgets/controls", function(self)
     self.m23m_hud = self:AddChild(HUD(self.owner))
     self.m23m_hud:MoveToFront()
 
-	self.xp = self:AddChild(Text(UIFONT, 22, "X正"))
-    self.xn = self:AddChild(Text(UIFONT, 22, "X负"))
-    self.zp = self:AddChild(Text(UIFONT, 22, "Z正"))
-    self.zn = self:AddChild(Text(UIFONT, 22, "Z负"))
-
-    self.inst:DoPeriodicTask(FRAMES, function ()
-        local pos = ThePlayer:GetPosition()
-        self.xp:SetPosition(TheSim:GetScreenPos((pos+Vector3(2,0,0)):Get()))
-        self.xn:SetPosition(TheSim:GetScreenPos((pos+Vector3(-2,0,0)):Get()))
-        self.zp:SetPosition(TheSim:GetScreenPos((pos+Vector3(0,0,2)):Get()))
-        self.zn:SetPosition(TheSim:GetScreenPos((pos+Vector3(0,0,-2)):Get()))
-    end)
+	local mod_version = env.modinfo.version
+	if mod_version == "dev" then
+		self.xp = self:AddChild(Text(UIFONT, 22, "X正"))
+		self.xn = self:AddChild(Text(UIFONT, 22, "X负"))
+		self.zp = self:AddChild(Text(UIFONT, 22, "Z正"))
+		self.zn = self:AddChild(Text(UIFONT, 22, "Z负"))
+	
+		self.inst:DoPeriodicTask(FRAMES, function ()
+			local pos = ThePlayer:GetPosition()
+			self.xp:SetPosition(TheSim:GetScreenPos((pos+Vector3(2,0,0)):Get()))
+			self.xn:SetPosition(TheSim:GetScreenPos((pos+Vector3(-2,0,0)):Get()))
+			self.zp:SetPosition(TheSim:GetScreenPos((pos+Vector3(0,0,2)):Get()))
+			self.zn:SetPosition(TheSim:GetScreenPos((pos+Vector3(0,0,-2)):Get()))
+		end)
+	end
 end)
 
 --<编辑区域Screen>

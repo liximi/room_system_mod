@@ -5,6 +5,9 @@ local Text = require "widgets/text"
 
 local RoomView = require "widgets/m23m_room_view"
 
+local function save_drag_pos(pos)
+	M23M_SaveClientData("drag_pos", {pos.x, pos.y}, true)
+end
 
 local ViewSwitcher = Class(Widget, function(self, owner)
     Widget._ctor(self, "M23M_ViewSwitcher")
@@ -29,6 +32,7 @@ local ViewSwitcher = Class(Widget, function(self, owner)
 		elseif button == MOUSEBUTTON_LEFT then
 			self.draging = false
 			self:StopUpdating()
+			save_drag_pos(self:GetPosition())
 		end
 	end
 

@@ -7,7 +7,7 @@ local ViewSwitcher = require "widgets/m23m_view_switcher"
 local HUD = Class(Widget, function(self, owner)
     Widget._ctor(self, "M23M_HUD")
 	self.owner = owner
-
+	self:SetScaleMode(SCALEMODE_PROPORTIONAL)
 	--ROOTS
 	self.top_root = self:AddChild(Widget("ROOT"))
 	self.top_root:SetVAnchor(ANCHOR_TOP)
@@ -26,8 +26,10 @@ local HUD = Class(Widget, function(self, owner)
 
 	--视图切换
 	self.view_switcher = self:AddChild(ViewSwitcher(self.owner))
-	local screen_w, screen_h = TheSim:GetScreenSize()
-	self.view_switcher:SetPosition(screen_w - 210, screen_h/2 - 100)
+	-- local screen_w, screen_h = TheSim:GetScreenSize()
+	local saved_pos = M23M_GetClientSaveData("drag_pos")
+	self.view_switcher:SetPosition(saved_pos and saved_pos[1] or 1100, saved_pos and saved_pos[2] or 470)
+	self.view_switcher:SetScale(0.75, 0.75)
 end)
 
 
