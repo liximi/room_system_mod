@@ -246,18 +246,20 @@ function RegionSystem:CheckRoomTiles(room_id, available_tiles)
 	local region_ids = self:GetAllRegionsInRoom(room_id)
 	for _, region_id in ipairs(region_ids) do
 		local region = self.regions[region_id]
-		for _, tile in ipairs(region.tiles) do
-			local world_x, world_z = self:GetPointAtTileCoords(tile.x, tile.y)
-			local center_x, center_y, center_z = TheWorld.Map:GetTileCenterPoint(world_x, 0, world_z)
-			if not world_tiles[center_z] then
-				world_tiles[center_z] = {}
-			end
-			if not world_tiles[center_z][center_x] then
-				local tile_id = TheWorld.Map:GetTileAtPoint(world_x, 0, world_z)
-				if not available_tiles[INVERTED_WORLD_TILES[tile_id]] then
-					return false
+		for y, xs in pairs(region.tiles) do
+			for x, tile in pairs(xs) do
+				local world_x, world_z = self:GetPointAtTileCoords(x, y)
+				local center_x, center_y, center_z = TheWorld.Map:GetTileCenterPoint(world_x, 0, world_z)
+				if not world_tiles[center_z] then
+					world_tiles[center_z] = {}
 				end
-				world_tiles[center_z][center_x] = tile_id
+				if not world_tiles[center_z][center_x] then
+					local tile_id = TheWorld.Map:GetTileAtPoint(world_x, 0, world_z)
+					if not available_tiles[INVERTED_WORLD_TILES[tile_id]] then
+						return false
+					end
+					world_tiles[center_z][center_x] = tile_id
+				end
 			end
 		end
 	end
