@@ -239,15 +239,15 @@ function RegionSystem:RefreashSection(x, y)
 	local doors = {}
 	local function on_visit(cur_x, cur_y)
 		local cur_tile = section_tiles[cur_y][cur_x]
-
+		local _x, _y = base_x + cur_x - 1, base_y + cur_y - 1
 		if cur_tile.is_door then
-			table.insert(doors, {base_x + cur_x - 1, base_y + cur_y - 1})
+			table.insert(doors, {_x, _y})
 		end
 
 		if not self.regions[region_index] then
 			self:private_NewRegion(region_index)
 		end
-		self:private_AddTileToRegion(cur_x, cur_y, region_index)
+		self:private_AddTileToRegion(_x, _y, region_index)
 
 		section_tiles[cur_y][cur_x] = nil
 		if is_empty_table(section_tiles[cur_y]) then section_tiles[cur_y] = nil end

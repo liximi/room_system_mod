@@ -69,4 +69,4 @@ print("----------")
 
 local memory_after = collectgarbage("count")
 local memory_used = memory_after - memory_before
-print("Memory Delta:", memory_used/1024, "Mb")
+print(string.format("Memory Delta: %.4f Mb", memory_used/1024))
