@@ -271,7 +271,7 @@ end
 --主要是向客户端同步数据
 
 local function send_section_data_to_clients(self, x, y)
-	local tiles = self:GetAllTilesInSection(x, y)
+	local tiles = self:GetAllTilesInSection(x, y, true)
 	local tiles_code = self:EncodeTiles(tiles)
 	local rooms_code = self:EncodeRooms()
 	local data_pack = string.format("{\"tiles\": %s, \"rooms\": %s}", tiles_code, rooms_code)
@@ -328,7 +328,7 @@ function RegionSystem:EncodeTiles(tiles_matrix)	--二维矩阵
 	local tiles = {}
 	for i, v in pairs(tiles_matrix) do
 		for j, data in pairs(v) do
-			local tile_pos = (data.y - 1) * self.width + data.x
+			local tile_pos = (j - 1) * self.width + i
 			--2^32: 4294967296 | 2^31: 2147483648 | 2^30: 1073741824
 			local tile_info = (data.is_water and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + (data.space and 1 or 0) * 1073741824 + data.region
 			table.insert(tiles, tile_pos)
@@ -357,7 +357,7 @@ end
 
 function RegionSystem:SendMapStreamToClient(userid)
 	for i = 1, self.height do
-		local code = self:EncodeTiles({self.tiles[i]})
+		local code = self:EncodeTiles({[i] = self.tiles[i]})
 		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_tiles_stream, userid, code)
 	end
 end
