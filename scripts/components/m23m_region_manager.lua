@@ -326,9 +326,9 @@ end
 
 function RegionSystem:EncodeTiles(tiles_matrix)	--二维矩阵
 	local tiles = {}
-	for i, v in pairs(tiles_matrix) do
-		for j, data in pairs(v) do
-			local tile_pos = (j - 1) * self.width + i
+	for y, v in pairs(tiles_matrix) do
+		for x, data in pairs(v) do
+			local tile_pos = (y - 1) * self.width + x
 			--2^32: 4294967296 | 2^31: 2147483648 | 2^30: 1073741824
 			local tile_info = (data.is_water and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + (data.space and 1 or 0) * 1073741824 + data.region
 			table.insert(tiles, tile_pos)
