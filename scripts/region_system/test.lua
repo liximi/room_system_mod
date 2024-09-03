@@ -12,36 +12,36 @@ end
 RegionSytem:AddWaters(waters)
 
 
-local walls = {}
-local doors = {}
-for i = 1, 20 do
-	table.insert(walls, {9, i})
-end
-for i = 1, 20 do
-	table.insert(walls, {12, i})
-end
-for i = 1, 10 do
-	table.insert(walls, {i, 21})
-end
-for i = 13, 22 do
-	table.insert(walls, {i, 21})
-end
-for i = 1, 13 do
-	table.insert(walls, {i, 15})
-end
-table.insert(doors, {11, 21})
-table.insert(doors, {12, 21})
+-- local walls = {}
+-- local doors = {}
+-- for i = 1, 20 do
+-- 	table.insert(walls, {9, i})
+-- end
+-- for i = 1, 20 do
+-- 	table.insert(walls, {12, i})
+-- end
+-- for i = 1, 10 do
+-- 	table.insert(walls, {i, 21})
+-- end
+-- for i = 13, 22 do
+-- 	table.insert(walls, {i, 21})
+-- end
+-- for i = 1, 13 do
+-- 	table.insert(walls, {i, 15})
+-- end
+-- table.insert(doors, {11, 21})
+-- table.insert(doors, {12, 21})
 
-RegionSytem:AddWalls(walls)
-RegionSytem:AddDoors(doors)
+-- RegionSytem:AddWalls(walls)
+-- RegionSytem:AddDoors(doors)
 
-local waters = {}
-for i = 40, 45 do
-	for j = 40, 47 do
-		table.insert(waters, {i, j})
-	end
-end
-RegionSytem:RemoveWaters(waters)
+-- local waters = {}
+-- for i = 40, 45 do
+-- 	for j = 40, 47 do
+-- 		table.insert(waters, {i, j})
+-- 	end
+-- end
+-- RegionSytem:RemoveWaters(waters)
 
 
 RegionSytem:Print("region")
@@ -63,10 +63,10 @@ RegionSytem:Print("region")
 -- end
 
 print("----------")
-for room_id, data in pairs(RegionSytem.rooms) do
-	print(string.format("room: %d, regions: %s", room_id, table.concat(data.regions, ",")))
-end
+-- for room_id, data in pairs(RegionSytem.rooms) do
+-- 	print(string.format("room: %d, regions: %s", room_id, table.concat(data.regions, ",")))
+-- end
 
 local memory_after = collectgarbage("count")
 local memory_used = memory_after - memory_before
-print("Memory Delta:", memory_used/1024, "Mb")
+print(string.format("Memory Delta: %.4f Mb", memory_used/1024))

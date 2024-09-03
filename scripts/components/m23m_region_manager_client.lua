@@ -67,14 +67,12 @@ local RegionSystem = Class(function (self, inst)
 	self.section_height = 0
 	self.tiles = {}
 	--[[tiles 地块数据
-		x
-		y
 		space: 该地块是否是可通过的空地, true表示为空, false表示有墙体或其他阻碍物
 		region: 切片分组ID, 整数, space为false的地块region固定为0
 		is_door: 该地块是否是门
 		is_water: 该地块是否是水域
 	]]
-	self.regions = {}	--不记录ID为0的region, {tiles = {array of tile}, room = int}
+	self.regions = {}	--不记录ID为0的region, {tiles = {y={x=tile}}, room = int}
 	self.rooms = {}		--不记录ID为0的房间, {regions = {array of region's id}, type = int(ROOM_TYPES)}
 	--#endregion
 
@@ -228,8 +226,6 @@ function RegionSystem:ReceiveTileStream(tiles)
 		local tile = decode_tile_code(tiles[i+1])
 		local y = math.floor(tiles[i] / self.width) + 1
 		local x = tiles[i] - (y - 1) * self.width
-		tile.y = y
-		tile.x = x
 
 		if not self.tiles[y] then
 			self.tiles[y] = {}
@@ -238,7 +234,10 @@ function RegionSystem:ReceiveTileStream(tiles)
 
 		if tile.region ~= 0 then
 			assert(self.regions[tile.region] ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
-			table.insert(self.regions[tile.region].tiles, tile)
+			if not self.regions[tile.region][y] then
+				self.regions[tile.region][y] = {}
+			end
+			self.regions[tile.region][y][x] = tile
 		end
 	end
 end
@@ -258,30 +257,32 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 		local tile = decode_tile_code(tiles[i+1])
 		local y = math.floor(tiles[i] / self.width) + 1
 		local x = tiles[i] - (y - 1) * self.width
-		tile.y = y
-		tile.x = x
-
+		local tile_region = tile.region
 		local old_tile_data = self.tiles[y][x]
 		self.tiles[y][x] = tile
-		if tile.region ~= old_tile_data.region and old_tile_data.region ~= 0 then
+		if tile_region ~= old_tile_data.region and old_tile_data.region ~= 0 then
 			local old_region = self.regions[old_tile_data.region]
 			if old_region then
-				for j, t in ipairs(old_region.tiles) do
-					if t.x == x and t.y == y then
-						table.remove(old_region.tiles, j)
+				if old_region.tiles[y] and old_region.tiles[y][x] then
+					old_region.tiles[y][x] = nil
+					if IsEmptyTable(old_region.tiles[y]) then
+						old_region.tiles[y] = {}
 						if IsEmptyTable(old_region.tiles) then
 							empty_regions[old_tile_data.region] = true
 						end
-						break
 					end
 				end
 			end
 
-			if tile.region ~= 0 then
-				assert(self.regions[tile.region] ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
-				table.insert(self.regions[tile.region].tiles, tile)
-				if empty_regions[tile.region] then
-					empty_regions[tile.region] = nil
+			if tile_region ~= 0 then
+				assert(self.regions[tile_region] ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+				if not self.regions[tile_region].tiles[y] then
+					self.regions[tile_region].tiles[y] = {}
+				end
+				self.regions[tile_region].tiles[y][x] = tile
+
+				if empty_regions[tile_region] then
+					empty_regions[tile_region] = nil
 				end
 			end
 		end

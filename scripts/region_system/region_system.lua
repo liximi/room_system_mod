@@ -151,14 +151,12 @@ local RegionSystem = {
 	tiles = {},
 	-- 除了Generation, 永远不要修改tiles[y][x]的引用
 	--[[tiles 地块数据
-		x
-		y
 		space: 该地块是否是可通过的空地, true表示为空, false表示有墙体或其他阻碍物
 		region: 切片分组ID, 整数, space为false的地块region固定为0
 		is_door: 该地块是否是门
 		is_water: 该地块是否是水域
 	]]
-	regions = {},	--不记录ID为0的region, {tiles = {array of tile}, passable_edges = {target_region_id = edge_code}, room = int}
+	regions = {},	--不记录ID为0的region, {tiles = {y={x=tile}}, tiles_count = int, passable_edges = {target_region_id = edge_code}, room = int}
 	rooms = {},		--不记录ID为0的房间, {regions = {array of region's id}, type = int(ROOM_TYPES)}
 }
 
@@ -172,7 +170,7 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 	for i = 1, height do
 		self.tiles[i] = {}
 		for j = 1, width do
-			self.tiles[i][j] = { x = j, y = i, space = true }
+			self.tiles[i][j] = { space = true }
 		end
 	end
 	--初始切片
@@ -181,6 +179,7 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 	for base_i = 1, self.height, self.section_height do
 		for base_j = 1, self.width, self.section_width do
 			local region_tiles = {}
+			local tiles_count = 0
 
 			for i = 0, self.section_height - 1 do
 				local y = base_i + i
@@ -189,7 +188,11 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 					local x = base_j + j
 					if self.tiles[y][x]  == nil then break end
 					self.tiles[y][x].region = region_id
-					table.insert(region_tiles, self.tiles[y][x])
+					if not region_tiles[y] then
+						region_tiles[y] = {}
+					end
+					region_tiles[y][x] = self.tiles[y][x]
+					tiles_count = tiles_count + 1
 				end
 			end
 
@@ -199,6 +202,7 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 				region = self:private_NewRegion(region_id)
 			end
 			region.tiles = region_tiles
+			region.tiles_count = tiles_count
 			self:private_AddRegionToRoom(region_id, 1)
 			region_id = region_id + 1
 		end
@@ -235,15 +239,15 @@ function RegionSystem:RefreashSection(x, y)
 	local doors = {}
 	local function on_visit(cur_x, cur_y)
 		local cur_tile = section_tiles[cur_y][cur_x]
-
+		local _x, _y = base_x + cur_x - 1, base_y + cur_y - 1
 		if cur_tile.is_door then
-			table.insert(doors, {base_x + cur_x - 1, base_y + cur_y - 1})
+			table.insert(doors, {_x, _y})
 		end
 
 		if not self.regions[region_index] then
 			self:private_NewRegion(region_index)
 		end
-		self:private_AddTileToRegion(cur_tile, region_index)
+		self:private_AddTileToRegion(_x, _y, region_index)
 
 		section_tiles[cur_y][cur_x] = nil
 		if is_empty_table(section_tiles[cur_y]) then section_tiles[cur_y] = nil end
@@ -253,11 +257,13 @@ function RegionSystem:RefreashSection(x, y)
 	while not is_empty_table(section_tiles) do
 		for _y, xs in pairs(section_tiles) do
 			for _x in pairs(xs) do
-				if self:IsPassable(base_x + _x - 1, base_y + _y - 1) then
+				local cur_x = base_x + _x - 1
+				local cur_y = base_y + _y - 1
+				if self:IsPassable(cur_x, cur_y) then
 					region_index = get_empty_num_index(self.regions) + 1
 					flood_fill(section_tiles, _x, _y, can_visit, on_visit)
 				else
-					self:private_AddTileToRegion(self.tiles[base_y + _y - 1][base_x + _x - 1], 0)
+					self:private_AddTileToRegion(cur_x, cur_y, 0)
 					section_tiles[_y][_x] = nil
 					if is_empty_table(section_tiles[_y]) then section_tiles[_y] = nil end
 				end
@@ -267,10 +273,9 @@ function RegionSystem:RefreashSection(x, y)
 
 	--把门拆到独立的region里
 	for _, door_pos in ipairs(doors) do
-		local cur_tile = self.tiles[door_pos[2]][door_pos[1]]
 		region_index = get_empty_num_index(self.regions) + 1
 		self:private_NewRegion(region_index)
-		self:private_AddTileToRegion(cur_tile, region_index)
+		self:private_AddTileToRegion(door_pos[1], door_pos[2], region_index)
 	end
 
 	--更新section内的region与其他region相接的边缘
@@ -395,10 +400,20 @@ function RegionSystem:IsDoorRegion(region_id)
 	if not region_id then return false end
 	local region = self.regions[region_id]
 	if not region then return false end
-	if #region.tiles == 1 then
-		return region.tiles[1].is_door == true
+	local tile_count = 0
+	local is_door = false
+	for y, xs in pairs(region.tiles) do
+		for x, tile in pairs(xs) do
+			if tile_count >= 1 then
+				return false
+			end
+			tile_count = tile_count + 1
+			if tile.is_door == true then
+				is_door = true
+			end
+		end
 	end
-	return false
+	return is_door
 end
 
 function RegionSystem:GetSectionAABB(x, y)
@@ -410,7 +425,7 @@ function RegionSystem:GetSectionAABB(x, y)
 	return base_x, base_y, math.min(base_x + self.section_width - 1, self.width), math.min(base_y + self.section_height - 1, self.height)
 end
 
-function RegionSystem:GetAllTilesInSection(x, y)	--通过坐标获取该坐标所属的切片内的所有地块
+function RegionSystem:GetAllTilesInSection(x, y, real_pos)	--通过坐标获取该坐标所属的切片内的所有地块
 	local base_x = math.floor((x-1) / self.section_width) * self.section_width + 1
 	local base_y = math.floor((y-1) / self.section_height) * self.section_width + 1
 	if not self.tiles[base_y] or not self.tiles[base_y][base_x] then
@@ -418,10 +433,11 @@ function RegionSystem:GetAllTilesInSection(x, y)	--通过坐标获取该坐标�
 	end
 	local tiles = {}
 	for i = base_y, math.min(base_y + self.section_height - 1, self.height) do
-		local _y = i - base_y + 1
+		local _y = real_pos and i or i - base_y + 1
 		tiles[_y] = {}
 		for j = base_x, math.min(base_x + self.section_width - 1, self.width) do
-			tiles[_y][j - base_x + 1] = self.tiles[i][j]
+			local _x = real_pos and j or j - base_x + 1
+			tiles[_y][_x] = self.tiles[i][j]
 		end
 	end
 
@@ -460,8 +476,13 @@ function RegionSystem:GetAllTilesInRoom(room_id)	--性能很差
 	for _, region_id in ipairs(regions) do
 		local region = self.regions[region_id]
 		if region then
-			for _, tile in ipairs(region.tiles) do
-				table.insert(tiles, tile)
+			for y, xs in pairs(region.tiles) do
+				for x, tile in pairs(xs) do
+					if not tiles[y] then
+						tiles[y] = {}
+					end
+					tiles[y][x] = tile
+				end
 			end
 		end
 	end
@@ -650,7 +671,7 @@ function RegionSystem:GetRoomSize(room_id)
 	for _, region_id in ipairs(regions) do
 		local region = self.regions[region_id]
 		if region then
-			size = size + #region.tiles
+			size = size + region.tiles_count
 		end
 	end
 	return size
@@ -705,6 +726,13 @@ function RegionSystem:Print(data_key, sub_key, only_one_section, x, y)
 	end
 end
 
+function RegionSystem:PrintRoomData()
+	for id, data in pairs(self.rooms) do
+		print(string.format("Room: %d, Type: %s", id, ROOM_TYPES[data.type]))
+		print("  ", table.concat(data.regions, ", "))
+	end
+end
+
 
 -- function RegionSystem:RefreashRoomType(room_id) end
 -- function RegionSystem:OnChangeTileRegion(x, y, old_region_id, new_region_id, refreash_room) end
@@ -749,6 +777,7 @@ function RegionSystem:private_NewRegion(region_id)
 	end
 	local region = {
 		tiles = {},
+		tiles_count = 0,
 		passable_edges = {},
 		room = 0,
 	}
@@ -756,28 +785,35 @@ function RegionSystem:private_NewRegion(region_id)
 	return region
 end
 
-function RegionSystem:private_AddTileToRegion(tile, region_id)
+function RegionSystem:private_AddTileToRegion(x, y, region_id)
+	local tile = self.tiles[y][x]
 	local old_region_id = tile.region
-	local old_region_tiles = self.regions[old_region_id] and self.regions[old_region_id].tiles
+	local old_region = self.regions[old_region_id]
+	local old_region_tiles = old_region and old_region.tiles
 	if old_region_tiles then
-		for i, _tile in ipairs(old_region_tiles) do
-			if _tile == tile then
-				table.remove(old_region_tiles, i)
-				break
-			end
+		old_region_tiles[y][x] = nil
+		old_region.tiles_count = old_region.tiles_count - 1
+		if is_empty_table(old_region_tiles[y]) then
+			old_region_tiles[y] = nil
 		end
-		if #old_region_tiles == 0 then
+		if is_empty_table(old_region_tiles) then
 			self:private_DeleteRegion(old_region_id)
 		end
 	end
 
 	if region_id ~= 0 then
-		table.insert(self.regions[region_id].tiles, tile)
+		local region = self.regions[region_id]
+		local region_tiles = region.tiles
+		if not region_tiles[y] then
+			region_tiles[y] = {}
+		end
+		region_tiles[y][x] = tile
+		region.tiles_count = region.tiles_count + 1
 	end
 	tile.region = region_id
 
 	if self.OnChangeTileRegion then
-		self:OnChangeTileRegion(tile.x, tile.y, old_region_id, region_id)
+		self:OnChangeTileRegion(x, y, old_region_id, region_id)
 	end
 end
 

@@ -246,18 +246,20 @@ function RegionSystem:CheckRoomTiles(room_id, available_tiles)
 	local region_ids = self:GetAllRegionsInRoom(room_id)
 	for _, region_id in ipairs(region_ids) do
 		local region = self.regions[region_id]
-		for _, tile in ipairs(region.tiles) do
-			local world_x, world_z = self:GetPointAtTileCoords(tile.x, tile.y)
-			local center_x, center_y, center_z = TheWorld.Map:GetTileCenterPoint(world_x, 0, world_z)
-			if not world_tiles[center_z] then
-				world_tiles[center_z] = {}
-			end
-			if not world_tiles[center_z][center_x] then
-				local tile_id = TheWorld.Map:GetTileAtPoint(world_x, 0, world_z)
-				if not available_tiles[INVERTED_WORLD_TILES[tile_id]] then
-					return false
+		for y, xs in pairs(region.tiles) do
+			for x, tile in pairs(xs) do
+				local world_x, world_z = self:GetPointAtTileCoords(x, y)
+				local center_x, center_y, center_z = TheWorld.Map:GetTileCenterPoint(world_x, 0, world_z)
+				if not world_tiles[center_z] then
+					world_tiles[center_z] = {}
 				end
-				world_tiles[center_z][center_x] = tile_id
+				if not world_tiles[center_z][center_x] then
+					local tile_id = TheWorld.Map:GetTileAtPoint(world_x, 0, world_z)
+					if not available_tiles[INVERTED_WORLD_TILES[tile_id]] then
+						return false
+					end
+					world_tiles[center_z][center_x] = tile_id
+				end
 			end
 		end
 	end
@@ -269,7 +271,7 @@ end
 --主要是向客户端同步数据
 
 local function send_section_data_to_clients(self, x, y)
-	local tiles = self:GetAllTilesInSection(x, y)
+	local tiles = self:GetAllTilesInSection(x, y, true)
 	local tiles_code = self:EncodeTiles(tiles)
 	local rooms_code = self:EncodeRooms()
 	local data_pack = string.format("{\"tiles\": %s, \"rooms\": %s}", tiles_code, rooms_code)
@@ -324,9 +326,9 @@ end
 
 function RegionSystem:EncodeTiles(tiles_matrix)	--二维矩阵
 	local tiles = {}
-	for i, v in pairs(tiles_matrix) do
-		for j, data in pairs(v) do
-			local tile_pos = (data.y - 1) * self.width + data.x
+	for y, v in pairs(tiles_matrix) do
+		for x, data in pairs(v) do
+			local tile_pos = (y - 1) * self.width + x
 			--2^32: 4294967296 | 2^31: 2147483648 | 2^30: 1073741824
 			local tile_info = (data.is_water and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + (data.space and 1 or 0) * 1073741824 + data.region
 			table.insert(tiles, tile_pos)
@@ -355,7 +357,7 @@ end
 
 function RegionSystem:SendMapStreamToClient(userid)
 	for i = 1, self.height do
-		local code = self:EncodeTiles({self.tiles[i]})
+		local code = self:EncodeTiles({[i] = self.tiles[i]})
 		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_tiles_stream, userid, code)
 	end
 end
