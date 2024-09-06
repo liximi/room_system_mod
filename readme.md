@@ -13,7 +13,7 @@
 |             | 主机端 | 连入的客户端 |
 | ----------- | ------ | ------------ |
 | 不开任何Mod | 2.9G   | 2.6G         |
-| 开启本Mod   | 4.7G   | 4.0G         |
+| 开启本Mod   | 4.2G   |              |
 
 开启洞穴：
 
@@ -37,10 +37,10 @@
 
 ### 如何依赖？
 
-在 `modinfo.lua中`使用配置加载优先级为**负数。**（本mod的优先级为0，因此负数优先级可以使你的mod在本mod加载完之后才加载）
+在 `modinfo.lua`中配置加载优先级为**负数。**（本mod的优先级为0，因此负数优先级可以使你的mod在本mod加载完之后才加载）
 
 ```lua
-priority = 正数
+priority = 负数
 ```
 
 在 `modinfo.lua`中使用官方的依赖配置格式：
@@ -113,7 +113,7 @@ must_items = {
 
 ```lua
 --示例：
-local INDOOR_TILES ={
+local INDOOR_TILES = {
     SHELLBEACH = true,	--贝壳海滩地皮
     MONKEY_GROUND = true,	--月亮码头海滩地皮
     BEARD_RUG = true,		--胡须地毯
@@ -128,3 +128,7 @@ local INDOOR_TILES ={
     MOSAIC_BLUE = true,	--蓝色马赛克地板
 }
 ```
+
+#### 示例数据
+
+你可以在本Mod的`scripts/m23m_room_def.lua`文件中找到本Mod提供的房间的配置数据。
