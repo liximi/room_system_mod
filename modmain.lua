@@ -42,8 +42,7 @@ else
         prefix = "english"
     end
 end
---[开发中强制中文]
-prefix = "chinese"
+
 for _, f_name in ipairs(mod_loc_files) do
     modimport("scripts/localization/"..prefix.."_"..f_name)	--加载所有本地化文件
 end
@@ -99,7 +98,7 @@ modimport "m23m_main_scripts/ui"
 --[Actions]
 modimport "m23m_main_scripts/actions"
 --[StateGraphs]
-modimport "m23m_main_scripts/stategraphs.lua"
+-- modimport "m23m_main_scripts/stategraphs"
 --[Recipes]
 modimport "m23m_main_scripts/recipes"
 
@@ -118,10 +117,6 @@ local mod_files = {
     "mod_world_network",
     "mod_room_key_items",
     "mod_camera",
-    "mod_cooktime",
-    "mod_craft_multiple_products",
-    "mod_bedroom_mechanic",
-    "mod_upgradeable",
 }
 
 for _, file in ipairs(mod_files) do

@@ -182,8 +182,3 @@ function _G.AddM23MRoom(room_data)
 	print(string.format("RegionSystem Info: Add Room(%s) Success!", room_data.type))
 	return true
 end
-
---注册房间
-if M23M.ENABLE_DEFAULT_ROOMS then
-	require "m23m_room_def"
-end

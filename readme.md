@@ -133,4 +133,4 @@ local INDOOR_TILES = {
 
 #### 示例数据
 
-你可以在本Mod的`scripts/m23m_room_def.lua`文件中找到本Mod提供的房间的配置数据。
+你可以在另一个Mod："房间基础内容包(Base Rooms Package)"的 `scripts/rbc_room_def.lua`文件中找到房间的配置数据。
