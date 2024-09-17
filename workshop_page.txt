@@ -1,0 +1,217 @@
+[h1]声明[/h1]
+[quote]
+本mod为个人爱好所做，禁止任何个人或组织搬运和转载、除自用外的修改发布、或其他任何形式的盗用行为。
+[/quote]
+[h2]【警告】本mod不包含可游玩内容！只提供对基础机制的实现！你可以订阅并开启mod：[url=store.steampowered.com]"房间基础内容包(Base Rooms Package)"[/url]来进行游玩。[/h2]
+
+[h1]简介[/h1]
+[list]
+[*]本mod为原本游戏添加了房间系统，就像在《缺氧》中的那样。
+[*]在由墙体构成的特定尺寸范围内的封闭区域中，通过放置所需的物品、建筑等来形成特定的房间。
+[*]不同的房间可以产生不同的效果。
+[/list]
+
+[h1]特别注意[/h1]
+[b]开启本mod将会大幅增加内存占用，同时也会大幅增加游戏载入时间。参考对比数据如下。[/b]
+[b]不开启洞穴：[/b]
+[table]
+[tr]
+	[th][/th]
+	[th]主机端[/th]
+	[th]连入的客户端[/th]
+[/tr]
+[tr]
+	[td]不开任何mod[/td]
+	[td]2.9G[/td]
+	[td]2.6G[/td]
+[/tr]
+[tr]
+	[td]开启本mod[/td]
+	[td]4.2G[/td]
+	[td]3.5G[/td]
+[/tr]
+[/table]
+[b]开启洞穴：[/b]
+[table]
+[tr]
+	[th][/th]
+	[th]地上服务端[/th]
+	[th]洞穴服务端[/th]
+	[th]连入地上的客户端[/th]
+	[th]连入洞穴的客户端[/th]
+[/tr]
+[tr]
+	[td]不开任何mod[/td]
+	[td]0.97G[/td]
+	[td]0.84G[/td]
+	[td]2.5G(主机2.1G)[/td]
+	[td]2.4G(主机2G)[/td]
+[/tr]
+[tr]
+	[td]开启本mod[/td]
+	[td]2.4G[/td]
+	[td]1.7G[/td]
+	[td]3.2G(主机3.8G)[/td]
+	[td]2.8G(主机2.4G)[/td]
+[/tr]
+[/table]
+[b]另外，当其他玩家连入游戏时，会存在几秒到几分钟的卡顿（取决于客户端的硬件性能），这是在从主机或者服务器上接收数据。[/b]
+[hr][/hr]
+
+[h1]给modder们[/h1]
+通过依赖本mod，你可以在你自己的mod中使用房间系统，添加新的房间类型。
+[b]你不应该在复制本mod的代码后直接使用或修改后将其用于其他mod中。[/b]
+[b]你可以在本mod的本地目录中找到一份[i]readme.md[/i]文件，通过Markdown阅读器可以更方便地阅读下面的示例代码。[/b]
+[h2]关于技术[/h2]
+房间系统的技术底层基于一个[b]区域系统[/b]，该系统的实现思路来自[b]《环世界》([i]RimWorld[/i]) [/b]的作者发布的视频。
+[url=https://www.bilibili.com/video/BV1gN4y1j7Kn]Bilibili链接(BV1gN4y1j7Kn)[/url]
+[url=https://www.youtube.com/watch?v=RMBQn_sg7DA&t=798s]YouTube链接[/url]
+
+[h2]如何依赖？[/h2]
+在 [b][i]modinfo.lua[/i][/b] 中配置加载优先级为[b]负数[/b]。（本mod的优先级为0，因此负数优先级可以使你的mod在本mod加载完之后才加载）
+[quote]
+priority = 负数
+[/quote]
+在 [b][i]modinfo.lua[/i][/b] 中使用官方的依赖配置格式：
+[quote]
+local chinese = locale == "zh" or locale  == "zhr"
+mod_dependencies = {
+	{
+		[chinese and "房间" or "Rooms"] = true,
+	},
+}
+[/quote]
+
+[h2]如何添加新的房间类型？[/h2]
+依赖后，你可以在modmain中调用（需要在主机和客机都调用）本mod提供的全局函数。
+[quote]
+--src: m23m_main_scripts\modified_mechanics\mod_room_key_items.lua
+--添加成功将会返回true，否则返回nil
+function AddM23MRoom(room_data) end
+[/quote]
+
+[b][i]room_data[/i][/b] 是房间配置数据，[b][i]table[/i][/b] 类型，支持的配置字段如下:
+[table]
+[tr]
+	[th]Key[/th]
+	[th]数据类型[/th]
+	[th]说明[/th]
+[/tr]
+[tr]
+	[td]type[/td]
+	[td]string[/td]
+	[td]房间类型，要确保该类型是唯一的，不能与其他房间类型重复。必须配置。[/td]
+[/tr]
+[tr]
+	[td]name[/td]
+	[td]string[/td]
+	[td]房间名称。可以不指定(不推荐)，默认值为 [b][i]STRINGS.M23M_ROOMS.NO_NAME.NAME[/i][/b]。[/td]
+[/tr]
+[tr]
+	[td]desc[/td]
+	[td]string/function[/td]
+	[td]房间描述，用来描述房间的效果。可以是一个函数，但必须返回一个 [b][i]string[/i][/b]。
+	可以不指定(不推荐)，默认值为 [b][i]STRINGS.M23M_ROOMS.NO_NAME.DESC[/i][/b]。[/td]
+[/tr]
+[tr]
+	[td]priority[/td]
+	[td]integer[/td]
+	[td]判断房间是否形成的优先级，必须为正数，数字越大越优先被判断。
+	可以不指定，默认值为当前所有房间类型中的最大优先级+1。[/td]
+[/tr]
+[tr]
+	[td]min_size[/td]
+	[td]integer[/td]
+	[td]形成该房间所需的最小面积。可以不指定，默认值为 `16`（1个地皮的面积）。[/td]
+[/tr]
+[tr]
+	[td]max_size[/td]
+	[td]integer[/td]
+	[td]形成该房间所需的最大面积，[b]不建议过大，可能导致性能问题[/b]。
+	可以不指定，默认值为 [b][i]128[/i][/b]（8个地皮的面积）。[/td]
+[/tr]
+[tr]
+	[td]must_items[/td]
+	[td]table[/td]
+	[td]形成该房间所需的物品。必须配置。配置格式在后文详述。[/td]
+[/tr]
+[tr]
+	[td]available_tiles[/td]
+	[td]table[/td]
+	[td]形成该房间所需的地皮。若无需求，可以不配置。配置格式在后文详述。[/td]
+[/tr]
+[tr]
+	[td]color[/td]
+	[td]table[/td]
+	[td]该房间在地图上显示的颜色。
+	格式示例：[b][i]{0.55, 0.23, 0.77, 1}[/i][/b]，建议直接使用官方提供的颜色构造函数：[b][i]RGB(r, g, b)[/i][/b]。
+	可以不指定(不推荐)，默认值为随机生成的颜色，且在每个客户端上每次开启游戏都不相同。[/td]
+[/tr]
+[tr]
+	[td]icon_atlas[/td]
+	[td]string[/td]
+	[td]该房间的图标对应的 [b][i]xml[/i][/b] 文件路径。可以不指定，默认值为通用房间图标。
+	必须和[u]icon_image[/u]同时存在。[/td]
+[/tr]
+[tr]
+	[td]icon_image[/td]
+	[td]string[/td]
+	[td]该房间的图标对应的 [b][i]tex[/i][/b] 文件路径。可以不指定，默认值为通用房间图标。
+	必须和[u]icon_atlas[/u]同时存在[/td]
+[/tr]
+[/table]
+
+[h3]must_items 配置格式[/h3]
+[b][i]must_items[/i][/b]是一个数组，依次放入 [b][i]prefab[/i][/b] 或 [b][i]prefab组[/i][/b] ，[b]不要指定key[/b]
+[olist]
+[*]prefab字符串：表示房间中必须存在该物品。
+[*]prefab字符串数组：表示房间中存在该数组中的任意一种物品即可。
+[/olist]
+[quote]
+--示例1：
+must_items = {
+	"researchlab2", --炼金引擎
+	"researchlab3", --暗影操控器
+	"cartographydesk", --制图桌
+}
+--示例2：
+must_items = {
+	{"tent", "portabletent"}, --帐篷/宿营帐篷
+}
+--示例3：
+must_items = {
+	{"cookpot", "portablecookpot"}, --普通锅或便携锅
+	"icebox", --冰箱
+}
+[/quote]
+[h3]available_tiles 配置格式[/h3]
+[b][i]available_tiles[/i][/b] 由 [b][i]地皮ID[/i][/b] 作为key，由 [b][i]true[/i][/b] 作为value。
+你可以在官方文件 [b][i]scripts/tiledefs.lua[/i][/b] 中找到这些 [b][i]ID[/i][/b]。
+[quote]
+--示例：
+local INDOOR_TILES = {
+	SHELLBEACH = true,	--贝壳海滩地皮
+	MONKEY_GROUND = true,	--月亮码头海滩地皮
+	BEARD_RUG = true,		--胡须地毯
+	WOODFLOOR = true,	--木地板
+	COTL_GOLD = true,	--黄金地板
+	COTL_BRICK = true,	--砖地板
+	CHECKER = true,	--棋盘地板
+	CARPET = true,	--地毯地板
+	CARPET2 = true,	--茂盛地毯
+	MOSAIC_GREY = true,	--灰色马赛克地板
+	MOSAIC_RED = true,	--红色马赛克地板
+	MOSAIC_BLUE = true,	--蓝色马赛克地板
+}
+[/quote]
+[h3]示例数据[/h3]
+你可以在另一个mod：[url=store.steampowered.com]"房间基础内容包(Base Rooms Package)"[/url]的 [b][i]scripts/rbc_room_def.lua[/i][/b] 文件中找到房间的配置数据。
+[hr][/hr]
+
+[h1]其他[/h1]
+如果你喜欢这个mod，请点赞支持！
+[h2]反馈/交流群[/h2]
+QQ群：745468368
+
+[hr][/hr]
+[img]https://steamuserimages-a.akamaihd.net/ugc/2383056013912597222/C3B0C9DFF262CE8DBA0D283FCA910D52AEEADAAA/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false[/img]
