@@ -2,7 +2,7 @@
 [quote]
 本mod为个人爱好所做，禁止任何个人或组织搬运和转载、除自用外的修改发布、或其他任何形式的盗用行为。
 [/quote]
-[h2]【警告】本mod不包含可游玩内容！只提供对基础机制的实现！你可以订阅并开启mod：[url=store.steampowered.com]"房间基础内容包(Base Rooms Package)"[/url]来进行游玩。[/h2]
+[h2]【警告】本mod不包含可游玩内容！只提供对基础机制的实现！你可以订阅并开启mod：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3333908795]"房间基础内容包(Base Rooms Package)"[/url]来进行游玩。[/h2]
 
 [h1]简介[/h1]
 [list]
@@ -206,7 +206,7 @@ local INDOOR_TILES = {
 }
 [/quote]
 [h3]示例数据[/h3]
-你可以在另一个mod：[url=store.steampowered.com]"房间基础内容包(Base Rooms Package)"[/url]的 [b][i]scripts/rbc_room_def.lua[/i][/b] 文件中找到房间的配置数据。
+你可以在另一个mod：[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3333908795]"房间基础内容包(Base Rooms Package)"[/url]的 [b][i]scripts/rbc_room_def.lua[/i][/b] 文件中找到房间的配置数据。
 [hr][/hr]
 
 [h1]其他[/h1]
