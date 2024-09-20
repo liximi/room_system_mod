@@ -1,14 +1,10 @@
 GLOBAL.setmetatable(env,{__index=function(t,k) return GLOBAL.rawget(GLOBAL,k) end})
 
 PrefabFiles = {
-    "m23m_power_source",
-    "m23m_power_app",
     "m23m_rectangle",
 }
 
 Assets = {
-	Asset("ATLAS", "images/ui/fx_multselect.xml"),
-	Asset("IMAGE", "images/ui/fx_multselect.tex"),
     Asset("ATLAS", "images/ui/nineslice1.xml"),
 	Asset("IMAGE", "images/ui/nineslice1.tex"),
     Asset("ATLAS", "images/ui/room_icon.xml"),
@@ -88,19 +84,17 @@ modimport "m23m_main_scripts/constants"
 --[Tools]
 modimport "m23m_main_scripts/tools"
 --[Containers]
-modimport "m23m_main_scripts/containers"
+-- modimport "m23m_main_scripts/containers"
 --[RPCs]
 modimport "m23m_main_scripts/rpcs"
 --[Controller]
-modimport "m23m_main_scripts/controller"
+-- modimport "m23m_main_scripts/controller"
 --[UI]
 modimport "m23m_main_scripts/ui"
 --[Actions]
-modimport "m23m_main_scripts/actions"
+-- modimport "m23m_main_scripts/actions"
 --[StateGraphs]
 -- modimport "m23m_main_scripts/stategraphs"
---[Recipes]
-modimport "m23m_main_scripts/recipes"
 
 --[replica组件注册]
 -- AddReplicableComponent("m23m_region_manager")
@@ -116,7 +110,6 @@ modimport "m23m_main_scripts/recipes"
 local mod_files = {
     "mod_world_network",
     "mod_room_key_items",
-    "mod_camera",
 }
 
 for _, file in ipairs(mod_files) do

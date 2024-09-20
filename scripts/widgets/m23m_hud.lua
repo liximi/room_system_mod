@@ -19,11 +19,6 @@ local HUD = Class(Widget, function(self, owner)
 	self.right_root:SetHAnchor(ANCHOR_RIGHT)
 	self.right_root:SetScaleMode(SCALEMODE_PROPORTIONAL)
 
-	--区域编辑按钮
-	-- self.edit_region_btn = self.top_root:AddChild(Templates.StandardButton(function () self:PopupAreaEditScreen() end,
-	-- 	"区域编辑", {200, 50}))
-	-- self.edit_region_btn:SetPosition(0, -120)
-
 	--视图切换
 	self.view_switcher = self:AddChild(ViewSwitcher(self.owner))
 	-- local screen_w, screen_h = TheSim:GetScreenSize()
@@ -31,11 +26,6 @@ local HUD = Class(Widget, function(self, owner)
 	self.view_switcher:SetPosition(saved_pos and saved_pos[1] or 1100, saved_pos and saved_pos[2] or 470)
 	self.view_switcher:SetScale(0.75, 0.75)
 end)
-
-
-function HUD:PopupAreaEditScreen()
-	ThePlayer:ShowPopUp(POPUPS.M23M_AREA_EDIT, true)
-end
 
 
 return HUD

@@ -7,8 +7,6 @@ local world_networks = {
 
 local function PostInit(inst)
     if TheWorld.ismastersim then
-        -- inst.M23M_PowerMgr = inst:AddComponent("m23m_power_manager")
-
         local start_clock = os:clock()
         local memory_before = collectgarbage("count")
 
