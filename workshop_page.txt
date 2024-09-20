@@ -63,6 +63,7 @@
 通过依赖本mod，你可以在你自己的mod中使用房间系统，添加新的房间类型。
 [b]你不应该在复制本mod的代码后直接使用或修改后将其用于其他mod中。[/b]
 [b]你可以在本mod的本地目录中找到一份[i]readme.md[/i]文件，通过Markdown阅读器可以更方便地阅读下面的示例代码。[/b]
+本mod编号：3334403593
 [h2]关于技术[/h2]
 房间系统的技术底层基于一个[b]区域系统[/b]，该系统的实现思路来自[b]《环世界》([i]RimWorld[/i]) [/b]的作者发布的视频。
 [url=https://www.bilibili.com/video/BV1gN4y1j7Kn]Bilibili链接(BV1gN4y1j7Kn)[/url]
