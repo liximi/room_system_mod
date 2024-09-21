@@ -72,7 +72,7 @@ local RegionSystem = Class(function (self, inst)
 		is_door: 该地块是否是门
 		is_water: 该地块是否是水域
 	]]
-	self.regions = {}	--不记录ID为0的region, {tiles = {y={x=tile}}, room = int}
+	self.regions = {}	--不记录ID为0的region, {tiles = {y={x=tile}}, room = int, tiles_count = int}
 	self.rooms = {}		--不记录ID为0的房间, {regions = {array of region's id}, type = int(ROOM_TYPES)}
 	--#endregion
 
@@ -159,6 +159,18 @@ function RegionSystem:GetSectionAABB(x, y)
 	return base_x, base_y, math.min(base_x + self.section_width - 1, self.width), math.min(base_y + self.section_height - 1, self.height)
 end
 
+function RegionSystem:GetRoomSize(room_id)
+	local regions = self:GetAllRegionsInRoom(room_id)
+	local size = 0
+	for _, region_id in ipairs(regions) do
+		local region = self.regions[region_id]
+		if region then
+			size = size + region.tiles_count
+		end
+	end
+	return size
+end
+
 function RegionSystem:Print(data_key, sub_key, only_one_section, x, y)
 	data_key = data_key or "space"
 	print(string.format("width: %d, height: %d", self.width, self.height))
@@ -212,7 +224,7 @@ function RegionSystem:ReceiveRoomsData(roomsdata, refresh_region)
 		for room_id, data in pairs(self.rooms) do
 			for _, region_id in ipairs(data.regions) do
 				if not self.regions[region_id] then
-					self.regions[region_id] = {tiles = {}, room = room_id}
+					self.regions[region_id] = {tiles = {}, room = room_id, tiles_count = 0}
 				else
 					self.regions[region_id].room = room_id
 				end
@@ -233,11 +245,13 @@ function RegionSystem:ReceiveTileStream(tiles)
 		self.tiles[y][x] = tile
 
 		if tile.region ~= 0 then
-			assert(self.regions[tile.region] ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
-			if not self.regions[tile.region][y] then
-				self.regions[tile.region][y] = {}
+			local region = self.regions[tile.region]
+			assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+			if not region.tiles[y] then
+				region.tiles[y] = {}
 			end
-			self.regions[tile.region][y][x] = tile
+			region.tiles[y][x] = tile
+			region.tiles_count = region.tiles_count + 1
 		end
 	end
 end
@@ -265,22 +279,24 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 			if old_region then
 				if old_region.tiles[y] and old_region.tiles[y][x] then
 					old_region.tiles[y][x] = nil
+					old_region.tiles_count = old_region.tiles_count - 1
 					if IsEmptyTable(old_region.tiles[y]) then
-						old_region.tiles[y] = {}
-						if IsEmptyTable(old_region.tiles) then
-							empty_regions[old_tile_data.region] = true
-						end
+						old_region.tiles[y] = nil
+					end
+					if old_region.tiles_count <= 0 then
+						empty_regions[old_tile_data.region] = true
 					end
 				end
 			end
 
 			if tile_region ~= 0 then
-				assert(self.regions[tile_region] ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
-				if not self.regions[tile_region].tiles[y] then
-					self.regions[tile_region].tiles[y] = {}
+				local region = self.regions[tile_region]
+				assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+				if not region.tiles[y] then
+					region.tiles[y] = {}
 				end
-				self.regions[tile_region].tiles[y][x] = tile
-
+				region.tiles[y][x] = tile
+				region.tiles_count = region.tiles_count + 1
 				if empty_regions[tile_region] then
 					empty_regions[tile_region] = nil
 				end

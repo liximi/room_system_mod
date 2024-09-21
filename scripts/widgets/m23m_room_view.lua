@@ -13,6 +13,8 @@ local COLOR3 = RGB(150, 140, 65)
 local FONT_SIZE1, FONT_SIZE2, FONT_SIZE3, FONT_SIZE4 = 24, 22, 18, 16
 local TIP_MARGIN = 2.5	--Tip内文本的边距
 local TIP_SEGMENT_SPACING = 4	--Tip内文本的段间距
+local MAX_TILE_SHOWN = 1156 * 2	--在地图上最大显示的地块数量
+local MAX_TILE_NUM_SPAWN_PER_FRAME = 100	--每帧生成方片实体的数量
 
 
 local RoomView = Class(Widget, function(self, owner)
@@ -308,6 +310,11 @@ function RoomView:SetCurrentRoomId(room_id, start_pos)
 	self.cur_room_type = TheRegionMgr:GetRoomTypeById(room_id)
 	self.cur_room_color = nil
 
+	if self.cur_room_type == "NONE" and TheRegionMgr:GetRoomSize(room_id) > MAX_TILE_SHOWN then
+		self:HideAllTiles()
+		return
+	end
+
 	if self.cur_room_type ~= "NONE" then
 		for _, room_data in ipairs(M23M.ROOM_DEFS) do
 			if room_data.type == self.cur_room_type then
@@ -346,9 +353,9 @@ function RoomView:HideAllTiles()
 	self.cur_region_ids = {}
 end
 
-local max_show_num = 1156 * 2
+
 function RoomView:ShowTile()
-	if #self.temp_open_tiles == 0 or #self.rects >= max_show_num then
+	if #self.temp_open_tiles == 0 or #self.rects >= MAX_TILE_SHOWN then
 		self.is_showing_tile = false
 		self.temp_open_tiles = {}
 		self.temp_visited_tiles = {}
@@ -409,7 +416,7 @@ function RoomView:OnUpdate(dt)
 	end
 
 	if self.is_showing_tile then
-		for i = 1, 136 do
+		for i = 1, MAX_TILE_NUM_SPAWN_PER_FRAME do
 			self:ShowTile()
 			if not self.is_showing_tile then
 				break
