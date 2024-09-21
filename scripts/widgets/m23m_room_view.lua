@@ -347,7 +347,7 @@ end
 
 function RoomView:HideAllTiles()
 	for _, rect in ipairs(self.rects) do
-		rect:Remove()
+		rect:Kill()
 	end
 	self.rects = {}
 	self.cur_region_ids = {}

@@ -7,6 +7,11 @@ local function SetSize(inst, w, h)	--x, z
 	inst.AnimState:SetScale(w/TEXTURE_SIZE, h/TEXTURE_SIZE)
 end
 
+local function Kill(inst)
+	inst.AnimState:PlayAnimation("on_remove")
+	inst:ListenForEvent("animover", inst.Remove)
+end
+
 local function rectangle_fn()
 	local inst = CreateEntity()
 
@@ -14,7 +19,8 @@ local function rectangle_fn()
 	inst.entity:AddAnimState()
 	inst.AnimState:SetBank("m23m_rectangle")
 	inst.AnimState:SetBuild("m23m_rectangle")
-	inst.AnimState:PlayAnimation("idle")
+	inst.AnimState:PlayAnimation("on_spawn")
+	inst.AnimState:PushAnimation("idle")
 	inst.AnimState:SetMultColour(1, 1, 1, 0.25)
 	inst.AnimState:SetOrientation(ANIM_ORIENTATION.OnGround)
 	inst.AnimState:SetLayer(LAYER_WORLD_BACKGROUND)
@@ -25,7 +31,7 @@ local function rectangle_fn()
 	inst.persists = false
 
 	inst.SetSize = SetSize
-
+	inst.Kill = Kill
     return inst
 end
 
