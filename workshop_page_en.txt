@@ -1,0 +1,197 @@
+[h1]Statement[/h1]
+[quote]
+This mod is created as a personal hobby project. Any form of unauthorized redistribution, modification, or usage of this content, aside from personal use, is strictly prohibited.
+[/quote]
+[h2][Warning] This mod does not contain playable content! It only implements basic mechanics. You can subscribe to and enable the mod: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3333908795]"Base Rooms Package"[/url] to experience it in-game.[/h2]
+
+[h1]Description[/h1]
+[list]
+[*]This mod adds a room system to the original game, similar to the one in *Oxygen Not Included*.
+[*]By placing specific items, buildings, etc., within an enclosed area defined by walls of a specific size, different types of rooms can be created.
+[*]Different rooms yield different effects.
+[/list]
+
+[h1]Special Note[/h1]
+[b]Enabling this mod will significantly increase memory usage and load times for the game. Reference data is as follows:[/b]
+[b]With Cave Enabled:[/b]
+[table]
+[tr]
+	[th][/th]
+	[th]Surface Host[/th]
+	[th]Cave Host[/th]
+	[th]Surface Client[/th]
+	[th]Cave Client[/th]
+[/tr]
+[tr]
+	[td]No Mods Enabled[/td]
+	[td]0.97G[/td]
+	[td]0.84G[/td]
+	[td]2.5G (Host 2.1G)[/td]
+	[td]2.4G (Host 2G)[/td]
+[/tr]
+[tr]
+	[td]With This Mod Enabled[/td]
+	[td]2.4G[/td]
+	[td]1.7G[/td]
+	[td]3.2G (Host 3.8G)[/td]
+	[td]2.8G (Host 2.4G)[/td]
+[/tr]
+[/table]
+[b]Additionally, there will be a few seconds to a few minutes of lag (depending on the client’s hardware performance) when other players join the game, as data is being received from the host or server.[/b]
+[hr][/hr]
+
+[h1]For Modders[/h1]
+[b]Modders are welcome to use this mod to create new content and gameplay![/b]
+By depending on this mod, you can use the room system in your own mod and add new room types.
+[b]You should not directly use or modify this mod’s code for use in other mods after copying it.[/b]
+[b]A [i]readme.md[/i] file is available in this mod's local directory, providing example code that is easier to read via a Markdown viewer.[/b]
+Mod ID: 3334403593
+[h2]About the Technology[/h2]
+The underlying technology of the room system is based on a [b]zone system[/b], with inspiration from a video released by the creator of [b]*RimWorld*[/b].
+[url=https://www.bilibili.com/video/BV1gN4y1j7Kn]Bilibili Link (BV1gN4y1j7Kn)[/url]
+[url=https://www.youtube.com/watch?v=RMBQn_sg7DA&t=798s]YouTube Link[/url]
+[h2]How to Add a Dependency[/h2]
+In [b][i]modinfo.lua[/i][/b], set the load priority to [b]a negative number[/b]. (This mod’s priority is 0, so a negative priority ensures your mod loads after this mod).
+[quote]
+priority = negative number
+[/quote]
+In [b][i]modinfo.lua[/i][/b], use the official dependency configuration format:
+[quote]
+local chinese = locale == "zh" or locale  == "zhr"
+mod_dependencies = {
+	{
+		[chinese and "Rooms" or "房间"] = true,
+	},
+}
+[/quote]
+[h2]How to Add New Room Types[/h2]
+Once dependent, you can call the global function provided by this mod in your mod’s modmain (this must be called on both the host and the client).
+[quote]
+--src: m23m_main_scripts\modified_mechanics\mod_room_key_items.lua
+--Returns true if added successfully, otherwise returns nil
+function AddM23MRoom(room_data) end
+[/quote]
+[b][i]room_data[/i][/b] is a table containing room configuration data, with the following supported fields:
+[table]
+[tr]
+	[th]Key[/th]
+	[th]Data Type[/th]
+	[th]Description[/th]
+[/tr]
+[tr]
+	[td]type[/td]
+	[td]string[/td]
+	[td]Room type; ensure this type is unique and does not overlap with other room types. Mandatory field.[/td]
+[/tr]
+[tr]
+	[td]name[/td]
+	[td]string[/td]
+	[td]Room name. Optional (not recommended), default is [b][i]STRINGS.M23M_ROOMS.NO_NAME.NAME[/i][/b].[/td]
+[/tr]
+[tr]
+	[td]desc[/td]
+	[td]string/function[/td]
+	[td]Room description, used to describe the room’s effect. Can be a function but must return a [b][i]string[/i][/b].
+	Optional (not recommended), default is [b][i]STRINGS.M23M_ROOMS.NO_NAME.DESC[/i][/b].[/td]
+[/tr]
+[tr]
+	[td]priority[/td]
+	[td]integer[/td]
+	[td]Priority for determining if a room is formed; must be a positive integer, with higher numbers taking precedence.
+	Optional, default is the highest priority among current room types +1.[/td]
+[/tr]
+[tr]
+	[td]min_size[/td]
+	[td]integer[/td]
+	[td]Minimum area required to form the room. Optional, default is `16` (area of 1 tile).[/td]
+[/tr]
+[tr]
+	[td]max_size[/td]
+	[td]integer[/td]
+	[td]Maximum area required to form the room; [b]not recommended to be too large, as this may cause performance issues[/b].
+	Optional, default is [b][i]128[/i][/b] (area of 8 tiles).[/td]
+[/tr]
+[tr]
+	[td]must_items[/td]
+	[td]table[/td]
+	[td]Items required to form the room. Mandatory field. Configuration format is detailed later.[/td]
+[/tr]
+[tr]
+	[td]available_tiles[/td]
+	[td]table[/td]
+	[td]Tiles required to form the room. Configure if needed, otherwise optional. Configuration format is detailed later.[/td]
+[/tr]
+[tr]
+	[td]color[/td]
+	[td]table[/td]
+	[td]Color for displaying the room on the map.
+	Format example: [b][i]{0.55, 0.23, 0.77, 1}[/i][/b]; it’s recommended to use the official color function: [b][i]RGB(r, g, b)[/i][/b].
+	Optional (not recommended), default is a randomly generated color, which varies with each game start on each client.[/td]
+[/tr]
+[tr]
+	[td]icon_atlas[/td]
+	[td]string[/td]
+	[td]Path to the [b][i]xml[/i][/b] file for the room icon. Optional, default is a generic room icon.
+	Must be set along with [u]icon_image[/u].[/td]
+[/tr]
+[tr]
+	[td]icon_image[/td]
+	[td]string[/td]
+	[td]Path to the [b][i]tex[/i][/b] file for the room icon. Optional, default is a generic room icon.
+	Must be set along with [u]icon_atlas[/u].[/td]
+[/tr]
+[/table]
+
+[h3]must_items Configuration Format[/h3]
+[b][i]must_items[/i][/b] is an array that sequentially includes [b][i]prefabs[/i][/b] or [b][i]prefab groups[/i][/b], [b]without specifying a key[/b].
+[olist]
+[*]Prefab string: Indicates that the item must exist in the room.
+[*]Prefab string array: Indicates that the room must contain at least one item from this array.
+[/olist]
+[quote]
+--Example 1:
+must_items = {
+	"researchlab2", --Alchemical Engine
+	"researchlab3", --Shadow Manipulator
+	"cartographydesk", --Cartography Desk
+}
+--Example 2:
+must_items = {
+	{"tent", "portabletent"}, --Tent/Camping Tent
+}
+--Example 3:
+must_items = {
+	{"cookpot", "portablecookpot"}, --Regular pot or portable pot
+	"icebox", --Icebox
+}
+[/quote]
+[h3]available_tiles Configuration Format[/h3]
+[b][i]available_tiles[/i][/b] uses [b][i]Tile ID[/i][/b] as the key, with [b][i]true[/i][/b] as the value.
+These [b][i]IDs[/i][/b] can be found in the official file [b][i]scripts/tiledefs.lua[/i][/b].
+[quote]
+--Example:
+local INDOOR_TILES = {
+	SHELLBEACH = true,	--Shell Beach Tile
+	MONKEY_GROUND = true,	--Moon Pier Beach Tile
+	BEARD_RUG = true,		--Beard Rug
+	WOODFLOOR = true,	--Wood Floor
+	COTL_GOLD = true,	--Gold Floor
+	COTL_BRICK = true,	--Brick Floor
+	CHECKER = true,	--Checker Floor
+	CARPET = true,	--Carpet Floor
+	CARPET2 = true,	--Lush Carpet
+	MOSAIC_GREY = true,	--Gray Mosaic Floor
+	MOSAIC_RED = true,	--Red Mosaic Floor
+	MOSAIC_BLUE = true,	--Blue Mosaic Floor
+}
+[/quote]
+[h3]Example Data[/h3]
+You can find the room configuration data in another mod: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3333908795]"Base Rooms Package"[/url], specifically in the [b][i]scripts/rbc_room_def.lua[/i][/b] file.
+[hr][/hr]
+[h1]Other[/h1]
+If you like this mod, please give it a thumbs up!
+Translated from ChatGPT.
+[h2]Feedback/Discussion Group[/h2]
+QQ Group: 745468368
+[hr][/hr]
+[img]https://steamuserimages-a.akamaihd.net/ugc/2383056013912597222/C3B0C9DFF262CE8DBA0D283FCA910D52AEEADAAA/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false[/img]
