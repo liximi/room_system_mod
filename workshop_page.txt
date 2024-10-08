@@ -76,11 +76,8 @@ priority = 负数
 [/quote]
 在 [b][i]modinfo.lua[/i][/b] 中使用官方的依赖配置格式：
 [quote]
-local chinese = locale == "zh" or locale  == "zhr"
-mod_dependencies = {
-	{
-		[chinese and "房间" or "Rooms"] = true,
-	},
+{
+	workshop = "workshop-3334403593",
 }
 [/quote]
 
