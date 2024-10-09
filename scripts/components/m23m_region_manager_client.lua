@@ -26,12 +26,11 @@ end
 --解析来自主机的 tile code
 local function decode_tile_code(code)
 	local tile = {}
-	tile.region = code % 1073741824		--2^30
-	code = (code - tile.region) / 1073741824
-	tile.space = code % 2
-	code = (code - tile.space) / 2
+	tile.region = code % 2147483648		--2^31
+	code = (code - tile.region) / 2147483648
 	tile.is_door = code % 2
-	tile.is_water = ((code - tile.is_door) / 2) == 1 and true or nil
+	code = (code - tile.is_door) / 2
+	tile.space = code % 2
 	tile.is_door = tile.is_door == 1 and true or nil
 	tile.space = tile.space == 1 and true or nil
 	return tile
@@ -70,7 +69,6 @@ local RegionSystem = Class(function (self, inst)
 		space: 该地块是否是可通过的空地, true表示为空, false表示有墙体或其他阻碍物
 		region: 切片分组ID, 整数, space为false的地块region固定为0
 		is_door: 该地块是否是门
-		is_water: 该地块是否是水域
 	]]
 	self.regions = {}	--不记录ID为0的region, {tiles = {y={x=tile}}, room = int, tiles_count = int}
 	self.rooms = {}		--不记录ID为0的房间, {regions = {array of region's id}, type = int(ROOM_TYPES)}

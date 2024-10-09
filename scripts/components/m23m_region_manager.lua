@@ -1,4 +1,4 @@
-local REGION_SYS = require "region_system/region_system"
+local REGION_SYS = require "region_system"
 local json = require "json"
 
 
@@ -30,6 +30,7 @@ local RegionSystem = Class(REGION_SYS, function (self, inst)
 	_G.TheRegionMgr = self
 end)
 
+--#region 坐标转换接口
 
 function RegionSystem:GetTileCoordsAtPoint(x, z)
 	return math.floor(x) + math.ceil(self.width/2), math.floor(z) + math.ceil(self.height/2)
@@ -38,6 +39,10 @@ end
 function RegionSystem:GetPointAtTileCoords(x, y)
 	return x - math.ceil(self.width/2) + 0.5, y - math.ceil(self.height/2) + 0.5
 end
+
+--#endregion
+--------------------------------------------------
+--#region 封装接口
 
 function RegionSystem:GetRoomTypeAtPoint(x, z)
 	local region_x, region_y = self:GetTileCoordsAtPoint(x, z)
@@ -54,6 +59,19 @@ function RegionSystem:GetRoomData(room_type)
 		end
 	end
 end
+
+--#endregion 
+--------------------------------------------------
+--#region 基类必需的函数覆写实现
+
+function RegionSystem:IsWater(x, y)
+	local _x, _z = self:GetPointAtTileCoords(x, y)
+	return TheWorld.Map:IsOceanTileAtPoint(_x, 0, _z)
+end
+
+--#endregion
+--------------------------------------------------
+--#region 地皮、物品更新接口
 
 function RegionSystem:ChangeItemRegion(item_name, old_region, new_region, refreash_room)
 	local count
@@ -267,8 +285,9 @@ function RegionSystem:CheckRoomTiles(room_id, available_tiles)
 	return true
 end
 
-
---主要是向客户端同步数据
+--#endregion
+--------------------------------------------------
+--#region 网络通讯
 
 local function send_section_data_to_clients(self, x, y)
 	local tiles = self:GetAllTilesInSection(x, y, true)
@@ -322,15 +341,15 @@ end
 --将tiles数据进行压缩，用于RPC传输
 --压缩后为一个整数数组，每2个连续元素存储1个地块的数据:
 --  地块坐标: (y - 1) * self.width + x
---  地块信息: 1 bit:space | 1 bit:is_door | 1 bit:is_water | 29 bit: region(max:536870911)
+--  地块信息: 1 bit:space | 1 bit:is_door | 30 bit: region(max:536870911)
 
 function RegionSystem:EncodeTiles(tiles_matrix)	--二维矩阵
 	local tiles = {}
 	for y, v in pairs(tiles_matrix) do
 		for x, data in pairs(v) do
 			local tile_pos = (y - 1) * self.width + x
-			--2^32: 4294967296 | 2^31: 2147483648 | 2^30: 1073741824
-			local tile_info = (data.is_water and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + (data.space and 1 or 0) * 1073741824 + data.region
+			--2^32: 4294967296 | 2^31: 2147483648
+			local tile_info = (data.space and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + data.region
 			table.insert(tiles, tile_pos)
 			table.insert(tiles, tile_info)
 		end
@@ -361,6 +380,8 @@ function RegionSystem:SendMapStreamToClient(userid)
 		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_tiles_stream, userid, code)
 	end
 end
+
+--#endregion
 
 
 return RegionSystem
