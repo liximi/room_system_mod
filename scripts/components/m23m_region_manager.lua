@@ -341,17 +341,15 @@ end
 --将tiles数据进行压缩，用于RPC传输
 --压缩后为一个整数数组，每2个连续元素存储1个地块的数据:
 --  地块坐标: (y - 1) * self.width + x
---  地块信息: 1 bit:space | 1 bit:is_door | 30 bit: region(max:536870911)
+--  地块region信息: max 4294967296-1
 
 function RegionSystem:EncodeTiles(tiles_matrix)	--二维矩阵
 	local tiles = {}
 	for y, v in pairs(tiles_matrix) do
 		for x, data in pairs(v) do
 			local tile_pos = (y - 1) * self.width + x
-			--2^32: 4294967296 | 2^31: 2147483648
-			local tile_info = (data.space and 1 or 0) * 4294967296 + (data.is_door and 1 or 0) * 2147483648 + data.region
 			table.insert(tiles, tile_pos)
-			table.insert(tiles, tile_info)
+			table.insert(tiles, data.region)
 		end
 	end
 	return json.encode(tiles)

@@ -16,7 +16,7 @@ local function PostInit(inst)
         collectgarbage("collect")
         local end_clock = os:clock()
         local memory_after = collectgarbage("count")
-        print(string.format("[M23M] Init Region Manager | Cost Time: %.2f secs | RAM Usage: %.2f Mb", (end_clock - start_clock)/1000, (memory_after - memory_before)/1024))
+        print(string.format("[M23M] Init Region Manager | Cost Time: %.4f secs | RAM Usage: %.4f Mb", (end_clock - start_clock)/1000, (memory_after - memory_before)/1024))
     else
         inst.M23M_RegionMgr = inst:AddComponent("m23m_region_manager_client")
     end

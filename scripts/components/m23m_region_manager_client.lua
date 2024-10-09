@@ -23,31 +23,6 @@ local function decode_roomsdata(roomsdata)
 	return rooms
 end
 
---解析来自主机的 tile code
-local function decode_tile_code(code)
-	local tile = {}
-	tile.region = code % 2147483648		--2^31
-	code = (code - tile.region) / 2147483648
-	tile.is_door = code % 2
-	code = (code - tile.is_door) / 2
-	tile.space = code % 2
-	tile.is_door = tile.is_door == 1 and true or nil
-	tile.space = tile.space == 1 and true or nil
-	return tile
-end
-
-local function count_digits(n)
-	local count = 0
-	if n == 0 then
-		return 1
-	end
-	while n > 0 do
-		n = math.floor(n / 10)
-		count = count + 1
-	end
-	return count
-end
-
 --------------------------------------------------
 -- RegionSystem 和主机的组件不同，没有继承region_system/region_system.lua
 --------------------------------------------------
@@ -64,12 +39,7 @@ local RegionSystem = Class(function (self, inst)
 	self.height = 0
 	self.section_width = 0
 	self.section_height = 0
-	self.tiles = {}
-	--[[tiles 地块数据
-		space: 该地块是否是可通过的空地, true表示为空, false表示有墙体或其他阻碍物
-		region: 切片分组ID, 整数, space为false的地块region固定为0
-		is_door: 该地块是否是门
-	]]
+	self.tiles = {}		--{y1 = {x1 = region_id1, x2 = region_id2, ...}, y2 = {...}}
 	self.regions = {}	--不记录ID为0的region, {tiles = {y={x=tile}}, room = int, tiles_count = int}
 	self.rooms = {}		--不记录ID为0的房间, {regions = {array of region's id}, type = int(ROOM_TYPES)}
 	--#endregion
@@ -78,6 +48,7 @@ local RegionSystem = Class(function (self, inst)
 end)
 
 
+--#region 坐标转换接口
 function RegionSystem:GetTileCoordsAtPoint(x, z)
 	return math.floor(x) + math.ceil(self.width/2), math.floor(z) + math.ceil(self.height/2)
 end
@@ -85,6 +56,10 @@ end
 function RegionSystem:GetPointAtTileCoords(x, y)
 	return x - math.ceil(self.width/2) + 0.5, y - math.ceil(self.height/2) + 0.5
 end
+
+--#endregion
+--------------------------------------------------
+--#region 查询数据
 
 function RegionSystem:GetAllRegionsInRoom(room_id)	--不要修改返回的表
 	if not room_id or not self.rooms[room_id] then
@@ -94,7 +69,7 @@ function RegionSystem:GetAllRegionsInRoom(room_id)	--不要修改返回的表
 end
 
 function RegionSystem:GetRegionId(x, y)
-	return self.tiles[y] and self.tiles[y][x] and self.tiles[y][x].region
+	return self.tiles[y] and self.tiles[y][x] and self.tiles[y][x]
 end
 
 function RegionSystem:GetRoomId(x, y)
@@ -136,18 +111,6 @@ function RegionSystem:GetRoomData(room_type)
 	end
 end
 
-function RegionSystem:RegisterRoomType(room_type)
-	if type(room_type) == "string" then
-		for _, _type in ipairs(ROOM_TYPES) do
-			if _type == room_type then
-				return
-			end
-		end
-		table.insert(ROOM_TYPES, room_type)
-		ROOM_TYPES_REVERSE[room_type] = #ROOM_TYPES
-	end
-end
-
 function RegionSystem:GetSectionAABB(x, y)
 	local base_x = math.floor((x-1) / self.section_width) * self.section_width + 1
 	local base_y = math.floor((y-1) / self.section_height) * self.section_width + 1
@@ -169,43 +132,25 @@ function RegionSystem:GetRoomSize(room_id)
 	return size
 end
 
-function RegionSystem:Print(data_key, sub_key, only_one_section, x, y)
-	data_key = data_key or "space"
-	print(string.format("width: %d, height: %d", self.width, self.height))
+--#endregion
+--------------------------------------------------
+--#region 注册房间类型
 
-	local max_line_number_len = count_digits(self.height)
-	local start_x, start_y, w, h = 1, 1, self.width, self.height
-	if only_one_section and x and y then
-		start_x, start_y, w, h = self:GetSectionAABB(x, y)
-		if not start_x then
-			start_x, start_y, w, h = 1, 1, self.width, self.height
-		end
-		print(string.format("start_x: %d, start_y: %d", start_x, start_y))
-	end
-	for i = start_y, h do
-		local line = {}
-		for j = start_x, w do
-			if sub_key then
-				table.insert(line, tostring(self.tiles[i][j][data_key][sub_key]))
-			else
-				table.insert(line, tostring(self.tiles[i][j][data_key]))
+function RegionSystem:RegisterRoomType(room_type)
+	if type(room_type) == "string" then
+		for _, _type in ipairs(ROOM_TYPES) do
+			if _type == room_type then
+				return
 			end
 		end
-
-		local line_number_len = count_digits(i)
-		local space = ""
-		local count = 0
-		while count < max_line_number_len - line_number_len do
-			count = count + 1
-			space = space.." "
-		end
-		print(tostring(i)..space.." | "..table.concat(line, " "))
+		table.insert(ROOM_TYPES, room_type)
+		ROOM_TYPES_REVERSE[room_type] = #ROOM_TYPES
 	end
 end
 
+--#endregion
 --------------------------------------------------
--- 接受来自主机的数据
---------------------------------------------------
+--#region 网络通讯
 
 --tiles的结构参主机组件的 EncodeTiles 函数
 function RegionSystem:ReceiveMapSizeData(width, height, section_width, section_height)
@@ -233,22 +178,22 @@ end
 
 function RegionSystem:ReceiveTileStream(tiles)
 	for i = 1, #tiles, 2 do
-		local tile = decode_tile_code(tiles[i+1])
+		local region = tiles[i+1]
 		local y = math.floor(tiles[i] / self.width) + 1
 		local x = tiles[i] - (y - 1) * self.width
 
 		if not self.tiles[y] then
 			self.tiles[y] = {}
 		end
-		self.tiles[y][x] = tile
+		self.tiles[y][x] = region
 
-		if tile.region ~= 0 then
-			local region = self.regions[tile.region]
+		if region ~= 0 then
+			local region = self.regions[region]
 			assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
 			if not region.tiles[y] then
 				region.tiles[y] = {}
 			end
-			region.tiles[y][x] = tile
+			region.tiles[y][x] = true
 			region.tiles_count = region.tiles_count + 1
 		end
 	end
@@ -266,14 +211,13 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 	local tiles = data.tiles
 	local empty_regions = {}
 	for i = 1, #tiles, 2 do
-		local tile = decode_tile_code(tiles[i+1])
 		local y = math.floor(tiles[i] / self.width) + 1
 		local x = tiles[i] - (y - 1) * self.width
-		local tile_region = tile.region
-		local old_tile_data = self.tiles[y][x]
-		self.tiles[y][x] = tile
-		if tile_region ~= old_tile_data.region and old_tile_data.region ~= 0 then
-			local old_region = self.regions[old_tile_data.region]
+		local tile_region = tiles[i+1]
+		local old_tile_region = self.tiles[y][x]
+		self.tiles[y][x] = tile_region
+		if tile_region ~= old_tile_region and old_tile_region ~= 0 then
+			local old_region = self.regions[old_tile_region]
 			if old_region then
 				if old_region.tiles[y] and old_region.tiles[y][x] then
 					old_region.tiles[y][x] = nil
@@ -282,7 +226,7 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 						old_region.tiles[y] = nil
 					end
 					if old_region.tiles_count <= 0 then
-						empty_regions[old_tile_data.region] = true
+						empty_regions[old_tile_region] = true
 					end
 				end
 			end
@@ -293,7 +237,7 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 				if not region.tiles[y] then
 					region.tiles[y] = {}
 				end
-				region.tiles[y][x] = tile
+				region.tiles[y][x] = true
 				region.tiles_count = region.tiles_count + 1
 				if empty_regions[tile_region] then
 					empty_regions[tile_region] = nil
@@ -318,6 +262,8 @@ function RegionSystem:ReceiveRoomsTypeUpdateData(data)
 		self.rooms[room_id].type = room_type
 	end
 end
+
+--#endregion
 
 
 return RegionSystem
