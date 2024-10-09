@@ -160,6 +160,8 @@ local RegionSystem = {
 }
 
 
+--#region 初始化、更新函数
+
 function RegionSystem:Generation(width, height, section_width, section_height)
 	self.width = width
 	self.height = height
@@ -387,6 +389,10 @@ function RegionSystem:RefreashRooms()	--遍历全部region, 刷新房间
 	end
 end
 
+--#endregion
+--------------------------------------------------
+--#region 地块状态判断
+
 function RegionSystem:IsPassable(x, y)
 	return self.tiles[y] and self.tiles[y][x] and self.tiles[y][x].space
 end
@@ -413,6 +419,14 @@ function RegionSystem:IsDoorRegion(region_id)
 	end
 	return is_door
 end
+
+function RegionSystem:IsInRoom(x, y, room_type)
+	return room_type == self:GetRoomType(x, y)
+end
+
+--#endregion
+--------------------------------------------------
+--#region 分区Section相关
 
 function RegionSystem:GetSectionAABB(x, y)
 	local base_x = math.floor((x-1) / self.section_width) * self.section_width + 1
@@ -441,6 +455,10 @@ function RegionSystem:GetAllTilesInSection(x, y, real_pos)	--通过坐标获取�
 
 	return tiles, base_x, base_y
 end
+
+--#endregion
+--------------------------------------------------
+--#region 查询数据
 
 function RegionSystem:GetRegionId(x, y)
 	return self.tiles[y] and self.tiles[y][x] and self.tiles[y][x].region
@@ -498,10 +516,53 @@ function RegionSystem:GetRegionPassableEdges(region_id)
 	return self.regions[region_id].passable_edges
 end
 
+function RegionSystem:GetRoomTypeById(room_id)
+	if not self.rooms[room_id] then
+		return "NONE"
+	end
+	return ROOM_TYPES[self.rooms[room_id].type] or "NONE"
+end
+
+function RegionSystem:GetRoomType(x, y)
+	local room_id = self:GetRoomId(x, y)
+	if room_id then
+		return self:GetRoomTypeById(room_id)
+	end
+	return "NONE"
+end
+
+function RegionSystem:GetRoomSize(room_id)
+	local regions = self:GetAllRegionsInRoom(room_id)
+	local size = 0
+	for _, region_id in ipairs(regions) do
+		local region = self.regions[region_id]
+		if region then
+			size = size + region.tiles_count
+		end
+	end
+	return size
+end
+
+function RegionSystem:GetDataInRegion(region_id, key)
+	if not self.regions[region_id] or type(key) ~= "string" then
+		return
+	end
+	return self.regions[region_id][key]
+end
+
+--#endregion
+--------------------------------------------------
+--#region 解码region边缘代码
+
+
 function RegionSystem:DeCodeEdge(edge_code)
 	local x, y, dir, length = decode_edge(edge_code)
 	return {x = x, y = y, dir = dir, length = length}
 end
+
+--#endregion
+--------------------------------------------------
+--#region 添加/移除墙体和门
 
 function RegionSystem:AddWalls(walls)	--{x, y}
 	local space_datas = {}
@@ -569,6 +630,10 @@ function RegionSystem:RemoveDoors(doors)	--{x, y}
 	end
 end
 
+--#endregion
+--------------------------------------------------
+--#region 房间相关
+
 function RegionSystem:RegisterRoomType(room_type)
 	if type(room_type) == "string" then
 		for _, _type in ipairs(ROOM_TYPES) do
@@ -592,37 +657,6 @@ function RegionSystem:SetRoomType(room_id, type)	--type是房间字符串id
 	return true
 end
 
-function RegionSystem:GetRoomTypeById(room_id)
-	if not self.rooms[room_id] then
-		return "NONE"
-	end
-	return ROOM_TYPES[self.rooms[room_id].type] or "NONE"
-end
-
-function RegionSystem:GetRoomType(x, y)
-	local room_id = self:GetRoomId(x, y)
-	if room_id then
-		return self:GetRoomTypeById(room_id)
-	end
-	return "NONE"
-end
-
-function RegionSystem:IsInRoom(x, y, room_type)
-	return room_type == self:GetRoomType(x, y)
-end
-
-function RegionSystem:GetRoomSize(room_id)
-	local regions = self:GetAllRegionsInRoom(room_id)
-	local size = 0
-	for _, region_id in ipairs(regions) do
-		local region = self.regions[region_id]
-		if region then
-			size = size + region.tiles_count
-		end
-	end
-	return size
-end
-
 function RegionSystem:SetDataToRegion(region_id, key, data)
 	if not self.regions[region_id] or type(key) ~= "string" then
 		return false
@@ -631,12 +665,9 @@ function RegionSystem:SetDataToRegion(region_id, key, data)
 	return true
 end
 
-function RegionSystem:GetDataInRegion(region_id, key)
-	if not self.regions[region_id] or type(key) ~= "string" then
-		return
-	end
-	return self.regions[region_id][key]
-end
+--#endregion
+--------------------------------------------------
+--#region 打印数据
 
 function RegionSystem:Print(data_key, sub_key, only_one_section, x, y)
 	data_key = data_key or "space"
@@ -679,10 +710,15 @@ function RegionSystem:PrintRoomData()
 	end
 end
 
+--#endregion
+--------------------------------------------------
+--#region 虚函数，有需要可以在子类中实现
 
--- function RegionSystem:RefreashRoomType(room_id) end
--- function RegionSystem:OnChangeTileRegion(x, y, old_region_id, new_region_id, refreash_room) end
--- function RegionSystem:ListenForRegionEvent(event, ...) end
+-- function RegionSystem:RefreashRoomType(room_id) end	用于更新房间类型，在需要更新房间类型时被调用
+-- function RegionSystem:OnChangeTileRegion(x, y, old_region_id, new_region_id, refreash_room) end	当地块所属的region发生变化时被调用
+-- function RegionSystem:ListenForRegionEvent(event, ...) end	监听抛出的事件，参见private_PushEvent函数
+
+--#endregion
 
 --------------------------------------------------
 -- 私有函数 Private Functions
