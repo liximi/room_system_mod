@@ -152,7 +152,6 @@ end
 --------------------------------------------------
 --#region 网络通讯
 
---tiles的结构参主机组件的 EncodeTiles 函数
 function RegionSystem:ReceiveMapSizeData(width, height, section_width, section_height)
 	assert(width > 0 and height > 0 and section_width > 0 and section_height > 0, ERR_NEGATIVE_MAP_SIZE_DATA)
 	self.width = width
@@ -176,19 +175,20 @@ function RegionSystem:ReceiveRoomsData(roomsdata, refresh_region)
 	end
 end
 
+--tiles的结构参见主机组件的 EncodeTiles 函数
 function RegionSystem:ReceiveTileStream(tiles)
 	for i = 1, #tiles, 2 do
-		local region = tiles[i+1]
+		local region_id = tiles[i+1]
 		local y = math.floor(tiles[i] / self.width) + 1
 		local x = tiles[i] - (y - 1) * self.width
 
 		if not self.tiles[y] then
 			self.tiles[y] = {}
 		end
-		self.tiles[y][x] = region
+		self.tiles[y][x] = region_id
 
-		if region ~= 0 then
-			local region = self.regions[region]
+		if region_id ~= 0 then
+			local region = self.regions[region_id]
 			assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
 			if not region.tiles[y] then
 				region.tiles[y] = {}
@@ -196,6 +196,10 @@ function RegionSystem:ReceiveTileStream(tiles)
 			region.tiles[y][x] = true
 			region.tiles_count = region.tiles_count + 1
 		end
+	end
+	local cur_progress = #self.tiles
+	if cur_progress == math.floor(self.height*0.25) or cur_progress == math.floor(self.height*0.5) or cur_progress == math.floor(self.height*0.75) or cur_progress == self.height then
+		collectgarbage("collect")
 	end
 end
 

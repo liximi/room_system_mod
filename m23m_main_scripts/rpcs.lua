@@ -21,6 +21,9 @@ AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_rooms_data", func
 	if TheRegionMgr and TheRegionMgr.ReceiveRoomsData and type(rooms) == "table" then
 		TheRegionMgr:ReceiveRoomsData(rooms, true)
 	end
+	rooms = nil
+	rooms_code = nil
+	collectgarbage("collect")
 end)
 
 AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_tiles_stream", function(tiles_stream)
@@ -29,6 +32,8 @@ AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_tiles_stream", fu
 	if TheRegionMgr and TheRegionMgr.ReceiveTileStream and type(tiles) == "table" then
 		TheRegionMgr:ReceiveTileStream(tiles)
 	end
+	tiles = nil
+	tiles_stream = nil
 end)
 
 AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_update_section_data", function(data_pack)	--{tiles = {要更新的地块数据}, rooms = {全部房间数据}}
