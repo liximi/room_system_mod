@@ -190,14 +190,15 @@ end
 
 --tiles的结构参见主机组件的 EncodeTiles 函数
 function RegionSystem:ReceiveTileStream(tiles_str)
-	if not self.start_time then
-		self.start_time = os.clock()
-	end
 	local tiles = decode_int_array(tiles_str)
 	for i = 1, #tiles, 2 do
 		local region_id = tiles[i+1]
 		local y = math.floor(tiles[i] / self.width) + 1
 		local x = tiles[i] - (y - 1) * self.width
+		if x == 0 then
+			x = 1
+			y = y - 1
+		end
 
 		if not self.tiles[y] then
 			self.tiles[y] = {}
@@ -214,9 +215,7 @@ function RegionSystem:ReceiveTileStream(tiles_str)
 			region.tiles_count = region.tiles_count + 1
 		end
 	end
-	if #self.tiles >= self.height then
-		print("Total Cost Time:", os.clock() - self.start_time)
-	end
+	return #self.tiles >= self.height
 end
 
 --{tiles = {要更新的地块数据}, rooms = {全部房间数据}}
