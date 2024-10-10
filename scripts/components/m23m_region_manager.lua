@@ -293,7 +293,7 @@ local function send_section_data_to_clients(self, x, y)
 	local tiles = self:GetAllTilesInSection(x, y, true)
 	local tiles_code = self:EncodeTiles(tiles)
 	local rooms_code = self:EncodeRooms()
-	local data_pack = string.format("{\"tiles\": %s, \"rooms\": %s}", tiles_code, rooms_code)
+	local data_pack = string.format("{\"tiles\": \"%s\", \"rooms\": \"%s\"}", tiles_code, rooms_code)
 	local userids = {}
 	for _, player in ipairs(AllPlayers) do
 		if TheNet:IsDedicated() or (TheWorld.ismastersim and player ~= ThePlayer) then
@@ -352,7 +352,7 @@ function RegionSystem:EncodeTiles(tiles_matrix)	--二维矩阵
 			table.insert(tiles, data.region)
 		end
 	end
-	return json.encode(tiles)
+	return table.concat(tiles, ",")
 end
 
 --将rooms数据进行压缩，用于RPC传输
@@ -368,7 +368,7 @@ function RegionSystem:EncodeRooms(rooms)
 			table.insert(rooms_data, region_id)
 		end
 	end
-	return json.encode(rooms_data)
+	return table.concat(rooms_data, ",")
 end
 
 

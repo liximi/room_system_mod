@@ -5,8 +5,21 @@ local ROOM_TYPES_REVERSE = {NONE = 1}
 local ERR_ROOM_DATA_NOT_SYNCHRONIZED = "RegionSystem Error: Room Data Not Synchronized."
 local ERR_NEGATIVE_MAP_SIZE_DATA = "RegionSystem ERRO: Negative Map Size Data."
 
+local function decode_int_array(tilesstr)
+	local result = {}
+    for num in string.gmatch(tilesstr, "%d+") do
+        table.insert(result, tonumber(num))
+    end
+	return result
+end
+
 --解析来自主机的 rooms 数据数组
-local function decode_roomsdata(roomsdata)
+local function decode_roomsdata(rooms_str)
+	if type(rooms_str) ~= "string" then
+		return {}
+	end
+
+	local roomsdata = decode_int_array(rooms_str)
 	local rooms = {}
 	local cur_head, len_of_arr = 1, #roomsdata
 	while cur_head < len_of_arr do
@@ -160,8 +173,8 @@ function RegionSystem:ReceiveMapSizeData(width, height, section_width, section_h
 	self.section_height = section_height
 end
 
-function RegionSystem:ReceiveRoomsData(roomsdata, refresh_region)
-	self.rooms = decode_roomsdata(roomsdata)
+function RegionSystem:ReceiveRoomsData(rooms_str, refresh_region)
+	self.rooms = decode_roomsdata(rooms_str)
 	if refresh_region then
 		for room_id, data in pairs(self.rooms) do
 			for _, region_id in ipairs(data.regions) do
@@ -176,7 +189,11 @@ function RegionSystem:ReceiveRoomsData(roomsdata, refresh_region)
 end
 
 --tiles的结构参见主机组件的 EncodeTiles 函数
-function RegionSystem:ReceiveTileStream(tiles)
+function RegionSystem:ReceiveTileStream(tiles_str)
+	if not self.start_time then
+		self.start_time = os.clock()
+	end
+	local tiles = decode_int_array(tiles_str)
 	for i = 1, #tiles, 2 do
 		local region_id = tiles[i+1]
 		local y = math.floor(tiles[i] / self.width) + 1
@@ -197,22 +214,18 @@ function RegionSystem:ReceiveTileStream(tiles)
 			region.tiles_count = region.tiles_count + 1
 		end
 	end
-	local cur_progress = #self.tiles
-	if cur_progress == math.floor(self.height*0.25) or cur_progress == math.floor(self.height*0.5) or cur_progress == math.floor(self.height*0.75) or cur_progress == self.height then
-		collectgarbage("collect")
+	if #self.tiles >= self.height then
+		print("Total Cost Time:", os.clock() - self.start_time)
 	end
 end
 
 --{tiles = {要更新的地块数据}, rooms = {全部房间数据}}
 function RegionSystem:ReceiveSectionUpdateData(data)
-	if type(data.rooms) == "table" then
-		self:ReceiveRoomsData(data.rooms, true)
-	end
-
-	if type(data.tiles) ~= "table" then
+	self:ReceiveRoomsData(data.rooms, true)
+	local tiles = decode_int_array(data.tiles)
+	if type(tiles) ~= "table" then
 		return
 	end
-	local tiles = data.tiles
 	local empty_regions = {}
 	for i = 1, #tiles, 2 do
 		local y = math.floor(tiles[i] / self.width) + 1

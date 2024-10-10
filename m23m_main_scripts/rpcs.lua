@@ -16,23 +16,19 @@ AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_size_data", funct
 end)
 
 AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_rooms_data", function(rooms_code)
-	local rooms = json.decode(rooms_code)
 	-- print("region_system_init_rooms_data", rooms)
-	if TheRegionMgr and TheRegionMgr.ReceiveRoomsData and type(rooms) == "table" then
-		TheRegionMgr:ReceiveRoomsData(rooms, true)
+	if TheRegionMgr and TheRegionMgr.ReceiveRoomsData and type(rooms_code) == "string" then
+		TheRegionMgr:ReceiveRoomsData(rooms_code, true)
 	end
-	rooms = nil
 	rooms_code = nil
 	collectgarbage("collect")
 end)
 
 AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_tiles_stream", function(tiles_stream)
-	local tiles = json.decode(tiles_stream)
 	-- print("region_system_init_tiles_stream", tiles)
-	if TheRegionMgr and TheRegionMgr.ReceiveTileStream and type(tiles) == "table" then
-		TheRegionMgr:ReceiveTileStream(tiles)
+	if TheRegionMgr and TheRegionMgr.ReceiveTileStream and type(tiles_stream) == "string" then
+		TheRegionMgr:ReceiveTileStream(tiles_stream)
 	end
-	tiles = nil
 	tiles_stream = nil
 end)
 
