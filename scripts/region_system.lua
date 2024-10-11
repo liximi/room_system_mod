@@ -151,7 +151,7 @@ local RegionSystem = {
 	tiles = {},
 	-- 除了Generation, 永远不要修改tiles[y][x]的引用
 	--[[tiles 地块数据
-		space: 该地块是否是可通过的空地, true表示为空, false表示有墙体或其他阻碍物
+		space: 该地块是否是可通过的空地, true表示为空, false/nil表示有墙体或其他阻碍物
 		region: 切片分组ID, 整数, space为false的地块region固定为0
 		is_door: 该地块是否是门
 	]]
@@ -569,7 +569,7 @@ function RegionSystem:AddWalls(walls)	--{x, y}
 	for i, pos in ipairs(walls) do
 		local x, y = pos[1], pos[2]
 		if self.tiles[y] and self.tiles[y][x] and self.tiles[y][x].space then
-			table.insert(space_datas, {x, y, false})
+			table.insert(space_datas, {x, y})
 		end
 	end
 
@@ -602,7 +602,7 @@ function RegionSystem:AddDoors(doors)	--{x, y}
 		local x, y = pos[1], pos[2]
 		if self.tiles[y] and self.tiles[y][x] and self.tiles[y][x].space then
 			self.tiles[y][x].is_door = true
-			table.insert(space_datas, {x, y, false})
+			table.insert(space_datas, {x, y})
 		end
 	end
 
