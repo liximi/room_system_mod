@@ -46,37 +46,21 @@ end
 --[Client Savedata]
 if not TheNet:IsDedicated() then
     print("[M23M] Init Client SaveData")
-    local json = require "json"
-    local M23M_CLIENT_SAVE_FILE_PATH = "m23m_client_savedata.json"
-    local M23M_CLIENT_SAVE = {}
-    local save_file = io.open(M23M_CLIENT_SAVE_FILE_PATH, "r")
-    if save_file then
-        local savedata_str = save_file:read("*a")
-        local savedata = json.decode(savedata_str)
-        if savedata then
-            M23M_CLIENT_SAVE = savedata
-        end
-        save_file:close()
-    end
+    local M23M_CLIENT_SAVE = require("persistentdata")("m23m_client_savedata.json")
+    M23M_CLIENT_SAVE:Load()
+
     global("M23M_SaveClientData", "M23M_GetClientSaveData")
     function _G.M23M_SaveClientData(key, value, write_immediately)
         if type(key) ~= "string" then
             return
         end
-        M23M_CLIENT_SAVE[key] = value
+        M23M_CLIENT_SAVE:SetValue(key, value)
         if write_immediately then
-            local save_file = io.open(M23M_CLIENT_SAVE_FILE_PATH, "w")
-            if save_file then
-                save_file:write(json.encode(M23M_CLIENT_SAVE))
-                save_file:close()
-            else
-                print("[M23M] Save File Not Exist")
-            end
-
+            M23M_CLIENT_SAVE:Save()
         end
     end
     function _G.M23M_GetClientSaveData(key)
-        return type(key) == "string" and M23M_CLIENT_SAVE[key]
+        return type(key) == "string" and M23M_CLIENT_SAVE:GetValue(key)
     end
 end
 --[Constants]
