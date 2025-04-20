@@ -1,4 +1,5 @@
 --用于从主机同步数据到客机，为客机提供数据查询接口
+require "region_system"	--引入region_system脚本是为了加载REGION_SYS_TILE_KEYS枚举
 local ROOM_TYPES = { "NONE", }
 local ROOM_TYPES_REVERSE = {NONE = 1}
 
@@ -193,7 +194,7 @@ function RegionSystem:ReceiveTileStream(tiles_str)
 	local tiles = decode_int_array(tiles_str)
 	for i = 1, #tiles, 2 do
 		local region_id = tiles[i+1]
-		local y = math.floor(tiles[i] / self.width) + 1
+		local y = math.floor(math.max(0, tiles[i] - 1) / self.width) + 1
 		local x = tiles[i] - (y - 1) * self.width
 		if x == 0 then
 			x = 1

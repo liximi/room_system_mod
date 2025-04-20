@@ -264,20 +264,19 @@ function RegionSystem:CheckRoomTiles(room_id, available_tiles)
 	local region_ids = self:GetAllRegionsInRoom(room_id)
 	for _, region_id in ipairs(region_ids) do
 		local region = self.regions[region_id]
-		for y, xs in pairs(region.tiles) do
-			for x, tile in pairs(xs) do
-				local world_x, world_z = self:GetPointAtTileCoords(x, y)
-				local center_x, center_y, center_z = TheWorld.Map:GetTileCenterPoint(world_x, 0, world_z)
-				if not world_tiles[center_z] then
-					world_tiles[center_z] = {}
+		for tile_index, _ in pairs(region.tiles) do
+			local x, y = self:GetPositionByIndex(tile_index)
+			local world_x, world_z = self:GetPointAtTileCoords(x, y)
+			local center_x, center_y, center_z = TheWorld.Map:GetTileCenterPoint(world_x, 0, world_z)
+			if not world_tiles[center_z] then
+				world_tiles[center_z] = {}
+			end
+			if not world_tiles[center_z][center_x] then
+				local tile_id = TheWorld.Map:GetTileAtPoint(world_x, 0, world_z)
+				if not available_tiles[INVERTED_WORLD_TILES[tile_id]] then
+					return false
 				end
-				if not world_tiles[center_z][center_x] then
-					local tile_id = TheWorld.Map:GetTileAtPoint(world_x, 0, world_z)
-					if not available_tiles[INVERTED_WORLD_TILES[tile_id]] then
-						return false
-					end
-					world_tiles[center_z][center_x] = tile_id
-				end
+				world_tiles[center_z][center_x] = tile_id
 			end
 		end
 	end
@@ -290,7 +289,7 @@ end
 --#region 网络通讯
 
 local function send_section_data_to_clients(self, x, y)
-	local tiles = self:GetAllTilesInSection(x, y, true)
+	local tiles = self:GetAllTilesInSection(x, y, REGION_SYS_TILE_KEYS.REGION)
 	local tiles_code = self:EncodeTiles(tiles)
 	local rooms_code = self:EncodeRooms()
 	local data_pack = string.format("{\"tiles\": \"%s\", \"rooms\": \"%s\"}", tiles_code, rooms_code)
@@ -343,16 +342,13 @@ end
 --  地块坐标: (y - 1) * self.width + x
 --  地块region信息: max 4294967296-1
 
-function RegionSystem:EncodeTiles(tiles_matrix)	--二维矩阵
-	local tiles = {}
-	for y, v in pairs(tiles_matrix) do
-		for x, data in pairs(v) do
-			local tile_pos = (y - 1) * self.width + x
-			table.insert(tiles, tile_pos)
-			table.insert(tiles, data.region)
-		end
+function RegionSystem:EncodeTiles(tiles)
+	local _tiles = {}
+	for tile_index, region_id in pairs(tiles) do
+		table.insert(_tiles, tile_index)
+		table.insert(_tiles, region_id)
 	end
-	return table.concat(tiles, ",")
+	return table.concat(_tiles, ",")
 end
 
 --将rooms数据进行压缩，用于RPC传输
@@ -373,8 +369,13 @@ end
 
 
 function RegionSystem:SendMapStreamToClient(userid)
-	for i = 1, self.height do
-		local code = self:EncodeTiles({[i] = self.tiles[i]})
+	for y = 1, self.height do
+		local tiles = {}
+		for x = 1, self.width do
+			local index = self:GetTileIndex(x, y)
+			tiles[index] = self:GetTileByIndex(index, REGION_SYS_TILE_KEYS.REGION)
+		end
+		local code = self:EncodeTiles(tiles)
 		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_tiles_stream, userid, code)
 	end
 end

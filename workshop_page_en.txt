@@ -12,7 +12,7 @@ This mod is created as a personal hobby project. Any form of unauthorized redist
 [/list]
 
 [h1]Special Note[/h1]
-[b]Enabling this mod will significantly increase memory usage (about 900 MB on the server and around 200–300 MB on the client) and will also noticeably extend game loading times.[/b]
+[b]Enabling this mod will significantly increase memory usage (about 1GB on the server and around 380MB on the client) and will also noticeably extend game loading times.[/b]
 [b]Additionally, there will be a few seconds to a few minutes of lag (depending on the client’s hardware performance) when other players join the game, as data is being received from the host or server.[/b]
 [hr][/hr]
 

@@ -6,7 +6,7 @@
 
 ## 特别注意
 
-**开启本mod将会较大幅增加内存占用(服务器大约增加900Mb，客户端大约增加200Mb~300Mb)，同时也会较大幅增加游戏载入时间。**
+**开启本mod将会较大幅增加内存占用(服务器大约增加1Gb，客户端大约增加380Mb)，同时也会较大幅增加游戏载入时间。**
 
 **另外，当其他玩家连入游戏时，会存在几秒到几分钟的卡顿（取决于客户端的硬件性能），这是在从主机或者服务器上接收数据。**
 
@@ -36,9 +36,7 @@ priority = 负数
 ```lua
 local chinese = locale == "zh" or locale  == "zhr"
 mod_dependencies = {
-    {
-        [chinese and "房间" or "Rooms"] = true,
-    },
+    [chinese and "房间" or "Rooms"] = true,
 }
 ```
 

@@ -37,6 +37,8 @@ AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_tiles_stream", fu
 		if finished then
 			print(string.format("Received init tiles data, cost time: ~%.4fs, cost memory: ~%.4fMb", os.clock() - start_receiving_init_tiles_data_clock, (collectgarbage("count") - start_receiving_init_tiles_data_mem)/1024))
 			print("Finished receiving datas from server.")
+			start_receiving_init_tiles_data_clock = nil
+			start_receiving_init_tiles_data_mem = nil
 		end
 	end
 	tiles_stream = nil
