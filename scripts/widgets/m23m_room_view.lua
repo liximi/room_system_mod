@@ -106,12 +106,16 @@ local RoomView = Class(Widget, function(self, owner)
 	self.tip_roomsize_note = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE4, STRINGS.M23M_UI.SIZE_LIMITATION2, COLOR3))
 	self.tip_roomsize_note:SetHAlign(ANCHOR_LEFT)
 
+	local text_max_w = self.tip_w - TIP_MARGIN * 2
+
 	self.tip_must_items_title = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE3, STRINGS.M23M_UI.MUST_ITEMS_TITLE))
 	self.tip_must_items_title:SetHAlign(ANCHOR_LEFT)
+	self.tip_must_items_title:SetMultilineTruncatedString(STRINGS.M23M_UI.MUST_ITEMS_TITLE, 3, text_max_w)
 	self.tip_must_items_texts = {}
 
 	self.tip_must_tiles_title = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE3, STRINGS.M23M_UI.MUST_TILES_TITLE))
 	self.tip_must_tiles_title:SetHAlign(ANCHOR_LEFT)
+	self.tip_must_tiles_title:SetMultilineTruncatedString(STRINGS.M23M_UI.MUST_TILES_TITLE, 3, text_max_w)
 	self.tip_must_tiles_texts = {}
 
 	self:StartUpdating()

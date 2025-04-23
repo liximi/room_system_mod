@@ -19,9 +19,6 @@ local ViewSwitcher = Class(Widget, function(self, owner)
 	--BG
 	local bg_w = 195
 	self.bg = self.root:AddChild(NineSlice("images/ui/nineslice1.xml"))
-	self.bg:SetSize(bg_w, 22)
-	self.bg:SetPosition(bg_w/2, 0)
-
 	self.bg.OnMouseButton = function(_self, button, down, x, y)
 		if button == MOUSEBUTTON_LEFT and down then
 			local mousepos = TheInput:GetScreenPosition()
@@ -52,7 +49,13 @@ local ViewSwitcher = Class(Widget, function(self, owner)
 
 	--text
 	self.text = self.bg:AddChild(Text(UIFONT, 26, STRINGS.M23M_UI.ROOM_OVERVIEW))
-	self.text:SetPosition(30 + self.text:GetRegionSize()/2 - bg_w/2, 0)
+	local text_w = self.text:GetRegionSize()
+	if text_w > bg_w - 30 then
+		bg_w = text_w + 30
+	end
+	self.bg:SetSize(bg_w, 22)
+	self.bg:SetPosition(bg_w/2, 0)
+	self.text:SetPosition(30 + (text_w - bg_w)/2, 0)
 
 	--房间视图切换
 	self.room_view_btn = self.bg:AddChild(ImageBtn("images/global_redux.xml", "arrow2_right.tex", "arrow2_right_over.tex", "arrow_right_disabled.tex", "arrow2_right_over.tex", "arrow2_right_over.tex", {0.25, 0.25}))
