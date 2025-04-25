@@ -167,7 +167,6 @@ local RegionSystem = {
 	section_width = 0,
 	section_height = 0,
 	tiles = {},
-	-- 除了Generation, 永远不要修改tiles[y][x]的引用
 	--[[tiles 地块数据，每个元素都是一个一维数组，起长度等于地图里的地块数量(width * height)
 		key与REGION_SYS_TILE_KEYS里每个属性的值对应
 		1: 该地块是否是可通过的空地, true表示为空, false/nil表示有墙体或其他阻碍物

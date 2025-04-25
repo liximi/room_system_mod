@@ -40,7 +40,11 @@ end
 --------------------------------------------------
 -- RegionSystem 和主机的组件不同，没有继承region_system/region_system.lua
 --------------------------------------------------
-
+_G.REGION_SYS_TILE_KEYS = {	--地块数据的key
+	SPACE = 1,
+	REGION = 2,
+	IS_DOOR = 3,
+}
 
 local RegionSystem = Class(function (self, inst)
 	self.inst = inst
@@ -53,8 +57,14 @@ local RegionSystem = Class(function (self, inst)
 	self.height = 0
 	self.section_width = 0
 	self.section_height = 0
-	self.tiles = {}		--{y1 = {x1 = region_id1, x2 = region_id2, ...}, y2 = {...}}
-	self.regions = {}	--不记录ID为0的region, {tiles = {y={x=tile}}, room = int, tiles_count = int}
+	self.tiles = {
+		[REGION_SYS_TILE_KEYS.REGION] = {},
+	}
+	--[[tiles 地块数据，每个元素都是一个一维数组，起长度等于地图里的地块数量(width * height)
+		key与REGION_SYS_TILE_KEYS里每个属性的值对应
+		2: 切片分组ID, 整数, space为false的地块region固定为0
+	]]
+	self.regions = {}	--不记录ID为0的region, {tiles = {tile_index1=true, tile_index2=true, ...}, room = int, tiles_count = int}
 	self.rooms = {}		--不记录ID为0的房间, {regions = {array of region's id}, type = int(ROOM_TYPES)}
 	--#endregion
 
@@ -73,6 +83,75 @@ end
 
 --#endregion
 --------------------------------------------------
+--#region 获取地块数据接口
+
+--<param> key: 传递一个int, 建议使用REGION_SYS_TILE_KEYS枚举，如果为空，则用一个table返回所有属性，key为string，对应REGION_SYS_TILE_KEYS里的key </param>
+--<return> 如果返回值为nil，说明没有获取到值 </return>
+function RegionSystem:GetTile(x, y, key)
+	if x > self.width then
+		print("GetTile Error: x > self.width")
+		return
+	end
+	if y > self.height then
+		print("GetTile Error: y > self.height")
+		return
+	end
+	if key ~= nil and not self.tiles[key] then
+		print("GetTile Error: key not found")
+		return
+	end
+	local index = (y - 1) * self.width + x
+	if index > self.max_index then
+		print("GetTile Error: index out of range")
+		return
+	end
+	if key == nil then
+		local result = {}
+		for k, v in pairs(REGION_SYS_TILE_KEYS) do
+			result[k] = self.tiles[v][index]
+		end
+		return result
+	else
+		return self.tiles[key][index]
+	end
+end
+
+--<param> key: 传递一个int, 建议使用REGION_SYS_TILE_KEYS枚举，如果为空，则用一个table返回所有属性，key为string，对应REGION_SYS_TILE_KEYS里的key </param>
+--<return> 如果返回值为nil，说明没有获取到值 </return>
+function RegionSystem:GetTileByIndex(index, key)
+	if key ~= nil and not self.tiles[key] then
+		print("GetTile Error: key not found")
+		return
+	end
+	if index > self.max_index then
+		print("GetTile Error: index out of range")
+		return
+	end
+	if key == nil then
+		local result = {}
+		for k, v in pairs(REGION_SYS_TILE_KEYS) do
+			result[k] = self.tiles[v][index]
+		end
+		return result
+	else
+		return self.tiles[key][index]
+	end
+end
+
+--<summary> 工具函数，只负责计算，不负责验证 </summary>
+function RegionSystem:GetPositionByIndex(tile_index)
+	local y = math.floor(math.max(0, tile_index - 1) / self.width) + 1
+	local x = tile_index - (y - 1) * self.width
+	return x, y
+end
+
+--<summary> 工具函数，只负责计算，不负责验证 </summary>
+function RegionSystem:GetTileIndex(x, y)
+	return (y - 1) * self.width + x
+end
+
+--#endregion
+--------------------------------------------------
 --#region 查询数据
 
 function RegionSystem:GetAllRegionsInRoom(room_id)	--不要修改返回的表
@@ -83,7 +162,7 @@ function RegionSystem:GetAllRegionsInRoom(room_id)	--不要修改返回的表
 end
 
 function RegionSystem:GetRegionId(x, y)
-	return self.tiles[y] and self.tiles[y][x] and self.tiles[y][x]
+	return self:GetTile(x, y, REGION_SYS_TILE_KEYS.REGION)
 end
 
 function RegionSystem:GetRoomId(x, y)
@@ -128,7 +207,8 @@ end
 function RegionSystem:GetSectionAABB(x, y)
 	local base_x = math.floor((x-1) / self.section_width) * self.section_width + 1
 	local base_y = math.floor((y-1) / self.section_height) * self.section_width + 1
-	if not self.tiles[base_y] or not self.tiles[base_y][base_x] then
+	local index = self:GetTileIndex(base_x, base_y)
+	if not self.tiles[index] then
 		return
 	end
 	return base_x, base_y, math.min(base_x + self.section_width - 1, self.width), math.min(base_y + self.section_height - 1, self.height)
@@ -194,29 +274,17 @@ function RegionSystem:ReceiveTileStream(tiles_str)
 	local tiles = decode_int_array(tiles_str)
 	for i = 1, #tiles, 2 do
 		local region_id = tiles[i+1]
-		local y = math.floor(math.max(0, tiles[i] - 1) / self.width) + 1
-		local x = tiles[i] - (y - 1) * self.width
-		if x == 0 then
-			x = 1
-			y = y - 1
-		end
-
-		if not self.tiles[y] then
-			self.tiles[y] = {}
-		end
-		self.tiles[y][x] = region_id
+		local index = tiles[i]
+		self.tiles[REGION_SYS_TILE_KEYS.REGION][index] = region_id
 
 		if region_id ~= 0 then
 			local region = self.regions[region_id]
 			assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
-			if not region.tiles[y] then
-				region.tiles[y] = {}
-			end
-			region.tiles[y][x] = true
+			region.tiles[index] = true
 			region.tiles_count = region.tiles_count + 1
 		end
 	end
-	return #self.tiles >= self.height
+	return #self.tiles[REGION_SYS_TILE_KEYS.REGION] >= self.height * self.width
 end
 
 --{tiles = {要更新的地块数据}, rooms = {全部房间数据}}
@@ -228,20 +296,16 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 	end
 	local empty_regions = {}
 	for i = 1, #tiles, 2 do
-		local y = math.floor(tiles[i] / self.width) + 1
-		local x = tiles[i] - (y - 1) * self.width
+		local index = tiles[i]
 		local tile_region = tiles[i+1]
-		local old_tile_region = self.tiles[y][x]
-		self.tiles[y][x] = tile_region
+		local old_tile_region = self:GetTileByIndex(index, REGION_SYS_TILE_KEYS.REGION)
+		self.tiles[REGION_SYS_TILE_KEYS.REGION][index] = tile_region
 		if tile_region ~= old_tile_region and old_tile_region ~= 0 then
 			local old_region = self.regions[old_tile_region]
 			if old_region then
-				if old_region.tiles[y] and old_region.tiles[y][x] then
-					old_region.tiles[y][x] = nil
+				if old_region.tiles[index] then
+					old_region.tiles[index] = nil
 					old_region.tiles_count = old_region.tiles_count - 1
-					if IsEmptyTable(old_region.tiles[y]) then
-						old_region.tiles[y] = nil
-					end
 					if old_region.tiles_count <= 0 then
 						empty_regions[old_tile_region] = true
 					end
@@ -251,10 +315,7 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 			if tile_region ~= 0 then
 				local region = self.regions[tile_region]
 				assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
-				if not region.tiles[y] then
-					region.tiles[y] = {}
-				end
-				region.tiles[y][x] = true
+				region.tiles[index] = true
 				region.tiles_count = region.tiles_count + 1
 				if empty_regions[tile_region] then
 					empty_regions[tile_region] = nil
