@@ -55,6 +55,7 @@ local RegionSystem = Class(function (self, inst)
 	--#region 这些数据都从主机同步，不要在客机上修改
 	self.width = 0
 	self.height = 0
+	self.max_index = 0
 	self.section_width = 0
 	self.section_height = 0
 	self.tiles = {
@@ -250,6 +251,7 @@ function RegionSystem:ReceiveMapSizeData(width, height, section_width, section_h
 	assert(width > 0 and height > 0 and section_width > 0 and section_height > 0, ERR_NEGATIVE_MAP_SIZE_DATA)
 	self.width = width
 	self.height = height
+	self.max_index = width * height
 	self.section_width = section_width
 	self.section_height = section_height
 end
@@ -284,7 +286,7 @@ function RegionSystem:ReceiveTileStream(tiles_str)
 			region.tiles_count = region.tiles_count + 1
 		end
 	end
-	return #self.tiles[REGION_SYS_TILE_KEYS.REGION] >= self.height * self.width
+	return #self.tiles[REGION_SYS_TILE_KEYS.REGION] >= self.max_index
 end
 
 --{tiles = {要更新的地块数据}, rooms = {全部房间数据}}
