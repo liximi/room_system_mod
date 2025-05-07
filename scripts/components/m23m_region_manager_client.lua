@@ -254,6 +254,10 @@ function RegionSystem:ReceiveMapSizeData(width, height, section_width, section_h
 	self.max_index = width * height
 	self.section_width = section_width
 	self.section_height = section_height
+
+	for i = 1, self.max_index do
+		self.tiles[REGION_SYS_TILE_KEYS.REGION][i] = 0
+	end
 end
 
 function RegionSystem:ReceiveRoomsData(rooms_str, refresh_region)
