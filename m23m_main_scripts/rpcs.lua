@@ -26,20 +26,9 @@ AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_rooms_data", func
 	collectgarbage("collect")
 end)
 
-local start_receiving_init_tiles_data_clock, start_receiving_init_tiles_data_mem
 AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_tiles_stream", function(tiles_stream)
 	if TheRegionMgr and TheRegionMgr.ReceiveTileStream and type(tiles_stream) == "string" then
-		if not start_receiving_init_tiles_data_clock then
-			start_receiving_init_tiles_data_clock = os.clock()
-			start_receiving_init_tiles_data_mem = collectgarbage("count")
-		end
-		local finished = TheRegionMgr:ReceiveTileStream(tiles_stream)
-		if finished then
-			print(string.format("Received init tiles data, cost time: ~%.4fs, cost memory: ~%.4fMb", os.clock() - start_receiving_init_tiles_data_clock, (collectgarbage("count") - start_receiving_init_tiles_data_mem)/1024))
-			print("Finished receiving datas from server.")
-			start_receiving_init_tiles_data_clock = nil
-			start_receiving_init_tiles_data_mem = nil
-		end
+		TheRegionMgr:ReceiveTileStream(tiles_stream)
 	end
 	tiles_stream = nil
 end)

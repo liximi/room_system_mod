@@ -276,7 +276,16 @@ function RegionSystem:ReceiveRoomsData(rooms_str, refresh_region)
 end
 
 --tiles的结构参见主机组件的 EncodeTiles 函数
+local total_cost_time, total_cost_mem = 0, 0
+local function task_print_data()
+	print(string.format("[M23M] Received init tiles data, cost time: ~%.4fs, cost memory: ~%.4fMb", total_cost_time, total_cost_mem/1024))
+	print("[M23M] Finished receiving datas from server.")
+	total_cost_time, total_cost_mem = 0, 0
+end
 function RegionSystem:ReceiveTileStream(tiles_str)
+	local start_clock = os.clock()
+	local start_mem = collectgarbage("count")
+
 	local tiles = decode_int_array(tiles_str)
 	for i = 1, #tiles, 2 do
 		local region_id = tiles[i+1]
@@ -290,7 +299,14 @@ function RegionSystem:ReceiveTileStream(tiles_str)
 			region.tiles_count = region.tiles_count + 1
 		end
 	end
-	return #self.tiles[REGION_SYS_TILE_KEYS.REGION] >= self.max_index
+
+	total_cost_time = total_cost_time + os.clock() - start_clock
+	total_cost_mem = total_cost_mem + collectgarbage("count") - start_mem
+	if self.waiting_for_next_stream then	--如果2秒内没有收到下一条数据流，那么就当做接收完成
+		self.waiting_for_next_stream:Cancel()
+		self.waiting_for_next_stream = nil
+	end
+	self.waiting_for_next_stream = self.inst:DoTaskInTime(2, task_print_data)
 end
 
 --{tiles = {要更新的地块数据}, rooms = {全部房间数据}}

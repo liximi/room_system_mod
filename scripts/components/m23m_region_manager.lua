@@ -367,13 +367,17 @@ function RegionSystem:EncodeRooms(rooms)
 	return table.concat(rooms_data, ",")
 end
 
-
+--发送全地图的地块信息，会跳过region为0的地块，以减少网络传输耗时
 function RegionSystem:SendMapStreamToClient(userid)
+	local index = 1
 	for y = 1, self.height do
 		local tiles = {}
 		for x = 1, self.width do
-			local index = self:GetTileIndex(x, y)
-			tiles[index] = self:GetTileByIndex(index, REGION_SYS_TILE_KEYS.REGION)
+			local region = self:GetTileByIndex(index, REGION_SYS_TILE_KEYS.REGION)
+			if region ~= 0 then
+				tiles[index] = region
+			end
+			index = index + 1
 		end
 		local code = self:EncodeTiles(tiles)
 		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_tiles_stream, userid, code)
