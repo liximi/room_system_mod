@@ -58,6 +58,7 @@ local RegionSystem = Class(function (self, inst)
 	self.max_index = 0
 	self.section_width = 0
 	self.section_height = 0
+	self.section_count_x = 0
 	self.tiles = {
 		[REGION_SYS_TILE_KEYS.REGION] = {},
 	}
@@ -254,6 +255,7 @@ function RegionSystem:ReceiveMapSizeData(width, height, section_width, section_h
 	self.max_index = width * height
 	self.section_width = section_width
 	self.section_height = section_height
+	self.section_count_x = math.ceil(width / section_width)
 
 	for i = 1, self.max_index do
 		self.tiles[REGION_SYS_TILE_KEYS.REGION][i] = 0
@@ -282,31 +284,48 @@ local function task_print_data()
 	print("[M23M] Finished receiving datas from server.")
 	total_cost_time, total_cost_mem = 0, 0
 end
-function RegionSystem:ReceiveTileStream(tiles_str)
+
+function RegionSystem:ReceiveInitSectionCache(sections_cache)
 	local start_clock = os.clock()
 	local start_mem = collectgarbage("count")
+	for section_id, cache_str in ipairs(string.split(sections_cache, "|")) do
+		local tiles = decode_int_array(cache_str)
+		local main_region_id = tiles[1]
+		local base_x, base_y = self:GetSectionStartingPos(section_id)
+		for i = base_y, math.min(base_y + self.section_height - 1, self.height) do
+			for j = base_x, math.min(base_x + self.section_width - 1, self.width) do
+				local index = self:GetTileIndex(j, i)
+				self.tiles[REGION_SYS_TILE_KEYS.REGION][index] = main_region_id
+				if main_region_id ~= 0 then
+					local region = self.regions[main_region_id]
+					assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+					region.tiles[index] = true
+					region.tiles_count = region.tiles_count + 1
+				end
+			end
+		end
 
-	local tiles = decode_int_array(tiles_str)
-	for i = 1, #tiles, 2 do
-		local region_id = tiles[i+1]
-		local index = tiles[i]
-		self.tiles[REGION_SYS_TILE_KEYS.REGION][index] = region_id
+		for i = 2, #tiles, 2 do
+			local index = tiles[i]
+			local region_id = tiles[i+1]
+			self.tiles[REGION_SYS_TILE_KEYS.REGION][index] = region_id
 
-		if region_id ~= 0 then
-			local region = self.regions[region_id]
-			assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
-			region.tiles[index] = true
-			region.tiles_count = region.tiles_count + 1
+			if region_id ~= 0 then
+				local region = self.regions[region_id]
+				assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+				region.tiles[index] = true
+				region.tiles_count = region.tiles_count + 1
+				if main_region_id ~= 0 then
+					self.regions[main_region_id].tiles[index] = nil
+					self.regions[main_region_id].tiles_count = self.regions[main_region_id].tiles_count - 1
+				end
+			end
 		end
 	end
 
 	total_cost_time = total_cost_time + os.clock() - start_clock
 	total_cost_mem = total_cost_mem + collectgarbage("count") - start_mem
-	if self.waiting_for_next_stream then	--如果2秒内没有收到下一条数据流，那么就当做接收完成
-		self.waiting_for_next_stream:Cancel()
-		self.waiting_for_next_stream = nil
-	end
-	self.waiting_for_next_stream = self.inst:DoTaskInTime(2, task_print_data)
+	task_print_data()
 end
 
 --{tiles = {要更新的地块数据}, rooms = {全部房间数据}}
@@ -361,6 +380,13 @@ function RegionSystem:ReceiveRoomsTypeUpdateData(data)
 		assert(self.rooms[room_id], ERR_ROOM_DATA_NOT_SYNCHRONIZED)
 		self.rooms[room_id].type = room_type
 	end
+end
+
+--通过section的ID获取section的起始坐标
+function RegionSystem:GetSectionStartingPos(section_id)
+	local section_y = math.ceil(section_id / self.section_count_x)
+	local section_x = section_id - (section_y - 1) * self.section_count_x
+	return (section_x - 1) * self.section_width, (section_y - 1) * self.section_height
 end
 
 --#endregion

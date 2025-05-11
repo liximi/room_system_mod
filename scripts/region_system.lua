@@ -166,6 +166,7 @@ local RegionSystem = {
 	max_index = 0,
 	section_width = 0,
 	section_height = 0,
+	section_count_x = 0,	--单独为mod加的缓存数据
 	tiles = {},
 	--[[tiles 地块数据，每个元素都是一个一维数组，起长度等于地图里的地块数量(width * height)
 		key与REGION_SYS_TILE_KEYS里每个属性的值对应
@@ -253,6 +254,7 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 	self.max_index = width * height
 	self.section_width = section_width or self.width
 	self.section_height = section_height or self.height
+	self.section_count_x = math.ceil(self.width / self.section_width)
 	self.tiles = {}
 	for k, v in pairs(REGION_SYS_TILE_KEYS) do
 		self.tiles[v] = {}
@@ -298,6 +300,7 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 			self:RefreashSectionEdges(base_j, base_i)
 		end
 	end
+	self:private_PushEvent("section_update_mult")
 end
 
 function RegionSystem:RefreashSection(x, y)
@@ -954,7 +957,7 @@ end
 
 --[[Events List:
 	section_update_single: x, y
-	section_update_mult: sections={y1={x1, x2, ...}, y2={...}}
+	section_update_mult: sections={y1={x1, x2, ...}, y2={...}}, 如果为空则表示所有section都更新了
 	rooms_type_update: changes={{room_id, new_room_type}, ...}
 ]]
 function RegionSystem:private_PushEvent(event, ...)

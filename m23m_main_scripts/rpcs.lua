@@ -26,11 +26,11 @@ AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_rooms_data", func
 	collectgarbage("collect")
 end)
 
-AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_tiles_stream", function(tiles_stream)
-	if TheRegionMgr and TheRegionMgr.ReceiveTileStream and type(tiles_stream) == "string" then
-		TheRegionMgr:ReceiveTileStream(tiles_stream)
+AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_data", function(sections_cache)
+	if TheRegionMgr and TheRegionMgr.ReceiveInitSectionCache and type(sections_cache) == "string" then
+		TheRegionMgr:ReceiveInitSectionCache(sections_cache)
 	end
-	tiles_stream = nil
+	sections_cache = nil
 end)
 
 AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_update_section_data", function(data_pack)	--{tiles = {要更新的地块数据}, rooms = {全部房间数据}}

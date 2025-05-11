@@ -13,6 +13,11 @@ local RegionSystem = Class(REGION_SYS, function (self, inst)
 		self:RegisterRoomType(data.type)
 	end
 
+	--给客户端准备的缓存数据，理论上是一个连续数组
+	--key: section的起始坐标对应的index
+	--value: {main_region: integer 地块数量最多的region, other_regions: string 使用EncodeTiles处理后的数据 其他地块对应的region}
+	self.section_data_cache = {}
+
 	self.inst:ListenForEvent("onterraform", function(world, data)
 		--data: {x:tilemap的坐标, y:tilemap的坐标, original_tile:int, tile:int}
 		local pt_x, pt_z = _G.GetTileCenterPointByTileCoords(data.x, data.y)
@@ -320,13 +325,24 @@ end
 local event_handlers = {
 	section_update_single = function (self, x, y)
 		if not check_should_send_rpc_to_clients() then return end
+		self:RefreashSectionDataCache(x, y)
 		send_section_data_to_clients(self, x, y)
 	end,
 	section_update_mult = function (self, sections)
 		if not check_should_send_rpc_to_clients() then return end
-		for y, xs in pairs(sections) do
-			for x, _ in pairs(xs) do
-				send_section_data_to_clients(self, x, y)
+		if sections == nil then
+			for y = 1, self.height, self.section_height do
+				for x = 1, self.width, self.section_width do
+					self:RefreashSectionDataCache(x, y)
+					send_section_data_to_clients(self, x, y)
+				end
+			end
+		else
+			for y, xs in pairs(sections) do
+				for x, _ in pairs(xs) do
+					self:RefreashSectionDataCache(x, y)
+					send_section_data_to_clients(self, x, y)
+				end
 			end
 		end
 	end,
@@ -335,6 +351,57 @@ function RegionSystem:ListenForRegionEvent(event, ...)
 	if event_handlers[event] then
 		event_handlers[event](self, ...)
 	end
+end
+
+--通过section内任意地块坐标获取section的ID
+function RegionSystem:GetSectionID(x, y)
+	local section_x = math.floor(x / self.section_width) + 1
+	local section_y = math.floor(y / self.section_height) + 1
+	return section_x + (section_y - 1) * self.section_count_x
+end
+
+--通过section的ID获取section的起始坐标
+function RegionSystem:GetSectionStartingPos(section_id)
+	local section_y = math.ceil(section_id / self.section_count_x)
+	local section_x = section_id - (section_y - 1) * self.section_count_x
+	return (section_x - 1) * self.section_width, (section_y - 1) * self.section_height
+end
+
+function RegionSystem:RefreashSectionDataCache(x, y)
+	local section_id = self:GetSectionID(x, y)
+	if not self.section_data_cache[section_id] then
+		self.section_data_cache[section_id] = {
+			main_region = 0,
+			other_regions = "",
+		}
+	end
+	local section_data = self.section_data_cache[section_id]
+	local tiles = self:GetAllTilesInSection(x, y, REGION_SYS_TILE_KEYS.REGION)
+	local temp_regions = {}		--region_id = tiles_count
+	local temp_main_region_id = 0
+	local temp_max_count = 0
+	for tile_index, region_id in pairs(tiles) do
+		temp_regions[region_id] = temp_regions[region_id] and temp_regions[region_id] + 1 or 1
+		if temp_main_region_id ~= region_id then
+			if temp_regions[region_id] > temp_max_count then
+				temp_main_region_id = region_id
+				temp_max_count = temp_regions[region_id]
+			end
+		else
+			temp_max_count = temp_regions[region_id]
+		end
+	end
+
+	section_data.main_region = temp_main_region_id
+	temp_regions[temp_main_region_id] = nil
+	section_data.other_regions = ""
+
+	for tile_index, region_id in pairs(tiles) do
+		if region_id == temp_main_region_id then
+			tiles[tile_index] = nil
+		end
+	end
+	section_data.other_regions = self:EncodeTiles(tiles)
 end
 
 --将tiles数据进行压缩，用于RPC传输
@@ -369,19 +436,22 @@ end
 
 --发送全地图的地块信息，会跳过region为0的地块，以减少网络传输耗时
 function RegionSystem:SendMapStreamToClient(userid)
-	local index = 1
-	for y = 1, self.height do
-		local tiles = {}
-		for x = 1, self.width do
-			local region = self:GetTileByIndex(index, REGION_SYS_TILE_KEYS.REGION)
-			if region ~= 0 then
-				tiles[index] = region
-			end
-			index = index + 1
-		end
-		local code = self:EncodeTiles(tiles)
-		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_tiles_stream, userid, code)
+	local start_clock = os.clock()
+	SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_data, userid, self:EncodeSectionCache())
+	print(string.format("[M23M] SendMapStreamToClient: %.4fs", os.clock() - start_clock))
+end
+
+--将section的缓存数据进行压缩，用于RPC传输
+--每个section数据之间用|分隔
+--section按照其id排序
+--每个section数据的格式为: 第一个整数表示main_region，后面的整数都是other_regions
+--int,int,int,...|int,int,int,...|...
+function RegionSystem:EncodeSectionCache()
+	local temp_data = {}
+	for section_index, cache in ipairs(self.section_data_cache) do
+		table.insert(temp_data, tostring(cache.main_region)..","..cache.other_regions)
 	end
+	return table.concat(temp_data, "|")
 end
 
 --#endregion
