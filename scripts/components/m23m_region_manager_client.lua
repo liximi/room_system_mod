@@ -298,7 +298,11 @@ function RegionSystem:ReceiveInitSectionCache(sections_cache)
 				self.tiles[REGION_SYS_TILE_KEYS.REGION][index] = main_region_id
 				if main_region_id ~= 0 then
 					local region = self.regions[main_region_id]
-					assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+					if region == nil then	--申请重新同步数据
+						print(ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+						self:RequireRoomsData()
+						return
+					end
 					region.tiles[index] = true
 					region.tiles_count = region.tiles_count + 1
 				end
@@ -311,8 +315,12 @@ function RegionSystem:ReceiveInitSectionCache(sections_cache)
 			self.tiles[REGION_SYS_TILE_KEYS.REGION][index] = region_id
 
 			if region_id ~= 0 then
-				local region = self.regions[region_id]
-				assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+				local region = self.regions[region_id]		
+				if region == nil then	--申请重新同步数据
+					print(ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+					self:RequireRoomsData()
+					return
+				end
 				region.tiles[index] = true
 				region.tiles_count = region.tiles_count + 1
 				if main_region_id ~= 0 then
@@ -354,8 +362,12 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 			end
 
 			if tile_region ~= 0 then
-				local region = self.regions[tile_region]
-				assert(region ~= nil, ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+				local region = self.regions[tile_region]		
+				if region == nil then	--申请重新同步数据
+					print(ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+					self:RequireRoomsData()
+					return
+				end
 				region.tiles[index] = true
 				region.tiles_count = region.tiles_count + 1
 				if empty_regions[tile_region] then
@@ -377,7 +389,11 @@ function RegionSystem:ReceiveRoomsTypeUpdateData(data)
 	for _, room in ipairs(data) do
 		local room_id = room[1]
 		local room_type = room[2]
-		assert(self.rooms[room_id], ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+		if self.rooms[room_id] == nil then	--申请重新同步数据
+			print(ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+			self:RequireRoomsData()
+			return
+		end
 		self.rooms[room_id].type = room_type
 	end
 end
@@ -387,6 +403,11 @@ function RegionSystem:GetSectionStartingPos(section_id)
 	local section_y = math.ceil(section_id / self.section_count_x)
 	local section_x = section_id - (section_y - 1) * self.section_count_x
 	return (section_x - 1) * self.section_width, (section_y - 1) * self.section_height
+end
+
+
+function RegionSystem:RequireRoomsData()
+	SendModRPCToServer(M23M.RPC_NAMESPACE, "region_system_require_rooms_data")
 end
 
 --#endregion

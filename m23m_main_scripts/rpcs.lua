@@ -3,8 +3,12 @@ local json = require "json"
 
 --[[On Server]]
 
--- AddModRPCHandler(M23M.RPC_NAMESPACE, "", function(player, tiles)
--- end)
+AddModRPCHandler(M23M.RPC_NAMESPACE, "region_system_require_rooms_data", function(player)
+	if TheRegionMgr then
+		print(string.format("Player %s (%s) requires rooms data.", player.name, player.userid))
+		TheRegionMgr:SendAllDatasToPlayer(player)
+	end
+end)
 
 
 --[[On Client]]

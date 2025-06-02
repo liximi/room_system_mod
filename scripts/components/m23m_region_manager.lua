@@ -25,11 +25,7 @@ local RegionSystem = Class(REGION_SYS, function (self, inst)
 	end, TheWorld)
 
 	self.inst:ListenForEvent("ms_playerjoined", function(world, player)
-		if TheNet:IsDedicated() or (TheWorld.ismastersim and player ~= ThePlayer) then
-			SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_size_data, player.userid, self.width, self.height, self.section_width, self.section_height)
-			SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_rooms_data, player.userid, self:EncodeRooms())
-			self:SendMapStreamToClient(player.userid)
-		end
+		self:SendAllDatasToPlayer(player)
 	end, TheWorld)
 
 	_G.TheRegionMgr = self
@@ -453,6 +449,16 @@ function RegionSystem:EncodeSectionCache()
 	end
 	return table.concat(temp_data, "|")
 end
+
+
+function RegionSystem:SendAllDatasToPlayer(player)
+	if TheNet:IsDedicated() or (TheWorld.ismastersim and player ~= ThePlayer) then
+		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_size_data, player.userid, self.width, self.height, self.section_width, self.section_height)
+		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_init_rooms_data, player.userid, self:EncodeRooms())
+		self:SendMapStreamToClient(player.userid)
+	end
+end
+
 
 --#endregion
 
