@@ -285,6 +285,32 @@ function RegionSystem:CheckRoomTiles(room_id, available_tiles)
 	return true
 end
 
+function RegionSystem:GetTilesTypeIncludeInRoom(room_id)
+	if not room_id or not self.rooms[room_id] then
+		return {}
+	end
+	local tiles_type = {}
+	local world_tiles = {}
+	local region_ids = self:GetAllRegionsInRoom(room_id)
+	for _, region_id in ipairs(region_ids) do
+		local region = self.regions[region_id]
+		if region then
+			for tile_index, _ in pairs(region.tiles) do
+				local x, y = self:GetPositionByIndex(tile_index)
+				local world_x, world_z = self:GetPointAtTileCoords(x, y)
+				local center_x, center_y, center_z = TheWorld.Map:GetTileCenterPoint(world_x, 0, world_z)
+				local _index = self:GetTileIndex(center_x, center_z)	--临时算个index用，不太严谨但是能用
+				if not world_tiles[_index] then
+					local tile_id = TheWorld.Map:GetTileAtPoint(world_x, 0, world_z)
+					tiles_type[INVERTED_WORLD_TILES[tile_id]] = true
+					world_tiles[_index] = tile_id
+				end
+			end
+		end
+	end
+	return tiles_type
+end
+
 --#endregion
 --------------------------------------------------
 --#region 网络通讯

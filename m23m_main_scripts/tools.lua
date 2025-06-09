@@ -144,3 +144,21 @@ function _G.IsEmptyTable(tab)
 	end
 	return true
 end
+
+function _G.GetPrefabName(prefab)
+	return type(prefab) == "string" and STRINGS.NAMES[string.upper(prefab)] or tostring(prefab)
+end
+
+local GroundTiles = require("worldtiledefs")
+--获取地皮对应的地毯的名称
+function _G.GetTileItemName(tile_name)
+	local tile_id = WORLD_TILES[tile_name]
+	if not tile_id then
+		return tile_name
+	end
+	local turf_def = GroundTiles.turf[tile_id]
+	if not turf_def or not turf_def.name then
+		return tile_name
+	end
+	return GetPrefabName("TURF_" .. turf_def.name)
+end

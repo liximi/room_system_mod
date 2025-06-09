@@ -137,23 +137,6 @@ function RoomView:OnLoseFocus()
 end
 
 
-local function get_prefab_name(prefab)
-	return type(prefab) == "string" and STRINGS.NAMES[string.upper(prefab)] or tostring(prefab)
-end
-
---获取地皮对应的地毯的名称
-local function get_tile_item_name(tile_name)
-	local tile_id = WORLD_TILES[tile_name]
-	if not tile_id then
-		return tile_name
-	end
-	local turf_def = GroundTiles.turf[tile_id]
-	if not turf_def or not turf_def.name then
-		return tile_name
-	end
-	return get_prefab_name("TURF_" .. turf_def.name)
-end
-
 local function is_empty_table(tab)
 	if type(tab) ~= "table" then
 		return true
@@ -214,13 +197,13 @@ function RoomView:ConstructTipText(room_def)
 			if type(items) == "table" then
 				local names = {}
 				for _, item in ipairs(items) do
-					table.insert(names, get_prefab_name(item))
+					table.insert(names, GetPrefabName(item))
 				end
 				if #names > 0 then
 					str = STRINGS.M23M_UI.ANY .. table.concat(names, "/")
 				end
 			else
-				str = get_prefab_name(items)
+				str = GetPrefabName(items)
 			end
 			if str then
 				need_items = true
@@ -248,7 +231,7 @@ function RoomView:ConstructTipText(room_def)
 		set_pos(self.tip_must_tiles_title, TIP_SEGMENT_SPACING)
 
 		for tile_name, _ in pairs(room_def.available_tiles) do
-			local str = get_tile_item_name(tile_name)
+			local str = GetTileItemName(tile_name)
 			if str then
 				local text = self.tip_text_root:AddChild(Text(UIFONT, FONT_SIZE3, nil, COLOR1))
 				table.insert(self.tip_must_tiles_texts, text)

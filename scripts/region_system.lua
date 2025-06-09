@@ -619,13 +619,18 @@ function RegionSystem:GetRoomType(x, y)
 	return "NONE"
 end
 
-function RegionSystem:GetRoomSize(room_id)
+--如果计算中的房间尺寸超出了max_calc_size，则返回nil，如果不传递max_calc_size，则不限制尺寸
+function RegionSystem:GetRoomSize(room_id, max_calc_size)
 	local regions = self:GetAllRegionsInRoom(room_id)
 	local size = 0
+	max_calc_size = type(max_calc_size) == "number" and max_calc_size or math.huge
 	for _, region_id in ipairs(regions) do
 		local region = self.regions[region_id]
 		if region then
 			size = size + region.tiles_count
+			if size > max_calc_size then
+				return nil
+			end
 		end
 	end
 	return size

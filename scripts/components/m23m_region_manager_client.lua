@@ -216,16 +216,47 @@ function RegionSystem:GetSectionAABB(x, y)
 	return base_x, base_y, math.min(base_x + self.section_width - 1, self.width), math.min(base_y + self.section_height - 1, self.height)
 end
 
-function RegionSystem:GetRoomSize(room_id)
+--如果计算中的房间尺寸超出了max_calc_size，则返回nil，如果不传递max_calc_size，则不限制尺寸
+function RegionSystem:GetRoomSize(room_id, max_calc_size)
 	local regions = self:GetAllRegionsInRoom(room_id)
 	local size = 0
+	max_calc_size = type(max_calc_size) == "number" and max_calc_size or math.huge
 	for _, region_id in ipairs(regions) do
 		local region = self.regions[region_id]
 		if region then
 			size = size + region.tiles_count
+			if size > max_calc_size then
+				return nil
+			end
 		end
 	end
 	return size
+end
+
+function RegionSystem:GetTilesTypeIncludeInRoom(room_id)
+	if not room_id or not self.rooms[room_id] then
+		return {}
+	end
+	local tiles_type = {}
+	local world_tiles = {}
+	local region_ids = self:GetAllRegionsInRoom(room_id)
+	for _, region_id in ipairs(region_ids) do
+		local region = self.regions[region_id]
+		if region then
+			for tile_index, _ in pairs(region.tiles) do
+				local x, y = self:GetPositionByIndex(tile_index)
+				local world_x, world_z = self:GetPointAtTileCoords(x, y)
+				local center_x, center_y, center_z = TheWorld.Map:GetTileCenterPoint(world_x, 0, world_z)
+				local _index = self:GetTileIndex(center_x, center_z)	--临时算个index用，不太严谨但是能用
+				if not world_tiles[_index] then
+					local tile_id = TheWorld.Map:GetTileAtPoint(world_x, 0, world_z)
+					tiles_type[INVERTED_WORLD_TILES[tile_id]] = true
+					world_tiles[_index] = tile_id
+				end
+			end
+		end
+	end
+	return tiles_type
 end
 
 --#endregion

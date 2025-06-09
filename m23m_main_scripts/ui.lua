@@ -43,7 +43,7 @@ AddClassPostConstruct("widgets/hoverer", function(self)
 		if ThePlayer.is_room_view_active and not is_on_ui then
 			local mouse_pos = TheInput:GetWorldPosition()
 			if mouse_pos then
-				local room_name
+				local room_name = "Room Without Name"
 				local room_type = TheRegionMgr:GetRoomTypeAtPoint(mouse_pos.x, mouse_pos.z)
 				if room_type == "NONE" then
 					room_name = STRINGS.M23M_ROOMS.NONE.NAME
@@ -52,12 +52,28 @@ AddClassPostConstruct("widgets/hoverer", function(self)
 				if room_def and type(room_def.name) == "string" then
 					room_name = room_def.name
 				end
-				if room_name then
-					if str then
-						str = str .. "\n" .. STRINGS.M23M_UI.ROOM .. ": " .. room_name
-					else
-						str = STRINGS.M23M_UI.ROOM .. ": " .. room_name
+				local added_str = STRINGS.M23M_UI.ROOM .. ": " .. room_name
+				local x, y = TheRegionMgr:GetTileCoordsAtPoint(mouse_pos.x, mouse_pos.z)
+				local room_id = TheRegionMgr:GetRoomId(x, y)
+				local room_size = TheRegionMgr:GetRoomSize(room_id, M23M.TOO_LARGE_ROOM_SIZE)
+				if room_size ~= nil then
+					added_str = added_str .. "\n" .. STRINGS.M23M_UI.ROOM_SIZE .. room_size
+					added_str = added_str .. "\n" .. STRINGS.M23M_UI.INCLUDED_TILES
+					local tiles_type_include = TheRegionMgr:GetTilesTypeIncludeInRoom(room_id)
+					for tile_type, _ in pairs(tiles_type_include) do
+						local tile_name = GetTileItemName(tile_type)
+						added_str = added_str .. "\n" .. tile_name
 					end
+					if IsEmptyTable(tiles_type_include) then
+						added_str = added_str .. "\n" .. STRINGS.M23M_UI.NONE
+					end
+				else
+					added_str = added_str .. "\n" .. STRINGS.M23M_UI.ROOM_TOO_LARGE
+				end
+				if str then
+					str = str .. "\n" .. added_str
+				else
+					str = added_str
 				end
 			end
 		end
