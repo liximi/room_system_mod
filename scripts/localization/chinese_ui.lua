@@ -9,6 +9,6 @@ STRINGS.M23M_UI = {
 	NONE = "无",
 	DRAG = "拖拽以移动",
 	ROOM_SIZE = "房间大小：",
-	ROOM_TOO_LARGE = "房间过大，不显示包含的地皮类型。",
+	ROOM_TOO_LARGE = "房间过大。",
 	INCLUDED_TILES = "当前包含的地皮：",
 }

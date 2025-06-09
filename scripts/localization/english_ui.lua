@@ -9,6 +9,6 @@ STRINGS.M23M_UI = {
 	NONE = "Nothing",
 	DRAG = "Drag to move",
 	ROOM_SIZE = "Room Size: ",
-	ROOM_TOO_LARGE = "The room is too large and does not display the included tile types.",
+	ROOM_TOO_LARGE = "The room is too large.",
 	INCLUDED_TILES = "Currently included tiles:",
 }
