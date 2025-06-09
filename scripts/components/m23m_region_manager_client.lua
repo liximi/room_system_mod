@@ -438,7 +438,7 @@ end
 
 
 function RegionSystem:RequireRoomsData()
-	SendModRPCToServer(M23M.RPC_NAMESPACE, "region_system_require_rooms_data")
+	SendModRPCToServer(MOD_RPC[M23M.RPC_NAMESPACE].region_system_require_rooms_data)
 end
 
 --#endregion
