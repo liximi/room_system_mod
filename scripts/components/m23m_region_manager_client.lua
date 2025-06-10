@@ -297,6 +297,7 @@ function RegionSystem:ReceiveRoomsData(rooms_str, refresh_region)
 	self.rooms = decode_roomsdata(rooms_str)
 	if refresh_region then
 		for room_id, data in pairs(self.rooms) do
+			-- print("[M23M] ReceiveRoomsData\n", room_id, table.concat(data.regions, ", "))
 			for _, region_id in ipairs(data.regions) do
 				if not self.regions[region_id] then
 					self.regions[region_id] = {tiles = {}, room = room_id, tiles_count = 0}
@@ -330,6 +331,7 @@ function RegionSystem:ReceiveInitSectionCache(sections_cache)
 				if main_region_id ~= 0 then
 					local region = self.regions[main_region_id]
 					if region == nil then	--申请重新同步数据
+						-- print("[M23M] ReceiveInitSectionCache", main_region_id)
 						print(ERR_ROOM_DATA_NOT_SYNCHRONIZED)
 						self:RequireRoomsData()
 						return

@@ -449,6 +449,7 @@ function RegionSystem:EncodeRooms(rooms)
 		table.insert(rooms_data, room_id)
 		table.insert(rooms_data, data.type)
 		table.insert(rooms_data, #data.regions)
+		-- print("[M23M] ReceiveRoomsData\n", room_id, table.concat(data.regions, ", "))
 		for i, region_id in ipairs(data.regions) do
 			table.insert(rooms_data, region_id)
 		end
