@@ -316,10 +316,6 @@ end
 --#region 网络通讯
 
 local function send_section_data_to_clients(self, x, y)
-	local tiles = self:GetAllTilesInSection(x, y, REGION_SYS_TILE_KEYS.REGION)
-	local tiles_code = self:EncodeTiles(tiles)
-	local rooms_code = self:EncodeRooms()
-	local data_pack = string.format("{\"tiles\": \"%s\", \"rooms\": \"%s\"}", tiles_code, rooms_code)
 	local userids = {}
 	for _, player in ipairs(AllPlayers) do
 		if TheNet:IsDedicated() or (TheWorld.ismastersim and player ~= ThePlayer) then
@@ -327,6 +323,10 @@ local function send_section_data_to_clients(self, x, y)
 		end
 	end
 	if #userids > 0 then
+		local tiles = self:GetAllTilesInSection(x, y, REGION_SYS_TILE_KEYS.REGION)
+		local tiles_code = self:EncodeTiles(tiles)
+		local rooms_code = self:EncodeRooms()
+		local data_pack = string.format("{\"tiles\": \"%s\", \"rooms\": \"%s\"}", tiles_code, rooms_code)
 		SendModRPCToClient(CLIENT_MOD_RPC[M23M.RPC_NAMESPACE].region_system_update_section_data, userids, data_pack)
 	end
 end
