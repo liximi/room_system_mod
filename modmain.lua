@@ -43,9 +43,14 @@ for _, f_name in ipairs(mod_loc_files) do
     modimport("scripts/localization/"..prefix.."_"..f_name)	--加载所有本地化文件
 end
 
+
+--[Constants]
+modimport "m23m_main_scripts/constants"
+--[Tools]
+modimport "m23m_main_scripts/tools"
 --[Client Savedata]
 if not TheNet:IsDedicated() then
-    print("[M23M] Init Client SaveData")
+    M23MLogUtils.PrintLog("Init Client SaveData")
     local M23M_CLIENT_SAVE = require("persistentdata")("m23m_client_savedata.json")
     M23M_CLIENT_SAVE:Load()
 
@@ -63,10 +68,6 @@ if not TheNet:IsDedicated() then
         return type(key) == "string" and M23M_CLIENT_SAVE:GetValue(key)
     end
 end
---[Constants]
-modimport "m23m_main_scripts/constants"
---[Tools]
-modimport "m23m_main_scripts/tools"
 --[Containers]
 -- modimport "m23m_main_scripts/containers"
 --[RPCs]

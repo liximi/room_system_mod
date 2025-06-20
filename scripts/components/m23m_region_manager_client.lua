@@ -3,8 +3,8 @@ require "region_system"	--引入region_system脚本是为了加载REGION_SYS_TIL
 local ROOM_TYPES = { "NONE", }
 local ROOM_TYPES_REVERSE = {NONE = 1}
 
-local ERR_ROOM_DATA_NOT_SYNCHRONIZED = "RegionSystem Error: Room Data Not Synchronized."
-local ERR_NEGATIVE_MAP_SIZE_DATA = "RegionSystem ERRO: Negative Map Size Data."
+local ERR_ROOM_DATA_NOT_SYNCHRONIZED = "Room Data Not Synchronized."
+local ERR_NEGATIVE_MAP_SIZE_DATA = "Negative Map Size Data."
 
 local function decode_int_array(tilesstr)
 	local result = {}
@@ -52,7 +52,7 @@ local RegionSystem = Class(function (self, inst)
 		self:RegisterRoomType(data.type)
 	end
 
-	--#region 这些数据都从主机同步，不要在客机上修改
+	--region 这些数据都从主机同步，不要在客机上修改
 	self.width = 0
 	self.height = 0
 	self.max_index = 0
@@ -68,13 +68,13 @@ local RegionSystem = Class(function (self, inst)
 	]]
 	self.regions = {}	--不记录ID为0的region, {tiles = {tile_index1=true, tile_index2=true, ...}, room = int, tiles_count = int}
 	self.rooms = {}		--不记录ID为0的房间, {regions = {array of region's id}, type = int(ROOM_TYPES)}
-	--#endregion
+	--endregion
 
 	_G.TheRegionMgr = self
 end)
 
 
---#region 坐标转换接口
+--region 坐标转换接口
 function RegionSystem:GetTileCoordsAtPoint(x, z)
 	return math.floor(x) + math.ceil(self.width/2), math.floor(z) + math.ceil(self.height/2)
 end
@@ -83,28 +83,28 @@ function RegionSystem:GetPointAtTileCoords(x, y)
 	return x - math.ceil(self.width/2) + 0.5, y - math.ceil(self.height/2) + 0.5
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 获取地块数据接口
+--region 获取地块数据接口
 
 --<param> key: 传递一个int, 建议使用REGION_SYS_TILE_KEYS枚举，如果为空，则用一个table返回所有属性，key为string，对应REGION_SYS_TILE_KEYS里的key </param>
 --<return> 如果返回值为nil，说明没有获取到值 </return>
 function RegionSystem:GetTile(x, y, key)
 	if x > self.width then
-		print("GetTile Error: x > self.width")
+		M23MLogUtils.PrintError("GetTile Error: x > self.width")
 		return
 	end
 	if y > self.height then
-		print("GetTile Error: y > self.height")
+		M23MLogUtils.PrintError("GetTile Error: y > self.height")
 		return
 	end
 	if key ~= nil and not self.tiles[key] then
-		print("GetTile Error: key not found")
+		M23MLogUtils.PrintError("GetTile Error: key not found")
 		return
 	end
 	local index = (y - 1) * self.width + x
 	if index > self.max_index then
-		print("GetTile Error: index out of range")
+		M23MLogUtils.PrintError("GetTile Error: index out of range")
 		return
 	end
 	if key == nil then
@@ -122,11 +122,11 @@ end
 --<return> 如果返回值为nil，说明没有获取到值 </return>
 function RegionSystem:GetTileByIndex(index, key)
 	if key ~= nil and not self.tiles[key] then
-		print("GetTile Error: key not found")
+		M23MLogUtils.PrintError("GetTile Error: key not found")
 		return
 	end
 	if index > self.max_index then
-		print("GetTile Error: index out of range")
+		M23MLogUtils.PrintError("GetTile Error: index out of range")
 		return
 	end
 	if key == nil then
@@ -152,9 +152,9 @@ function RegionSystem:GetTileIndex(x, y)
 	return (y - 1) * self.width + x
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 查询数据
+--region 查询数据
 
 function RegionSystem:GetAllRegionsInRoom(room_id)	--不要修改返回的表
 	if not room_id or not self.rooms[room_id] then
@@ -259,9 +259,9 @@ function RegionSystem:GetTilesTypeIncludeInRoom(room_id)
 	return tiles_type
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 注册房间类型
+--region 注册房间类型
 
 function RegionSystem:RegisterRoomType(room_type)
 	if type(room_type) == "string" then
@@ -275,9 +275,9 @@ function RegionSystem:RegisterRoomType(room_type)
 	end
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 网络通讯
+--region 网络通讯
 
 function RegionSystem:ReceiveMapSizeData(width, height, section_width, section_height)
 	assert(width > 0 and height > 0 and section_width > 0 and section_height > 0, ERR_NEGATIVE_MAP_SIZE_DATA)
@@ -297,7 +297,7 @@ function RegionSystem:ReceiveRoomsData(rooms_str, refresh_region)
 	self.rooms = decode_roomsdata(rooms_str)
 	if refresh_region then
 		for room_id, data in pairs(self.rooms) do
-			-- print("[M23M] ReceiveRoomsData\n", room_id, table.concat(data.regions, ", "))
+			M23MLogUtils.PrintDebug("ReceiveRoomsData", room_id, #data.regions, data.regions[1], data.regions[#data.regions])
 			for _, region_id in ipairs(data.regions) do
 				if not self.regions[region_id] then
 					self.regions[region_id] = {tiles = {}, room = room_id, tiles_count = 0}
@@ -312,8 +312,8 @@ end
 --tiles的结构参见主机组件的 EncodeTiles 函数
 local total_cost_time, total_cost_mem = 0, 0
 local function task_print_data()
-	print(string.format("[M23M] Received init tiles data, cost time: ~%.4fs, cost memory: ~%.4fMb", total_cost_time, total_cost_mem/1024))
-	print("[M23M] Finished receiving datas from server.")
+	M23MLogUtils.PrintLog(string.format("Received init tiles data, cost time: ~%.4fs, cost memory: ~%.4fMb", total_cost_time, total_cost_mem/1024))
+	M23MLogUtils.PrintLog("Finished receiving datas from server.")
 	total_cost_time, total_cost_mem = 0, 0
 end
 
@@ -331,13 +331,12 @@ function RegionSystem:ReceiveInitSectionCache(sections_cache)
 				if main_region_id ~= 0 then
 					local region = self.regions[main_region_id]
 					if region == nil then	--申请重新同步数据
-						-- print("[M23M] ReceiveInitSectionCache", main_region_id)
-						print(ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+						M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found region with ID:", main_region_id)
 						self:RequireRoomsData()
-						return
+					else
+						region.tiles[index] = true
+						region.tiles_count = region.tiles_count + 1
 					end
-					region.tiles[index] = true
-					region.tiles_count = region.tiles_count + 1
 				end
 			end
 		end
@@ -350,12 +349,12 @@ function RegionSystem:ReceiveInitSectionCache(sections_cache)
 			if region_id ~= 0 then
 				local region = self.regions[region_id]		
 				if region == nil then	--申请重新同步数据
-					print(ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+					M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found region with ID:", main_region_id)
 					self:RequireRoomsData()
-					return
+				else
+					region.tiles[index] = true
+					region.tiles_count = region.tiles_count + 1
 				end
-				region.tiles[index] = true
-				region.tiles_count = region.tiles_count + 1
 				if main_region_id ~= 0 then
 					self.regions[main_region_id].tiles[index] = nil
 					self.regions[main_region_id].tiles_count = self.regions[main_region_id].tiles_count - 1
@@ -397,12 +396,12 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 			if tile_region ~= 0 then
 				local region = self.regions[tile_region]		
 				if region == nil then	--申请重新同步数据
-					print(ERR_ROOM_DATA_NOT_SYNCHRONIZED)
+					M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found region with ID:", tile_region)
 					self:RequireRoomsData()
-					return
+				else
+					region.tiles[index] = true
+					region.tiles_count = region.tiles_count + 1
 				end
-				region.tiles[index] = true
-				region.tiles_count = region.tiles_count + 1
 				if empty_regions[tile_region] then
 					empty_regions[tile_region] = nil
 				end
@@ -423,11 +422,11 @@ function RegionSystem:ReceiveRoomsTypeUpdateData(data)
 		local room_id = room[1]
 		local room_type = room[2]
 		if self.rooms[room_id] == nil then	--申请重新同步数据
-			print(ERR_ROOM_DATA_NOT_SYNCHRONIZED)
-			self:RequireRoomsData()
-			return
+			M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found room with ID:", room_id)
+			self:__OnNotFindRoom(room_id)
+		else
+			self.rooms[room_id].type = room_type
 		end
-		self.rooms[room_id].type = room_type
 	end
 end
 
@@ -443,7 +442,11 @@ function RegionSystem:RequireRoomsData()
 	SendModRPCToServer(MOD_RPC[M23M.RPC_NAMESPACE].region_system_require_rooms_data)
 end
 
---#endregion
+function RegionSystem:__OnNotFindRoom(room_id)
+	SendModRPCToServer(MOD_RPC[M23M.RPC_NAMESPACE].region_system_not_find_room, room_id)
+end
+
+--endregion
 
 
 return RegionSystem

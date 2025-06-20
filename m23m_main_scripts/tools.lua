@@ -162,3 +162,37 @@ function _G.GetTileItemName(tile_name)
 	end
 	return GetPrefabName("TURF_" .. turf_def.name)
 end
+
+
+function _G.LiximiIsDevMode()
+	return env.modinfo.version == "dev"
+end
+
+_G.M23MLogUtils = {
+	--打印错误日志
+	PrintError = function (...)
+		print(M23M.MOD_ERROR_HEADER, ...)
+	end,
+
+	--打印警告日志
+	PrintWarning = function (...)
+		print(M23M.MOD_WARNING_HEADER, ...)
+	end,
+
+	--打印RPC日志
+	PrintRPCLog = function (...)
+		print(M23M.RPC_LOG_HEADER, ...)
+	end,
+
+	--打印普通日志
+	PrintLog = function (...)
+		print(M23M.MOD_LOG_HEADER, ...)
+	end,
+
+	--打印调试日志
+	PrintDebug = function (...)
+		if _G.LiximiIsDevMode() then
+			print(M23M.MOD_DEBUG_HEADER, ...)
+		end
+	end,
+}

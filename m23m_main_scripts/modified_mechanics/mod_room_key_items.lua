@@ -19,13 +19,13 @@ local DOORS = {
 local function init_wall(inst)
     local pos = inst:GetPosition()
     local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
-    -- print("Add Wall", inst.prefab, pos, "tile coords:", x, y)
+    M23MLogUtils.PrintDebug("Add Wall", inst.prefab, pos, "tile coords:", x, y)
     TheRegionMgr:AddWalls({{x, y}})
 end
 local function on_remove_wall(inst)
     local pos = inst:GetPosition()
     local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
-    -- print("Remove Wall", inst.prefab, pos, "tile coords:", x, y)
+    M23MLogUtils.PrintDebug("Remove Wall", inst.prefab, pos, "tile coords:", x, y)
     TheRegionMgr:RemoveWalls({{x, y}})
 end
 for _, wall in ipairs(WALLS) do
@@ -41,13 +41,13 @@ end
 local function init_door(inst)
     local pos = inst:GetPosition()
     local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
-    -- print("Add Door", inst.prefab, pos, "tile coords:", x, y)
+    M23MLogUtils.PrintDebug("Add Door", inst.prefab, pos, "tile coords:", x, y)
     TheRegionMgr:AddDoors({{x, y}})
 end
 local function on_remove_door(inst)
     local pos = inst:GetPosition()
     local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
-    -- print("Remove Door", inst.prefab, pos, "tile coords:", x, y)
+    M23MLogUtils.PrintDebug("Remove Door", inst.prefab, pos, "tile coords:", x, y)
     TheRegionMgr:RemoveDoors({{x, y}})
 end
 for _, door in ipairs(DOORS) do
@@ -121,14 +121,14 @@ local key_items = {}
 --需要在主机和客机都调用
 function _G.AddM23MRoom(room_data)
 	if type(room_data) ~= "table" or type(room_data.type) ~= "string" then
-		print("RegionSystem Error: Add Room Failed! Invalid Room Data Structure.")
+		M23MLogUtils.PrintError("Add Room Failed! Invalid Room Data Structure.")
 		return
 	end
 
 	local max_priority = 0
 	for i, v in ipairs(M23M.ROOM_DEFS) do
 		if v.type == room_data.type then
-			print(string.format("RegionSystem Error: Add Room(%s) Failed! Room Existed.", room_data.type))
+			M23MLogUtils.PrintError(string.format("Add Room(%s) Failed! Room Existed.", room_data.type))
 			return
 		end
 		if v.priority > max_priority then
@@ -154,7 +154,7 @@ function _G.AddM23MRoom(room_data)
 	if check_mustitems_data_structure(room_data.must_items) then
 		room_def.must_items = room_data.must_items
 	else
-		print(string.format("RegionSystem Error: Add Room(%s) Failed! Data Structure of must_items is Wrong or must_items is nil.", room_data.type))
+		M23MLogUtils.PrintError(string.format("Add Room(%s) Failed! Data Structure of must_items is Wrong or must_items is nil.", room_data.type))
 		return
 	end
 	table.insert(M23M.ROOM_DEFS, room_def)
@@ -179,6 +179,6 @@ function _G.AddM23MRoom(room_data)
 	if TheRegionMgr then
 		TheRegionMgr:RegisterRoomType(room_def.type)
 	end
-	print(string.format("RegionSystem Info: Add Room(%s) Success!", room_data.type))
+	M23MLogUtils.PrintLog(string.format("Add Room(%s) Success!", room_data.type))
 	return true
 end

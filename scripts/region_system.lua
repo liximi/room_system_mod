@@ -171,7 +171,7 @@ local RegionSystem = {
 	--[[tiles 地块数据，每个元素都是一个一维数组，起长度等于地图里的地块数量(width * height)
 		key与REGION_SYS_TILE_KEYS里每个属性的值对应
 		1: 该地块是否是可通过的空地, true表示为空, false/nil表示有墙体或其他阻碍物
-		2: 切片分组ID, 整数, space为false的地块region固定为0
+		2: region ID, 整数, space为false的地块region固定为0
 		3: 该地块是否是门
 	]]
 	regions = {},	--不记录ID为0的region, {tiles = {tile_index = true, ...}, tiles_count = int, passable_edges = {target_region_id = {edge_code, ...}}, room = int}
@@ -179,26 +179,26 @@ local RegionSystem = {
 }
 
 
---#region 获取地块数据接口
+--region 获取地块数据接口
 
 --<param> key: 传递一个int, 建议使用REGION_SYS_TILE_KEYS枚举，如果为空，则用一个table返回所有属性，key为string，对应REGION_SYS_TILE_KEYS里的key </param>
 --<return> 如果返回值为nil，说明没有获取到值 </return>
 function RegionSystem:GetTile(x, y, key)
 	if x > self.width then
-		print("GetTile Error: x > self.width")
+		M23MLogUtils.PrintError("GetTile Error: x > self.width")
 		return
 	end
 	if y > self.height then
-		print("GetTile Error: y > self.height")
+		M23MLogUtils.PrintError("GetTile Error: y > self.height")
 		return
 	end
 	if key ~= nil and not self.tiles[key] then
-		print("GetTile Error: key not found")
+		M23MLogUtils.PrintError("GetTile Error: key not found")
 		return
 	end
 	local index = (y - 1) * self.width + x
 	if index > self.max_index then
-		print("GetTile Error: index out of range")
+		M23MLogUtils.PrintError("GetTile Error: index out of range")
 		return
 	end
 	if key == nil then
@@ -216,11 +216,11 @@ end
 --<return> 如果返回值为nil，说明没有获取到值 </return>
 function RegionSystem:GetTileByIndex(index, key)
 	if key ~= nil and not self.tiles[key] then
-		print("GetTile Error: key not found")
+		M23MLogUtils.PrintError("GetTile Error: key not found")
 		return
 	end
 	if index > self.max_index then
-		print("GetTile Error: index out of range")
+		M23MLogUtils.PrintError("GetTile Error: index out of range")
 		return
 	end
 	if key == nil then
@@ -246,7 +246,7 @@ function RegionSystem:GetTileIndex(x, y)
 	return (y - 1) * self.width + x
 end
 
---#region 初始化、更新函数
+--region 初始化、更新函数
 
 function RegionSystem:Generation(width, height, section_width, section_height)
 	self.width = width
@@ -469,9 +469,9 @@ function RegionSystem:RefreashRooms()
 	end
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 地块状态判断
+--region 地块状态判断
 
 --<param> x: 地块x坐标，当y为nil时，会将x当作地块的index </param>
 --<param> y: 地块y坐标 </param>
@@ -516,9 +516,9 @@ function RegionSystem:IsVaildPosition(x, y)
 	return true
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 分区Section相关
+--region 分区Section相关
 
 function RegionSystem:GetSectionAABB(x, y)
 	local base_x = math.floor((x-1) / self.section_width) * self.section_width + 1
@@ -547,9 +547,9 @@ function RegionSystem:GetAllTilesInSection(x, y, key)
 	return tiles
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 查询数据
+--region 查询数据
 
 function RegionSystem:GetRegionId(x, y)
 	return self:GetTile(x, y, REGION_SYS_TILE_KEYS.REGION)
@@ -643,9 +643,9 @@ function RegionSystem:GetDataInRegion(region_id, key)
 	return self.regions[region_id][key]
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 解码region边缘代码
+--region 解码region边缘代码
 
 
 function RegionSystem:DeCodeEdge(edge_code)
@@ -653,9 +653,9 @@ function RegionSystem:DeCodeEdge(edge_code)
 	return {x = x, y = y, dir = dir, length = length}
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 添加/移除墙体和门
+--region 添加/移除墙体和门
 
 function RegionSystem:AddWalls(walls)	--{x, y}
 	local space_datas = {}
@@ -726,9 +726,9 @@ function RegionSystem:RemoveDoors(doors)	--{x, y}
 	end
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 房间相关
+--region 房间相关
 
 function RegionSystem:RegisterRoomType(room_type)
 	if type(room_type) == "string" then
@@ -761,13 +761,13 @@ function RegionSystem:SetDataToRegion(region_id, key, data)
 	return true
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 打印数据
+--region 打印数据
 
 function RegionSystem:Print(data_key, sub_key, only_one_section, x, y)
 	data_key = data_key or REGION_SYS_TILE_KEYS.SPACE
-	print(string.format("width: %d, height: %d", self.width, self.height))
+	M23MLogUtils.PrintLog(string.format("width: %d, height: %d", self.width, self.height))
 
 	local max_line_number_len = count_digits(self.height)
 	local start_x, start_y, w, h = 1, 1, self.width, self.height
@@ -776,7 +776,7 @@ function RegionSystem:Print(data_key, sub_key, only_one_section, x, y)
 		if not start_x then
 			start_x, start_y, w, h = 1, 1, self.width, self.height
 		end
-		print(string.format("start_x: %d, start_y: %d", start_x, start_y))
+		M23MLogUtils.PrintLog(string.format("start_x: %d, start_y: %d", start_x, start_y))
 	end
 	for i = start_y, h do
 		local line = {}
@@ -797,26 +797,26 @@ function RegionSystem:Print(data_key, sub_key, only_one_section, x, y)
 			count = count + 1
 			space = space.." "
 		end
-		print(tostring(i)..space.." | "..table.concat(line, " "))
+		M23MLogUtils.PrintLog(tostring(i)..space.." | "..table.concat(line, " "))
 	end
 end
 
 function RegionSystem:PrintRoomData()
 	for id, data in pairs(self.rooms) do
-		print(string.format("Room: %d, Type: %s", id, ROOM_TYPES[data.type]))
-		print("  ", table.concat(data.regions, ", "))
+		M23MLogUtils.PrintLog(string.format("Room: %d, Type: %s", id, ROOM_TYPES[data.type]))
+		M23MLogUtils.PrintLog("  ", table.concat(data.regions, ", "))
 	end
 end
 
---#endregion
+--endregion
 --------------------------------------------------
---#region 虚函数，有需要可以在子类中实现
+--region 虚函数，有需要可以在子类中实现
 
 -- function RegionSystem:RefreashRoomType(room_id) end	用于更新房间类型，在需要更新房间类型时被调用
 -- function RegionSystem:OnChangeTileRegion(x, y, old_region_id, new_region_id, refreash_room) end	当地块所属的region发生变化时被调用
 -- function RegionSystem:ListenForRegionEvent(event, ...) end	监听抛出的事件，参见private_PushEvent函数
 
---#endregion
+--endregion
 
 --------------------------------------------------
 -- 私有函数 Private Functions

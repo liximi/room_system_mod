@@ -16,8 +16,7 @@ AddClassPostConstruct("widgets/controls", function(self)
 	self.m23m_hud = self:AddChild(HUD(self.owner))
 	self.m23m_hud:MoveToFront()
 
-	local mod_version = env.modinfo.version
-	if mod_version == "dev" then
+	if LiximiIsDevMode() then
 		self.xp = self:AddChild(Text(UIFONT, 16, "x正"))
 		self.xn = self:AddChild(Text(UIFONT, 16, "x负"))
 		self.zp = self:AddChild(Text(UIFONT, 16, "z正"))
