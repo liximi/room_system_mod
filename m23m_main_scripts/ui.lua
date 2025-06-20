@@ -80,7 +80,7 @@ AddClassPostConstruct("widgets/hoverer", function(self)
 		if str == nil then
 			self.text:Hide()
 		else
-			if self.strFrames <= 0 then
+			if not self.strFrames or self.strFrames <= 0 then
 				self.text:SetString(str)
 				self.text:Show()
 			end
