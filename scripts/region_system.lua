@@ -297,7 +297,7 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 	--刷新边缘缓存
 	for base_i = 1, self.height, self.section_height do
 		for base_j = 1, self.width, self.section_width do
-			self:RefreashSectionEdges(base_j, base_i)
+			self:RefreashSection(base_j, base_i)
 		end
 	end
 	self:private_PushEvent("section_update_mult")

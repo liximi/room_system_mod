@@ -19,13 +19,13 @@ local DOORS = {
 local function init_wall(inst)
     local pos = inst:GetPosition()
     local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
-    M23MLogUtils.PrintDebug("Add Wall", inst.prefab, pos, "tile coords:", x, y)
+    -- M23MLogUtils.PrintDebug("Add Wall", inst.prefab, pos, "tile coords:", x, y)
     TheRegionMgr:AddWalls({{x, y}})
 end
 local function on_remove_wall(inst)
     local pos = inst:GetPosition()
     local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
-    M23MLogUtils.PrintDebug("Remove Wall", inst.prefab, pos, "tile coords:", x, y)
+    -- M23MLogUtils.PrintDebug("Remove Wall", inst.prefab, pos, "tile coords:", x, y)
     TheRegionMgr:RemoveWalls({{x, y}})
 end
 for _, wall in ipairs(WALLS) do
@@ -41,13 +41,13 @@ end
 local function init_door(inst)
     local pos = inst:GetPosition()
     local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
-    M23MLogUtils.PrintDebug("Add Door", inst.prefab, pos, "tile coords:", x, y)
+    -- M23MLogUtils.PrintDebug("Add Door", inst.prefab, pos, "tile coords:", x, y)
     TheRegionMgr:AddDoors({{x, y}})
 end
 local function on_remove_door(inst)
     local pos = inst:GetPosition()
     local x, y = TheRegionMgr:GetTileCoordsAtPoint(pos.x, pos.z)
-    M23MLogUtils.PrintDebug("Remove Door", inst.prefab, pos, "tile coords:", x, y)
+    -- M23MLogUtils.PrintDebug("Remove Door", inst.prefab, pos, "tile coords:", x, y)
     TheRegionMgr:RemoveDoors({{x, y}})
 end
 for _, door in ipairs(DOORS) do

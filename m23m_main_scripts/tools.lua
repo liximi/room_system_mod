@@ -171,7 +171,13 @@ end
 _G.M23MLogUtils = {
 	--打印错误日志
 	PrintError = function (...)
-		print(M23M.MOD_ERROR_HEADER, ...)
+		local info = debug.getinfo(2, "Sl")
+		local src, line
+		if info then
+			src, line = info.source, info.currentline
+		end
+		print(M23M.MOD_ERROR_HEADER, string.format("from: %s | line: %s", tostring(src), tostring(line)))
+		print(...)
 	end,
 
 	--打印警告日志
