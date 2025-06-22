@@ -176,7 +176,7 @@ _G.M23MLogUtils = {
 		if info then
 			src, line = info.source, info.currentline
 		end
-		print(M23M.MOD_ERROR_HEADER, string.format("from: %s | line: %s", tostring(src), tostring(line)))
+		print(M23M.MOD_ERROR_HEADER, string.format("%s: %s", tostring(src), tostring(line)))
 		print(...)
 	end,
 

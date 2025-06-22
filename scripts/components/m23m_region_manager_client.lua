@@ -321,8 +321,8 @@ function RegionSystem:ReceiveInitSectionCache(sections_cache)
 	local start_clock = os.clock()
 	local start_mem = collectgarbage("count")
 	for section_id, cache_str in ipairs(string.split(sections_cache, "|")) do
-		local tiles = decode_int_array(cache_str)
-		local main_region_id = tiles[1]
+		local regions = decode_int_array(cache_str)
+		local main_region_id = regions[1]
 		local base_x, base_y = self:GetSectionStartingPos(section_id)
 		for i = base_y, math.min(base_y + self.section_height - 1, self.height) do
 			for j = base_x, math.min(base_x + self.section_width - 1, self.width) do
@@ -341,13 +341,13 @@ function RegionSystem:ReceiveInitSectionCache(sections_cache)
 			end
 		end
 
-		for i = 2, #tiles, 2 do
-			local index = tiles[i]
-			local region_id = tiles[i+1]
+		for i = 2, #regions, 2 do
+			local index = regions[i]
+			local region_id = regions[i+1]
 			self.tiles[REGION_SYS_TILE_KEYS.REGION][index] = region_id
 
 			if region_id ~= 0 then
-				local region = self.regions[region_id]		
+				local region = self.regions[region_id]
 				if region == nil then	--申请重新同步数据
 					M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found region with ID:", main_region_id)
 					self:RequireRoomsData()
@@ -355,7 +355,7 @@ function RegionSystem:ReceiveInitSectionCache(sections_cache)
 					region.tiles[index] = true
 					region.tiles_count = region.tiles_count + 1
 				end
-				if main_region_id ~= 0 then
+				if main_region_id ~= 0 and self.regions[main_region_id] ~= nil then
 					self.regions[main_region_id].tiles[index] = nil
 					self.regions[main_region_id].tiles_count = self.regions[main_region_id].tiles_count - 1
 				end
@@ -394,7 +394,7 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 			end
 
 			if tile_region ~= 0 then
-				local region = self.regions[tile_region]		
+				local region = self.regions[tile_region]
 				if region == nil then	--申请重新同步数据
 					M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found region with ID:", tile_region)
 					self:RequireRoomsData()

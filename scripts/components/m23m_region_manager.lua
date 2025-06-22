@@ -414,8 +414,8 @@ function RegionSystem:RefreashSectionDataCache(x, y)
 		end
 	end
 
+	M23MLogUtils.PrintDebug("section_id:", section_id, "temp_main_region_id:", temp_main_region_id, self.regions[temp_main_region_id] ~= nil)
 	section_data.main_region = temp_main_region_id
-	temp_regions[temp_main_region_id] = nil
 	section_data.other_regions = ""
 
 	for tile_index, region_id in pairs(tiles) do
@@ -441,7 +441,7 @@ function RegionSystem:EncodeTiles(tiles)
 end
 
 --将rooms数据进行压缩，用于RPC传输
---压缩后为一个整数数组，每n个连续元素存储1个地块的数据
+--压缩后为一个整数数组，每n个连续元素存储1个Room的数据
 -- room_id, type, region_count, region_id[region_count]
 function RegionSystem:EncodeRooms(rooms)
 	local rooms_data = {}
@@ -490,47 +490,48 @@ end
 --endregion
 
 
-function RegionSystem:CheckData()
-	M23MLogUtils.PrintDebug("RegionSystem: CheckData: Start checking data...")
+function RegionSystem:CheckData(wrang_region_id)
+	M23MLogUtils.PrintDebug(string.format("CheckData: Start checking data with wrang_region_id: %s...", tostring(wrang_region_id)))
+	if wrang_region_id then
+		M23MLogUtils.PrintDebug(string.format("CheckData: Found a wrong region_id: %s", tostring(self.regions[wrang_region_id])))
+	end
 	local valid_regions = {}
 	--遍历所有Room，然后遍历这些room里面的regions，检查每个region_id是否存在
 	for room_id, room_data in pairs(self.rooms) do
-		M23MLogUtils.PrintDebug("RegionSystem: CheckData: Checking room", room_id, "with type", room_data.type)
 		if room_data and room_data.regions then
 			for _, region_id in ipairs(room_data.regions) do
 				if not self.regions[region_id] then
-					M23MLogUtils.PrintError(string.format("RegionSystem: CheckData: Room %d has a non-existent region %d.", room_id, region_id))
+					M23MLogUtils.PrintError(string.format("CheckData: Room %d has a non-existent region %d.", room_id, region_id))
 				end
 				valid_regions[region_id] = true
 			end
 		else
-			M23MLogUtils.PrintError(string.format("RegionSystem: CheckData: Room %d is invalid.", room_id))
+			M23MLogUtils.PrintError(string.format("CheckData: Room %d is invalid.", room_id))
 		end
 	end
 	--遍历所有region，然后检查每个region_id是否存在于rooms中
 	for region_id, region_data in pairs(self.regions) do
-		M23MLogUtils.PrintDebug("RegionSystem: CheckData: Checking region", region_id)
 		if not valid_regions[region_id] then
-			M23MLogUtils.PrintError(string.format("RegionSystem: CheckData: Region %d is not referenced by any room.", region_id))
+			M23MLogUtils.PrintError(string.format("CheckData: Region %d is not referenced by any room.", region_id))
 			--检查region是否有tiles，打印出来
 			if region_data and region_data.tiles then
 				for tile_index, _ in pairs(region_data.tiles) do
 					local x, y = self:GetPositionByIndex(tile_index)
-					M23MLogUtils.PrintError(string.format("RegionSystem: CheckData: Region %d has tile at (%d, %d).", region_id, x, y))
+					M23MLogUtils.PrintError(string.format("CheckData: Region %d has tile at (%d, %d).", region_id, x, y))
 				end
 			else
-				M23MLogUtils.PrintError(string.format("RegionSystem: CheckData: Region %d has no tiles.", region_id))
+				M23MLogUtils.PrintError(string.format("CheckData: Region %d has no tiles.", region_id))
 			end
 			--检查tiles里是否有region为region_id的地块，如果有则打印出来
 			for tile_index, region in pairs(self.tiles[REGION_SYS_TILE_KEYS.REGION]) do
 				if region == region_id then
 					local x, y = self:GetPositionByIndex(tile_index)
-					M23MLogUtils.PrintError(string.format("RegionSystem: CheckData: Tile at (%d, %d) with region_id %d.", x, y, region_id))
+					M23MLogUtils.PrintError(string.format("CheckData: Tile at (%d, %d) with region_id %d.", x, y, region_id))
 				end
 			end
 		end
 	end
-	M23MLogUtils.PrintDebug("RegionSystem: CheckData: Finished checking data.")
+	M23MLogUtils.PrintDebug("CheckData: Finished checking data.")
 end
 
 
