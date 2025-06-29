@@ -10,22 +10,18 @@ end
 
 --[[On Server]]
 
-AddModRPCHandler(M23M.RPC_NAMESPACE, "region_system_require_rooms_data", function(player)
-    if IsRegionMgrExist() then
-        M23MLogUtils.PrintRPCLog(string.format("Player %s (%s) requires rooms data.", player.name, player.userid))
-        TheRegionMgr:CheckData()
-        TheRegionMgr:RefreashRooms()
-        TheRegionMgr:SendAllDatasToPlayer(player)
-    end
-end)
+-- AddModRPCHandler(M23M.RPC_NAMESPACE, "region_system_require_rooms_data", function(player)
+--     if IsRegionMgrExist() then
+--         M23MLogUtils.PrintRPCLog(string.format("Player %s (%s) requires rooms data.", player.name, player.userid))
+--     end
+-- end)
 
-AddModRPCHandler(M23M.RPC_NAMESPACE, "region_system_not_find_room", function(player, room_id)
-    if IsRegionMgrExist() then
-        M23MLogUtils.PrintRPCLog(string.format("Player %s (%s) was not find room: %s.", player.name, player.userid,
-            tostring(room_id)))
-        -- TheRegionMgr:SendAllDatasToPlayer(player)
-    end
-end)
+-- AddModRPCHandler(M23M.RPC_NAMESPACE, "region_system_not_find_room", function(player, room_id)
+--     if IsRegionMgrExist() then
+--         M23MLogUtils.PrintRPCLog(string.format("Player %s (%s) was not find room: %s.", player.name, player.userid,
+--             tostring(room_id)))
+--     end
+-- end)
 
 --[[On Client]]
 

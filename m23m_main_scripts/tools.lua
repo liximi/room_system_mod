@@ -176,8 +176,7 @@ _G.M23MLogUtils = {
 		if info then
 			src, line = info.source, info.currentline
 		end
-		print(M23M.MOD_ERROR_HEADER, string.format("%s: %s", tostring(src), tostring(line)))
-		print(...)
+		print(M23M.MOD_ERROR_HEADER, string.format("%s: %s\n", tostring(src), tostring(line)), ...)
 	end,
 
 	--打印警告日志
@@ -210,8 +209,7 @@ _G.M23MLogUtils = {
 			if info then
 				src, line = info.source, info.currentline
 			end
-			print(M23M.MOD_DEBUG_HEADER, string.format("%s: %s", tostring(src), tostring(line)))
-			print(...)
+			print(M23M.MOD_DEBUG_HEADER, string.format("%s: %s\n", tostring(src), tostring(line)), ...)
 		end
 		return ...
 	end

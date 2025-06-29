@@ -297,7 +297,7 @@ function RegionSystem:Generation(width, height, section_width, section_height)
 	--刷新边缘缓存
 	for base_i = 1, self.height, self.section_height do
 		for base_j = 1, self.width, self.section_width do
-			self:RefreashSection(base_j, base_i)
+			self:RefreashSectionEdges(base_j, base_i)
 		end
 	end
 	self:private_PushEvent("section_update_mult")
@@ -520,20 +520,22 @@ end
 --------------------------------------------------
 --region 分区Section相关
 
-function RegionSystem:GetSectionAABB(x, y)
+function RegionSystem:GetSectionAABB(x, y, only_xy)
 	local base_x = math.floor((x-1) / self.section_width) * self.section_width + 1
 	local base_y = math.floor((y-1) / self.section_height) * self.section_width + 1
 	if not self:IsVaildPosition(base_x, base_y) then
 		return
+	end
+	if only_xy then
+		return base_x, base_y
 	end
 	return base_x, base_y, math.min(base_x + self.section_width - 1, self.width), math.min(base_y + self.section_height - 1, self.height)
 end
 
 --<summary> 通过坐标获取该坐标所属的切片内的所有地块 </summary>
 function RegionSystem:GetAllTilesInSection(x, y, key)
-	local base_x = math.floor((x-1) / self.section_width) * self.section_width + 1
-	local base_y = math.floor((y-1) / self.section_height) * self.section_width + 1
-	if not self:IsVaildPosition(base_x, base_y) then
+	local base_x, base_y = self:GetSectionAABB(x, y, true)
+	if base_x == nil then
 		return
 	end
 	local tiles = {}
@@ -838,7 +840,7 @@ function RegionSystem:private_SetSpaceBatch(datas)	-- {x, y, space}, private_Set
 		local index = self:GetTileIndex(x, y)
 		assert(index <= self.max_index, string.format("AddTileToRegion Error: index out of range, x:%s, y:%s", tostring(x), tostring(y)))
 		self.tiles[REGION_SYS_TILE_KEYS.SPACE][index] = data[3] == true
-		local base_x, base_y = self:GetSectionAABB(data[1], data[2])
+		local base_x, base_y = self:GetSectionAABB(data[1], data[2], true)
 		if base_x then
 			if not sections[base_y] then
 				sections[base_y] = {}

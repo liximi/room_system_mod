@@ -17,6 +17,7 @@ end
 --解析来自主机的 rooms 数据数组
 local function decode_roomsdata(rooms_str)
 	if type(rooms_str) ~= "string" then
+		M23MLogUtils.PrintError("decode_roomsdata Error: rooms_str is not a string")
 		return {}
 	end
 
@@ -206,12 +207,15 @@ function RegionSystem:GetRoomData(room_type)
 	end
 end
 
-function RegionSystem:GetSectionAABB(x, y)
+function RegionSystem:GetSectionAABB(x, y, only_xy)
 	local base_x = math.floor((x-1) / self.section_width) * self.section_width + 1
 	local base_y = math.floor((y-1) / self.section_height) * self.section_width + 1
 	local index = self:GetTileIndex(base_x, base_y)
 	if not self.tiles[index] then
 		return
+	end
+	if only_xy then
+		return base_x, base_y
 	end
 	return base_x, base_y, math.min(base_x + self.section_width - 1, self.width), math.min(base_y + self.section_height - 1, self.height)
 end
@@ -297,7 +301,6 @@ function RegionSystem:ReceiveRoomsData(rooms_str, refresh_region)
 	self.rooms = decode_roomsdata(rooms_str)
 	if refresh_region then
 		for room_id, data in pairs(self.rooms) do
-			M23MLogUtils.PrintDebug("ReceiveRoomsData", room_id, #data.regions, data.regions[1], data.regions[#data.regions])
 			for _, region_id in ipairs(data.regions) do
 				if not self.regions[region_id] then
 					self.regions[region_id] = {tiles = {}, room = room_id, tiles_count = 0}
@@ -324,23 +327,22 @@ function RegionSystem:ReceiveInitSectionCache(sections_cache)
 		local regions = decode_int_array(cache_str)
 		local main_region_id = regions[1]
 		local base_x, base_y = self:GetSectionStartingPos(section_id)
+		local region = self.regions[main_region_id]
+		if region == nil then
+			M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found region with ID:", main_region_id, "base_x", base_x, "base_y", base_y)
+		end
 		for i = base_y, math.min(base_y + self.section_height - 1, self.height) do
 			for j = base_x, math.min(base_x + self.section_width - 1, self.width) do
 				local index = self:GetTileIndex(j, i)
 				self.tiles[REGION_SYS_TILE_KEYS.REGION][index] = main_region_id
-				if main_region_id ~= 0 then
-					local region = self.regions[main_region_id]
-					if region == nil then	--申请重新同步数据
-						M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found region with ID:", main_region_id)
-						self:RequireRoomsData()
-					else
-						region.tiles[index] = true
-						region.tiles_count = region.tiles_count + 1
-					end
+				if main_region_id ~= 0 and region ~= nil then
+					region.tiles[index] = true
+					region.tiles_count = region.tiles_count + 1
 				end
 			end
 		end
 
+		local temp_error_regions = {}
 		for i = 2, #regions, 2 do
 			local index = regions[i]
 			local region_id = regions[i+1]
@@ -348,9 +350,13 @@ function RegionSystem:ReceiveInitSectionCache(sections_cache)
 
 			if region_id ~= 0 then
 				local region = self.regions[region_id]
-				if region == nil then	--申请重新同步数据
-					M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found region with ID:", main_region_id)
-					self:RequireRoomsData()
+				if region == nil then
+					if not temp_error_regions[region_id] then
+						M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found region with ID:", region_id)
+						if region_id ~= nil then
+							temp_error_regions[region_id] = true
+						end
+					end
 				else
 					region.tiles[index] = true
 					region.tiles_count = region.tiles_count + 1
@@ -397,7 +403,6 @@ function RegionSystem:ReceiveSectionUpdateData(data)
 				local region = self.regions[tile_region]
 				if region == nil then	--申请重新同步数据
 					M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found region with ID:", tile_region)
-					self:RequireRoomsData()
 				else
 					region.tiles[index] = true
 					region.tiles_count = region.tiles_count + 1
@@ -423,7 +428,6 @@ function RegionSystem:ReceiveRoomsTypeUpdateData(data)
 		local room_type = room[2]
 		if self.rooms[room_id] == nil then	--申请重新同步数据
 			M23MLogUtils.PrintError(ERR_ROOM_DATA_NOT_SYNCHRONIZED, "Not found room with ID:", room_id)
-			self:__OnNotFindRoom(room_id)
 		else
 			self.rooms[room_id].type = room_type
 		end
@@ -434,16 +438,7 @@ end
 function RegionSystem:GetSectionStartingPos(section_id)
 	local section_y = math.ceil(section_id / self.section_count_x)
 	local section_x = section_id - (section_y - 1) * self.section_count_x
-	return (section_x - 1) * self.section_width, (section_y - 1) * self.section_height
-end
-
-
-function RegionSystem:RequireRoomsData()
-	SendModRPCToServer(MOD_RPC[M23M.RPC_NAMESPACE].region_system_require_rooms_data)
-end
-
-function RegionSystem:__OnNotFindRoom(room_id)
-	SendModRPCToServer(MOD_RPC[M23M.RPC_NAMESPACE].region_system_not_find_room, room_id)
+	return (section_x - 1) * self.section_width + 1, (section_y - 1) * self.section_height + 1
 end
 
 --endregion
