@@ -28,6 +28,8 @@ AddModRPCHandler(M23M.RPC_NAMESPACE, "region_system_not_find_room", function(pla
 end)
 
 --[[On Client]]
+
+--Init Datas
 AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_size_data",
     function(width, height, section_width, section_height)
         if IsRegionMgrExist() and TheRegionMgr.ReceiveMapSizeData and width and height and section_width and section_height then
@@ -56,6 +58,9 @@ AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_init_data", function(s
     end
     sections_cache = nil
 end)
+
+
+--Update Datas
 
 AddClientModRPCHandler(M23M.RPC_NAMESPACE, "region_system_update_section_data",
     function(data_pack) -- {tiles = {要更新的地块数据}, rooms = {全部房间数据}}

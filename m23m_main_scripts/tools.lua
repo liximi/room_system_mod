@@ -201,4 +201,18 @@ _G.M23MLogUtils = {
 			print(M23M.MOD_DEBUG_HEADER, ...)
 		end
 	end,
+
+	--打印数据，会将传入的数据透传回去，只是在过程中print一次
+	PrintData = function (...)
+		if _G.LiximiIsDevMode() then
+			local info = debug.getinfo(2, "Sl")
+			local src, line
+			if info then
+				src, line = info.source, info.currentline
+			end
+			print(M23M.MOD_DEBUG_HEADER, string.format("%s: %s", tostring(src), tostring(line)))
+			print(...)
+		end
+		return ...
+	end
 }
